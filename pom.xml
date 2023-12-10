@@ -191,7 +191,7 @@
       </dependency>
 
       <dependency>
-        <groupId>org.t-io</groupId>
+        <groupId>com.litongjava</groupId>
         <artifactId>tio-flash-policy-server</artifactId>
         <version>${tio.version}</version>
       </dependency>
@@ -204,23 +204,23 @@
 
 
       <dependency>
-        <groupId>org.t-io</groupId>
+        <groupId>com.litongjava</groupId>
         <artifactId>tio-websocket-common</artifactId>
         <version>${tio.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.t-io</groupId>
+        <groupId>com.litongjava</groupId>
         <artifactId>tio-websocket-server</artifactId>
         <version>${tio.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>org.t-io</groupId>
+        <groupId>com.litongjava</groupId>
         <artifactId>tio-http-common</artifactId>
         <version>${tio.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.t-io</groupId>
+        <groupId>com.litongjava</groupId>
         <artifactId>tio-http-server</artifactId>
         <version>${tio.version}</version>
       </dependency>
