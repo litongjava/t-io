@@ -2,8 +2,8 @@ package com.litongjava.tio.websocket.common;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.tio.core.intf.TioUuid;
-import org.tio.utils.hutool.Snowflake;
+import com.litongjava.tio.core.intf.TioUuid;
+import com.litongjava.tio.utils.hutool.Snowflake;
 
 /**
  * @author tanyaowu

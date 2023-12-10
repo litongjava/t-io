@@ -95,8 +95,14 @@ public class Tio {
      * @author tanyaowu
      */
     public static boolean isInBlacklist(TioConfig tioConfig, String ip) {
-      return tioConfig.ipBlacklist.isInBlacklist(ip)
-          || com.litongjava.tio.core.maintain.IpBlacklist.GLOBAL.isInBlacklist(ip);
+      if (tioConfig.ipBlacklist != null) {
+        return tioConfig.ipBlacklist.isInBlacklist(ip)
+            || com.litongjava.tio.core.maintain.IpBlacklist.GLOBAL.isInBlacklist(ip);
+        
+      } else {
+        return com.litongjava.tio.core.maintain.IpBlacklist.GLOBAL.isInBlacklist(ip);
+      }
+
     }
 
     /**

@@ -5,19 +5,19 @@ import java.nio.ByteBuffer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.core.ChannelContext;
-import org.tio.core.Tio;
-import org.tio.core.TioConfig;
-import org.tio.core.exception.TioDecodeException;
-import org.tio.core.intf.Packet;
-import org.tio.server.intf.ServerAioHandler;
 
+import com.litongjava.tio.core.ChannelContext;
+import com.litongjava.tio.core.Tio;
+import com.litongjava.tio.core.TioConfig;
+import com.litongjava.tio.core.exception.TioDecodeException;
+import com.litongjava.tio.core.intf.Packet;
 import com.litongjava.tio.http.common.HttpConfig;
 import com.litongjava.tio.http.common.HttpRequest;
 import com.litongjava.tio.http.common.HttpRequestDecoder;
 import com.litongjava.tio.http.common.HttpResponse;
 import com.litongjava.tio.http.common.HttpResponseEncoder;
 import com.litongjava.tio.http.common.handler.HttpRequestHandler;
+import com.litongjava.tio.server.intf.ServerAioHandler;
 
 /**
  *
@@ -78,16 +78,19 @@ public class HttpServerAioHandler implements ServerAioHandler {
 
     String ip = request.getClientIp();
 
-    if (channelContext.tioConfig.ipBlacklist.isInBlacklist(ip)) {
-      HttpResponse httpResponse = request.httpConfig.getRespForBlackIp();
-      if (httpResponse != null) {
-        Tio.send(channelContext, httpResponse);
-        return;
-      } else {
-        Tio.remove(channelContext, ip + "在黑名单中");
-        return;
+    if(channelContext.tioConfig.ipBlacklist!=null) {
+      if (channelContext.tioConfig.ipBlacklist.isInBlacklist(ip)) {
+        HttpResponse httpResponse = request.httpConfig.getRespForBlackIp();
+        if (httpResponse != null) {
+          Tio.send(channelContext, httpResponse);
+          return;
+        } else {
+          Tio.remove(channelContext, ip + "在黑名单中");
+          return;
+        }
       }
     }
+
 
     HttpResponse httpResponse = requestHandler.handler(request);
     if (httpResponse != null) {

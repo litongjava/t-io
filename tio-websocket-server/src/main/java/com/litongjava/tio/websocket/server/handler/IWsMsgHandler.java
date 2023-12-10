@@ -1,7 +1,6 @@
 package com.litongjava.tio.websocket.server.handler;
 
-import org.tio.core.ChannelContext;
-
+import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.http.common.HttpRequest;
 import com.litongjava.tio.http.common.HttpResponse;
 import com.litongjava.tio.websocket.common.WsRequest;

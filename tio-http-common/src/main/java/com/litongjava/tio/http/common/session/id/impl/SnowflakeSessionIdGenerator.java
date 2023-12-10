@@ -1,10 +1,9 @@
 package com.litongjava.tio.http.common.session.id.impl;
 
-import org.tio.utils.hutool.Snowflake;
-
 import com.litongjava.tio.http.common.HttpConfig;
 import com.litongjava.tio.http.common.HttpRequest;
 import com.litongjava.tio.http.common.session.id.ISessionIdGenerator;
+import com.litongjava.tio.utils.hutool.Snowflake;
 
 /**
  * @author tanyaowu

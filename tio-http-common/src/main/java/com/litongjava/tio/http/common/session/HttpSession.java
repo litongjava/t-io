@@ -6,9 +6,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.utils.SystemTimer;
 
 import com.litongjava.tio.http.common.HttpConfig;
+import com.litongjava.tio.utils.SystemTimer;
 
 /**
  *

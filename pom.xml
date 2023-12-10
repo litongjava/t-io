@@ -6,24 +6,9 @@
   <packaging>pom</packaging>
   <name>${project.artifactId}</name>
   <url>http://maven.apache.org</url>
-
   <description>t-io is a aio framework for java</description>
 
   <!-- <prerequisites> <maven>3.3.9</maven> </prerequisites> -->
-
-  <licenses>
-    <license>
-      <name>The Apache Software License, Version 2.0</name>
-      <url>https://gitee.com/tywo45/t-io/blob/master/LICENSE</url>
-    </license>
-  </licenses>
-
-
-  <scm>
-    <connection>scm:svn://gitee.com/tywo45/t-io</connection>
-    <developerConnection>scm:svn://gitee.com/tywo45/t-io</developerConnection>
-    <url>svn://gitee.com/tywo45/t-io</url>
-  </scm>
 
   <modules>
     <module>tio-http-server</module>
@@ -33,6 +18,21 @@
     <module>tio-core</module>
     <module>tio-utils</module>
   </modules>
+  
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://gitee.com/ppnt/license/blob/master/LICENSE</url>
+    </license>
+  </licenses>
+
+
+  <scm>
+    <connection>scm:svn://gitee.com/ppnt/t-io</connection>
+    <developerConnection>scm:svn://gitee.com/ppnt/t-io</developerConnection>
+    <url>svn://gitee.com/ppnt/t-io</url>
+  </scm>
+
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -126,7 +126,7 @@
       <id>tanyaowu</id>
       <name>tanyaowu</name>
       <email>tywo45@163.com</email>
-      <url>https://gitee.com/tywo45/t-io</url>
+      <url>https://gitee.com/ppnt/t-io</url>
     </developer>
   </developers>
 
@@ -185,7 +185,7 @@
         <version>${tio.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.t-io</groupId>
+        <groupId>com.litongjava</groupId>
         <artifactId>tio-core</artifactId>
         <version>${tio.version}</version>
       </dependency>
@@ -1392,8 +1392,8 @@
           <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
         </snapshotRepository>
         <repository>
-          <id>oss</id>
-          <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+          <id>ossrh</id>
+          <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
       </distributionManagement>
     </profile>

@@ -1,6 +1,6 @@
 package com.litongjava.tio.http.common;
 
-import org.tio.utils.SysConst;
+import com.litongjava.tio.utils.SysConst;
 
 /**
  * 本类直接摘自baseio: https://gitee.com/generallycloud/baseio<br>

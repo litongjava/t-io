@@ -3,7 +3,7 @@ package com.litongjava.tio.http.common;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
-import org.tio.utils.hutool.StrUtil;
+import com.litongjava.tio.utils.hutool.StrUtil;
 
 /**
  * @author tanyaowu

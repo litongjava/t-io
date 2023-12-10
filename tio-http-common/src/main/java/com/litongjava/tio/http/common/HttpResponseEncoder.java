@@ -8,13 +8,13 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.core.ChannelContext;
-import org.tio.core.TioConfig;
-import org.tio.utils.SysConst;
-import org.tio.utils.hutool.StrUtil;
 
+import com.litongjava.tio.core.ChannelContext;
+import com.litongjava.tio.core.TioConfig;
 import com.litongjava.tio.http.common.utils.HttpDateTimer;
 import com.litongjava.tio.http.common.utils.HttpGzipUtils;
+import com.litongjava.tio.utils.SysConst;
+import com.litongjava.tio.utils.hutool.StrUtil;
 
 /**
  * http server中使用
@@ -51,7 +51,7 @@ public class HttpResponseEncoder {
       if (StrUtil.isNotBlank(jsonp)) {
         jsonpBytes = jsonp.getBytes(httpRequest.getCharset());
         if (body == null) {
-          body = org.tio.utils.SysConst.NULL;
+          body = com.litongjava.tio.utils.SysConst.NULL;
         }
         byte[] bodyBs = new byte[jsonpBytes.length + 1 + body.length + 1];
         System.arraycopy(jsonpBytes, 0, bodyBs, 0, jsonpBytes.length);

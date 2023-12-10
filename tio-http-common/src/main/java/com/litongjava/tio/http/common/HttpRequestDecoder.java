@@ -9,16 +9,16 @@ import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.core.ChannelContext;
-import org.tio.core.Node;
-import org.tio.core.Tio;
-import org.tio.core.exception.TioDecodeException;
-import org.tio.utils.SysConst;
-import org.tio.utils.hutool.StrUtil;
 
+import com.litongjava.tio.core.ChannelContext;
+import com.litongjava.tio.core.Node;
+import com.litongjava.tio.core.Tio;
+import com.litongjava.tio.core.exception.TioDecodeException;
 import com.litongjava.tio.http.common.HttpConst.RequestBodyFormat;
 import com.litongjava.tio.http.common.utils.HttpParseUtils;
 import com.litongjava.tio.http.common.utils.IpUtils;
+import com.litongjava.tio.utils.SysConst;
+import com.litongjava.tio.utils.hutool.StrUtil;
 
 /**
  * http server中使用
@@ -650,7 +650,7 @@ public class HttpRequestDecoder {
           lastPosition = buffer.position();
 
           if (b == SysConst.SPACE) {
-            queryStr = org.tio.utils.SysConst.BLANK;
+            queryStr = com.litongjava.tio.utils.SysConst.BLANK;
           }
         }
         continue;

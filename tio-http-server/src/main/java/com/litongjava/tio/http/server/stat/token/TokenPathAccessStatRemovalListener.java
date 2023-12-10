@@ -2,10 +2,10 @@ package com.litongjava.tio.http.server.stat.token;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.core.TioConfig;
 
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.RemovalListener;
+import com.litongjava.tio.core.TioConfig;
 
 /**
  * @author tanyaowu 

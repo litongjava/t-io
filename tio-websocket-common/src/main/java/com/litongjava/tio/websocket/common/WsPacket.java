@@ -1,6 +1,6 @@
 package com.litongjava.tio.websocket.common;
 
-import org.tio.core.intf.Packet;
+import com.litongjava.tio.core.intf.Packet;
 
 /**
  *

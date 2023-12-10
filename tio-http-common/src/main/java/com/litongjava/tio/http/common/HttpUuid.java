@@ -2,7 +2,7 @@ package com.litongjava.tio.http.common;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.tio.core.intf.TioUuid;
+import com.litongjava.tio.core.intf.TioUuid;
 
 /**
  * @author tanyaowu

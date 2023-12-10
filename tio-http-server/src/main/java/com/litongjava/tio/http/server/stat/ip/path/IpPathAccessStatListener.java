@@ -1,7 +1,6 @@
 package com.litongjava.tio.http.server.stat.ip.path;
 
-import org.tio.core.TioConfig;
-
+import com.litongjava.tio.core.TioConfig;
 import com.litongjava.tio.http.common.HttpRequest;
 
 public interface IpPathAccessStatListener {

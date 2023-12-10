@@ -9,10 +9,10 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.utils.SysConst;
-import org.tio.utils.hutool.StrUtil;
 
 import com.litongjava.tio.http.common.utils.HttpGzipUtils;
+import com.litongjava.tio.utils.SysConst;
+import com.litongjava.tio.utils.hutool.StrUtil;
 
 /**
  *

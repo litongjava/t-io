@@ -2,9 +2,9 @@ package com.litongjava.tio.http.server.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.utils.hutool.ClassUtil;
 
 import com.litongjava.tio.http.common.UploadFile;
+import com.litongjava.tio.utils.hutool.ClassUtil;
 
 /**
  * @author tanyaowu
