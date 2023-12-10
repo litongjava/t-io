@@ -39,7 +39,7 @@
     <java.version>1.8</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
-    
+
     <maven-jar-plugin.version>3.1.0</maven-jar-plugin.version>
     <tio.version>3.7.3.v20210706-RELEASE</tio.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -179,9 +179,8 @@
         <version>${jna.version}</version>
       </dependency>
 
-
       <dependency>
-        <groupId>org.t-io</groupId>
+        <groupId>com.litongjava</groupId>
         <artifactId>tio-utils</artifactId>
         <version>${tio.version}</version>
       </dependency>

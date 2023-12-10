@@ -6,4 +6,31 @@
     <version>3.7.3.v20210706-RELEASE</version>
   </parent>
   <artifactId>tio-core</artifactId>
+  <dependencies>
+    <dependency>
+      <groupId>com.litongjava</groupId>
+      <artifactId>tio-utils</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.redisson</groupId>
+      <artifactId>redisson</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- org.tio.monitor.RateLimiterWrap会用到 -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- slf4j-logback绑定 -->
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+  </dependencies>
 </project>
