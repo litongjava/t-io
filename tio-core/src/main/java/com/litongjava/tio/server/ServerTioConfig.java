@@ -119,8 +119,8 @@ public class ServerTioConfig extends TioConfig {
         while (needCheckHeartbeat && !isStopped()) {
           // long sleeptime = heartbeatTimeout;
           if (heartbeatTimeout <= 0) {
-            log.info("{}, The user has canceled the heartbeat detection at the framework level, so if the business needs it, "
-                + "ask the user to complete the heartbeat detection by themselves", ServerTioConfig.this.name);
+            //log.info("{}, The user has canceled the heartbeat detection at the framework level, so if the business needs it, "
+            //    + "ask the user to complete the heartbeat detection by themselves", ServerTioConfig.this.name);
             break;
           }
           try {

@@ -71,14 +71,14 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
           // channelContext.traceClient(ChannelAction.UNCONNECT, null, null);
 
           if (channelContext.isClosed && !isNeedRemove) {
-            log.info("{}, {}已经关闭，备注:{}，异常:{}", channelContext.tioConfig, channelContext, remark,
-                throwable == null ? "无" : throwable.toString());
+            //log.info("{}, {}已经关闭，备注:{}，异常:{}", channelContext.tioConfig, channelContext, remark,
+            //    throwable == null ? "无" : throwable.toString());
             return;
           }
 
           if (channelContext.isRemoved) {
-            log.info("{}, {}已经删除，备注:{}，异常:{}", channelContext.tioConfig, channelContext, remark,
-                throwable == null ? "无" : throwable.toString());
+            //log.info("{}, {}已经删除，备注:{}，异常:{}", channelContext.tioConfig, channelContext, remark,
+            //    throwable == null ? "无" : throwable.toString());
             return;
           }
 
@@ -91,8 +91,8 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
           channelContext.handlerRunnable.clearMsgQueue();
           channelContext.sendRunnable.clearMsgQueue();
 
-          log.info("{}, {} 准备关闭连接, isNeedRemove:{}, {}", channelContext.tioConfig, channelContext, isNeedRemove,
-              remark);
+          //log.info("{}, {} 准备关闭连接, isNeedRemove:{}, {}", channelContext.tioConfig, channelContext, isNeedRemove,remark);
+              
 
           try {
             if (isNeedRemove) {

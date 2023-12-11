@@ -395,9 +395,9 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     this.isClosed = isClosed;
     if (isClosed) {
       if (clientNode == null || !UNKNOWN_ADDRESS_IP.equals(clientNode.getIp())) {
-        String before = this.toString();
+        // String before = this.toString();
         assignAnUnknownClientNode();
-        log.info("关闭前{}, 关闭后{}", before, this);
+        // log.info("关闭前{}, 关闭后{}", before, this);
       }
     }
   }
