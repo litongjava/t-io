@@ -458,11 +458,11 @@ public class Resps {
    * @param request
    * @param bodyString
    * @param charset
-   * @param Content_Type
+   * @param mimeTypeStr
    * @return
    * @author tanyaowu
    */
-  public static HttpResponse string(HttpRequest request, String bodyString, String charset, String Content_Type) {
+  public static HttpResponse string(HttpRequest request, String bodyString, String charset, String mimeTypeStr) {
     HttpResponse ret = new HttpResponse(request);
 //
 //		//处理jsonp
@@ -482,7 +482,7 @@ public class Resps {
         }
       }
     }
-    ret.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.from(Content_Type));
+    ret.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.from(mimeTypeStr));
     return ret;
   }
 
@@ -544,4 +544,5 @@ public class Resps {
    */
   private Resps() {
   }
+
 }

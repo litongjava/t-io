@@ -1,6 +1,8 @@
 package com.litongjava.tio.http.common;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -60,6 +62,14 @@ public class HttpPacket extends Packet {
    */
   public void setAttribute(String key, Serializable value) {
     props.put(key, value);
+  }
+
+  /**
+   * 
+   * @return key set
+   */
+  public Enumeration<String> getAttributeNames() {
+    return Collections.enumeration(props.keySet());
   }
 
   public HttpPacket() {
