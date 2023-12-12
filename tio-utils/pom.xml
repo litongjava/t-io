@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.litongjava</groupId>
     <artifactId>t-io</artifactId>
-    <version>3.7.3.v20210706-RELEASE</version>
+    <version>3.7.3.v20231212-RELEASE</version>
   </parent>
   <artifactId>tio-utils</artifactId>
   <dependencies>
@@ -12,15 +12,13 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.alibaba</groupId>
-      <artifactId>fastjson</artifactId>
-    </dependency>
+        <groupId>com.alibaba</groupId>
+        <artifactId>fastjson</artifactId>
+      </dependency>
     <dependency>
       <groupId>com.github.ben-manes.caffeine</groupId>
       <artifactId>caffeine</artifactId>
     </dependency>
-
-
     <dependency>
       <groupId>org.redisson</groupId>
       <artifactId>redisson</artifactId>
@@ -66,6 +64,12 @@
       <groupId>net.oschina.j2cache</groupId>
       <artifactId>j2cache-core</artifactId>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.alibaba</groupId>
+          <artifactId>fastjson</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>

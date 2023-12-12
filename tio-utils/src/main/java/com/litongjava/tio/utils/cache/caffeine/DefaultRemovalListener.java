@@ -15,7 +15,7 @@ import com.github.benmanes.caffeine.cache.RemovalListener;
 public class DefaultRemovalListener<K, V> implements RemovalListener<K, V> {
   private static Logger log = LoggerFactory.getLogger(DefaultRemovalListener.class);
 
-  private String cacheName = null;
+  private String cacheName;
 
   /**
    * 

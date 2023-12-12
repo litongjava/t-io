@@ -1,6 +1,13 @@
 # t-io
 ```
 <tio-version>3.7.3.v20210706-RELEASE</tio-version>
+```
+
+```
+<tio-version>3.7.3.v20231212-RELEASE</tio-version>
+```
+
+```
 <dependency>
   <groupId>com.litongjava</groupId>
   <artifactId>tio-http-server</artifactId>
