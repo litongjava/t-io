@@ -112,7 +112,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
         Packet packet = null;
         if (channelContext.packetNeededLength != null) {
           if (log.isInfoEnabled()) {
-            log.info("{}, 解码所需长度:{}", channelContext, channelContext.packetNeededLength);
+            log.info("{}, Length required for decoding:{}", channelContext, channelContext.packetNeededLength);
           }
           if (readableLength >= channelContext.packetNeededLength) {
             packet = tioConfig.getAioHandler().decode(byteBuffer, limit, initPosition, readableLength, channelContext);
@@ -140,14 +140,16 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
           channelStat.decodeFailCount++;
           // int len = byteBuffer.limit() - initPosition;
           if (log.isInfoEnabled()) {
-            log.info("{} 本次解码失败, 已经连续{}次解码失败，参与解码的数据长度共{}字节", channelContext, channelStat.decodeFailCount,
-                readableLength);
+            log.info(
+                "{} Failed to decode this time, has failed to decode for {} consecutive times, the length of data involved in decoding is {} bytes.",
+                channelContext, channelStat.decodeFailCount, readableLength);
           }
           if (channelStat.decodeFailCount > 5) {
             if (channelContext.packetNeededLength == null) {
               if (log.isInfoEnabled()) {
-                log.info("{} 本次解码失败, 已经连续{}次解码失败，参与解码的数据长度共{}字节", channelContext, channelStat.decodeFailCount,
-                    readableLength);
+                log.info(
+                    "{} Failed to decode this time, has failed to decode for {} consecutive times, the length of data involved in decoding is {} bytes.",
+                    channelContext, channelStat.decodeFailCount, readableLength);
               }
             }
 
