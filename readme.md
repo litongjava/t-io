@@ -4,7 +4,7 @@
 ```
 
 ```
-<tio-version>3.7.3.v20231212-RELEASE</tio-version>
+<tio-version>3.7.3.v20231215-RELEASE</tio-version>
 ```
 
 ```
