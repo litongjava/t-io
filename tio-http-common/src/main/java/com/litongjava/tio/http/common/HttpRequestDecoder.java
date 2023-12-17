@@ -65,11 +65,9 @@ public class HttpRequestDecoder {
     // int count = 0;
     // Step step = Step.firstline;
     // StringBuilder currLine = new StringBuilder();
-    Map<String, String> headers = new HashMap<>();
-    int contentLength = 0;
-    byte[] bodyBytes = null;
-    // StringBuilder headerSb = null;//new StringBuilder(512);
     RequestLine firstLine = null;
+    // StringBuilder headerSb = null;//new StringBuilder(512);
+
     // boolean appendRequestHeaderString = httpConfig.isAppendRequestHeaderString();
 
     // if (httpConfig != null) {
@@ -84,6 +82,9 @@ public class HttpRequestDecoder {
     if (firstLine == null) {
       return null;
     }
+    Map<String, String> headers = new HashMap<>();
+    int contentLength = 0;
+    byte[] bodyBytes = null;
     // request line end
 
     // HttpRequestHandler httpRequestHandler = (HttpRequestHandler)channelContext.tioConfig.getAttribute(TioConfigKey.HTTP_REQ_HANDLER);
@@ -640,6 +641,10 @@ public class HttpRequestDecoder {
           methodStr = StrCache.get(allbs, lastPosition, len);
           // methodStr = new String(allbs, lastPosition, len);
           lastPosition = buffer.position();
+        }
+        //GET,POST,PUT,OPTIONS,没有http的方法名会超过10个字节
+        if (lastPosition > 10) {
+          return null;
         }
         continue;
       } else if (pathStr == null) {
