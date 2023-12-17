@@ -7,10 +7,10 @@ import java.nio.charset.Charset;
  * 2018年7月1日 下午10:51:59
  */
 public interface SysConst {
-  String TIO_CORE_VERSION = "3.7.3.v20231212-RELEASE";
+  String TIO_CORE_VERSION = "3.7.3.v20231217-RELEASE";
   String TIO_URL_GITEE = "https://gitee.com/ppnt/t-io";
   String TIO_URL_GITHUB = "https://github.com/litongjava/t-io";
-  String TIO_URL_SITE = "https://www.litongjava.com";
+  String TIO_URL_SITE = "https://www.litongjava.com/t-io";
   String CHECK_LASTVERSION_URL_1 = TIO_URL_SITE + "/mytio/open/lastVersion1.tio_x?v=" + TIO_CORE_VERSION;
   String CHECK_LASTVERSION_URL_2 = TIO_URL_SITE + "/mytio/open/lastVersion2.tio_x?id=";
   /**

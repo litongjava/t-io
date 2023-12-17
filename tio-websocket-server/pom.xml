@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.litongjava</groupId>
     <artifactId>t-io</artifactId>
-    <version>3.7.3.v20231216-RELEASE</version>
+    <version>3.7.3.v20231217-RELEASE</version>
   </parent>
   <artifactId>tio-websocket-server</artifactId>
   <dependencies>
