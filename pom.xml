@@ -41,7 +41,7 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
 
     <maven-jar-plugin.version>3.1.0</maven-jar-plugin.version>
-    <tio.version>3.7.3.v20231216-RELEASE</tio.version>
+    <tio.version>3.7.3.v20231217-RELEASE</tio.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.test.skip>true</maven.test.skip>
