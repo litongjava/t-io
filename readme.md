@@ -1,11 +1,9 @@
 # t-io
-```
-<tio-version>3.7.3.v20210706-RELEASE</tio-version>
-```
-
-```
-<tio-version>3.7.3.v20231215-RELEASE</tio-version>
-```
+The package is distributed through Maven Central.
+[t-io](https://central.sonatype.com/artifact/com.litongjava/t-io)
+[tio-core)(https://central.sonatype.com/artifact/com.litongjava/tio-core)
+[tio-http-server](https://central.sonatype.com/artifact/com.litongjava/tio-http-server)
+[tio-websocket-server](https://central.sonatype.com/artifact/com.litongjava/tio-websocket-server)
 
 ```
 <dependency>
