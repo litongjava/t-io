@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.litongjava.tio.http.common.HttpRequest;
-import com.litongjava.tio.http.server.handler.DefaultHttpRequestHandler;
+import com.litongjava.tio.http.server.session.HttpSessionUtils;
 
 /**
  * @author tanyaowu
@@ -32,7 +32,7 @@ public class DefaultTokenGetter implements TokenGetter {
     // log.error("token from cookie: {}", cookie.getValue());
     // return cookie.getValue();
     // }
-    return DefaultHttpRequestHandler.getSessionId(request);
+    return HttpSessionUtils.getSessionId(request);
   }
 
 }

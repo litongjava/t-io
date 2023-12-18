@@ -12,12 +12,6 @@
       <artifactId>tio-http-common</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>com.thoughtworks.paranamer</groupId>
-      <artifactId>paranamer</artifactId>
-    </dependency>
-
-
     <!-- 如果用到freemarker，需要自己引入 -->
     <dependency>
       <groupId>org.freemarker</groupId>
@@ -46,17 +40,6 @@
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
       <scope>test</scope>
-    </dependency>
-
-
-    <dependency>
-      <groupId>com.esotericsoftware</groupId>
-      <artifactId>reflectasm</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
     </dependency>
   </dependencies>
 </project>
