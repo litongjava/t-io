@@ -374,4 +374,8 @@ public class HttpResponse extends HttpPacket {
   // public int getCookieByteCount() {
   // return cookieByteCount;
   // }
+
+  public void setContentType(String contentType) {
+    this.addHeader(HeaderName.Content_Type, HeaderValue.from(contentType));
+  }
 }
