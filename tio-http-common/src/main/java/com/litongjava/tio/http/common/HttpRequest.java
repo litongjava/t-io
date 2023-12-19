@@ -517,7 +517,7 @@ public class HttpRequest extends HttpPacket {
    */
   @Override
   public String logstr() {
-    String str = "\r\n请求ID_" + getId() + SysConst.CRLF + getHeaderString();
+    String str = "request ID_" + getId() + SysConst.CRLF + getHeaderString();
     if (null != getBodyString()) {
       str += getBodyString();
     }

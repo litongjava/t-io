@@ -283,7 +283,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 
     try {
       if (log.isDebugEnabled()) {
-        log.debug("{} 已经发送 {}", this, packet.logstr());
+        log.debug("{} Sent {}", this, packet.logstr());
       }
 
       // 非SSL or SSL已经握手

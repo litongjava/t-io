@@ -13,10 +13,10 @@ import java.lang.annotation.Target;
 })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface HttpCache {
-	int timeToIdleSeconds() default 10;
+  int timeToIdleSeconds() default 10;
 
-	int timeToLiveSeconds() default 0;
+  int timeToLiveSeconds() default 0;
 
-	String[] params();
+  String[] params();
 
 }

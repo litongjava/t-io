@@ -251,10 +251,10 @@ public class HttpResponse extends HttpPacket {
   public String logstr() {
     String str = null;
     if (request != null) {
-      str = "\r\n响应: 请求ID_" + request.getId() + "  " + request.getRequestLine().getPathAndQuery();
+      str = "reponse: requestID_" + request.getId() + "  " + request.getRequestLine().getPathAndQuery();
       str += SysConst.CRLF + this.getHeaderString();
     } else {
-      str = "\r\n响应\r\n" + status.getHeaderText();
+      str = "nresponse " + status.getHeaderText();
     }
     return str;
   }

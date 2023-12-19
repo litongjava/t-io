@@ -199,7 +199,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
           }
 
           if (log.isDebugEnabled()) {
-            log.debug("{}, 解包获得一个packet:{}", channelContext, packet.logstr());
+            log.debug("{}, Unpacking to get a packet:{}", channelContext, packet.logstr());
           }
 
           handler(packet, packetSize);
@@ -207,21 +207,21 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
           if (byteBuffer.hasRemaining())// 组包后，还剩有数据
           {
             if (log.isDebugEnabled()) {
-              log.debug("{},组包后，还剩有数据:{}", channelContext, byteBuffer.remaining());
+              log.debug("{},After grouping packets, there is still data left:{}", channelContext, byteBuffer.remaining());
             }
             continue label_2;
           } else// 组包后，数据刚好用完
           {
             lastByteBuffer = null;
             if (log.isDebugEnabled()) {
-              log.debug("{},组包后，数据刚好用完", channelContext);
+              log.debug("{},After grouping the packets, the data just ran out", channelContext);
             }
             return;
           }
         }
       } catch (Throwable e) {
         if (channelContext.logWhenDecodeError) {
-          log.error("解码时遇到异常", e);
+          log.error("Encountered an exception while decoding", e);
         }
 
         channelContext.setPacketNeededLength(null);

@@ -17,6 +17,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.fastjson2.JSON;
 import com.litongjava.tio.core.TcpConst;
 import com.litongjava.tio.http.common.HttpConfig;
 import com.litongjava.tio.http.common.HttpConst;
@@ -31,7 +32,6 @@ import com.litongjava.tio.utils.cache.caffeine.CaffeineCache;
 import com.litongjava.tio.utils.http.HttpUtils;
 import com.litongjava.tio.utils.hutool.FileUtil;
 import com.litongjava.tio.utils.hutool.StrUtil;
-import com.litongjava.tio.utils.json.Json;
 import com.litongjava.tio.utils.thread.pool.SynThreadPoolExecutor;
 
 import okhttp3.Response;
@@ -323,7 +323,7 @@ public class HttpServerStarter {
         }
 
         log.info("预访问了{}个path，耗时:{}ms，访问详情:\r\n{}\r\n耗时排序:\r\n{}", pathCostMap.size(), iv,
-            Json.toFormatedJson(pathCostMap), Json.toFormatedJson(costPathsMap));
+            JSON.toJSONString(pathCostMap), JSON.toJSONString(costPathsMap));
       }
     }).start();
 

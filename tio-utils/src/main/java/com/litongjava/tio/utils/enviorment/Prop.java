@@ -1,4 +1,4 @@
-package com.litongjava.tio.utils.jfinal;
+package com.litongjava.tio.utils.enviorment;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -6,66 +6,56 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.litongjava.tio.utils.SysConst;
-
 /**
- * 
- * @author tanyaowu
+ * Prop. Prop can load properties file from CLASSPATH or File object.
  */
 public class Prop {
-  private static Logger log = LoggerFactory.getLogger(Prop.class);
 
-  private Properties properties = null;
+  public static final Charset DEFAULT_ENCODING = StandardCharsets.UTF_8;
+
+  protected Properties properties;
 
   /**
-   * 
-   * @param fileName
+   * 支持 new Prop().appendIfExists(...)
+   */
+  public Prop() {
+    properties = new Properties();
+  }
+
+  /**
+   * Prop constructor.
+   * @see #Prop(String, String)
    */
   public Prop(String fileName) {
-    this(fileName, SysConst.DEFAULT_ENCODING);
+    this(fileName, DEFAULT_ENCODING);
   }
 
   /**
+   * Prop constructor
+   * <p>
+   * Example:<br>
+   * Prop prop = new Prop("my_config.txt", "UTF-8");<br>
+   * String userName = prop.get("userName");<br><br>
    * 
-   * @param fileName
-   * @param encoding
-   */
-  public Prop(String fileName, String encoding) {
-    this(fileName, Charset.forName(encoding));
-  }
-
-  /**
+   * prop = new Prop("com/jfinal/file_in_sub_path_of_classpath.txt", "UTF-8");<br>
+   * String value = prop.get("key");
    * 
-   * @param fileName
-   * @param charset
+   * @param fileName the properties file's name in classpath or the sub directory of classpath
+   * @param encoding the encoding
    */
-  public Prop(String fileName, Charset charset) {
+  public Prop(String fileName, Charset encoding) {
+    encoding.toString();
     InputStream inputStream = null;
     try {
       inputStream = getClassLoader().getResourceAsStream(fileName); // properties.load(Prop.class.getResourceAsStream(fileName));
-      // 如果从类路径找不到文件，则尝试从文件系统中读取
       if (inputStream == null) {
-        Path path = Paths.get(fileName);
-
-        // 检查文件是否存在，如果不存在，则创建
-        if (!Files.exists(path)) {
-          Files.createFile(path);
-        }
-
-        // 从文件系统打开输入流
-        inputStream = Files.newInputStream(path);
+        throw new IllegalArgumentException("Properties file not found in classpath: " + fileName);
       }
-
       properties = new Properties();
-      properties.load(new InputStreamReader(inputStream, charset));
+      properties.load(new InputStreamReader(inputStream, encoding));
     } catch (IOException e) {
       throw new RuntimeException("Error loading properties file.", e);
     } finally {
@@ -73,14 +63,9 @@ public class Prop {
         try {
           inputStream.close();
         } catch (IOException e) {
-          log.error(e.getMessage(), e);
+          e.printStackTrace();
         }
     }
-  }
-
-  private String[] split(String string) {
-    // TODO Auto-generated method stub
-    return null;
   }
 
   private ClassLoader getClassLoader() {
@@ -93,24 +78,20 @@ public class Prop {
    * @see #Prop(File, String)
    */
   public Prop(File file) {
-    this(file, SysConst.DEFAULT_ENCODING);
+    this(file, DEFAULT_ENCODING);
   }
 
   /**
+   * Prop constructor
+   * <p>
+   * Example:<br>
+   * Prop prop = new Prop(new File("/var/config/my_config.txt"), "UTF-8");<br>
+   * String userName = prop.get("userName");
    * 
-   * @param file
-   * @param encoding
+   * @param file the properties File object
+   * @param encoding the encoding
    */
-  public Prop(File file, String encoding) {
-    this(file, Charset.forName(encoding));
-  }
-
-  /**
-   * 
-   * @param file
-   * @param charset
-   */
-  public Prop(File file, Charset charset) {
+  public Prop(File file, Charset encoding) {
     if (file == null) {
       throw new IllegalArgumentException("File can not be null.");
     }
@@ -122,7 +103,7 @@ public class Prop {
     try {
       inputStream = new FileInputStream(file);
       properties = new Properties();
-      properties.load(new InputStreamReader(inputStream, charset));
+      properties.load(new InputStreamReader(inputStream, encoding));
     } catch (IOException e) {
       throw new RuntimeException("Error loading properties file.", e);
     } finally {
@@ -130,16 +111,11 @@ public class Prop {
         try {
           inputStream.close();
         } catch (IOException e) {
-          log.error(e.getMessage(), e);
+          e.printStackTrace();
         }
     }
   }
 
-  /**
-   * 
-   * @param prop
-   * @return
-   */
   public Prop append(Prop prop) {
     if (prop == null) {
       throw new IllegalArgumentException("prop can not be null");
@@ -148,19 +124,15 @@ public class Prop {
     return this;
   }
 
-  public Prop append(String fileName, String encoding) {
+  public Prop append(String fileName, Charset encoding) {
     return append(new Prop(fileName, encoding));
   }
 
-  public Prop append(String fileName, Charset charset) {
-    return append(new Prop(fileName, charset));
-  }
-
   public Prop append(String fileName) {
-    return append(fileName, SysConst.DEFAULT_CHARSET);
+    return append(fileName, DEFAULT_ENCODING);
   }
 
-  public Prop appendIfExists(String fileName, String encoding) {
+  public Prop appendIfExists(String fileName, Charset encoding) {
     try {
       return append(new Prop(fileName, encoding));
     } catch (Exception e) {
@@ -169,34 +141,37 @@ public class Prop {
   }
 
   public Prop appendIfExists(String fileName) {
-    return appendIfExists(fileName, SysConst.DEFAULT_ENCODING);
+    return appendIfExists(fileName, DEFAULT_ENCODING);
   }
 
-  public Prop append(File file, String encoding) {
+  public Prop append(File file, Charset encoding) {
     return append(new Prop(file, encoding));
   }
 
   public Prop append(File file) {
-    return append(file, SysConst.DEFAULT_ENCODING);
+    return append(file, DEFAULT_ENCODING);
   }
 
-  public Prop appendIfExists(File file, String encoding) {
-    if (file.exists()) {
+  public Prop appendIfExists(File file, Charset encoding) {
+    if (file.isFile()) {
       append(new Prop(file, encoding));
     }
     return this;
   }
 
   public Prop appendIfExists(File file) {
-    return appendIfExists(file, SysConst.DEFAULT_ENCODING);
+    return appendIfExists(file, DEFAULT_ENCODING);
   }
 
   public String get(String key) {
-    return properties.getProperty(key);
+    // 下面这行代码只要 key 存在，就不会返回 null。未给定 value 或者给定一个或多个空格都将返回 ""
+    String value = properties.getProperty(key);
+    return value != null && value.length() != 0 ? value.trim() : null;
   }
 
   public String get(String key, String defaultValue) {
-    return properties.getProperty(key, defaultValue);
+    String value = properties.getProperty(key);
+    return value != null && value.length() != 0 ? value.trim() : defaultValue;
   }
 
   public Integer getInt(String key) {
@@ -223,6 +198,18 @@ public class Prop {
     return defaultValue;
   }
 
+  public Double getDouble(String key) {
+    return getDouble(key, null);
+  }
+
+  public Double getDouble(String key, Double defaultValue) {
+    String value = properties.getProperty(key);
+    if (value != null) {
+      return Double.parseDouble(value.trim());
+    }
+    return defaultValue;
+  }
+
   public Boolean getBoolean(String key) {
     return getBoolean(key, null);
   }
@@ -243,6 +230,14 @@ public class Prop {
 
   public boolean containsKey(String key) {
     return properties.containsKey(key);
+  }
+
+  public boolean isEmpty() {
+    return properties.isEmpty();
+  }
+
+  public boolean notEmpty() {
+    return !properties.isEmpty();
   }
 
   public Properties getProperties() {

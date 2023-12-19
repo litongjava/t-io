@@ -12,6 +12,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.fastjson2.JSON;
 import com.litongjava.tio.http.common.HeaderName;
 import com.litongjava.tio.http.common.HeaderValue;
 import com.litongjava.tio.http.common.HttpConfig;
@@ -26,7 +27,6 @@ import com.litongjava.tio.utils.IoUtils;
 import com.litongjava.tio.utils.hutool.ClassUtil;
 import com.litongjava.tio.utils.hutool.FileUtil;
 import com.litongjava.tio.utils.hutool.StrUtil;
-import com.litongjava.tio.utils.json.Json;
 
 /**
  * @author tanyaowu
@@ -375,7 +375,7 @@ public class Resps {
       if (body.getClass() == String.class || ClassUtil.isBasicType(body.getClass())) {
         ret = string(request, body + "", charset, getMimeTypeStr(MimeType.TEXT_PLAIN_JSON, charset));
       } else {
-        ret = string(request, Json.toJson(body), charset, getMimeTypeStr(MimeType.TEXT_PLAIN_JSON, charset));
+        ret = string(request, JSON.toJSONString(body), charset, getMimeTypeStr(MimeType.TEXT_PLAIN_JSON, charset));
       }
     }
     return ret;

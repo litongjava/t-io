@@ -37,11 +37,11 @@ public class Threads {
       return groupExecutor;
     }
 
-    synchronized (Threads.class) {
-      if (groupExecutor != null) {
-        return groupExecutor;
-      }
+    return newGruopExecutor();
+  }
 
+  public static ThreadPoolExecutor newGruopExecutor() {
+    synchronized (Threads.class) {
       LinkedBlockingQueue<Runnable> runnableQueue = new LinkedBlockingQueue<>();
       // ArrayBlockingQueue<Runnable> groupQueue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
       String threadName = "tio-group";
@@ -67,11 +67,11 @@ public class Threads {
       return tioExecutor;
     }
 
-    synchronized (Threads.class) {
-      if (tioExecutor != null) {
-        return tioExecutor;
-      }
+    return newTioExecutor();
+  }
 
+  public static SynThreadPoolExecutor newTioExecutor() {
+    synchronized (Threads.class) {
       LinkedBlockingQueue<Runnable> runnableQueue = new LinkedBlockingQueue<>();
       // ArrayBlockingQueue<Runnable> tioQueue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
       String threadName = "tio-worker";
@@ -85,6 +85,13 @@ public class Threads {
       // tioExecutor.prestartAllCoreThreads();
       return tioExecutor;
     }
+  }
+
+  public static void close() {
+    groupExecutor.shutdown();
+    tioExecutor.shutdown();
+    groupExecutor = null;
+    tioExecutor = null;
   }
 
   /**
