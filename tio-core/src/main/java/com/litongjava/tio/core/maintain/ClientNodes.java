@@ -1,6 +1,7 @@
 package com.litongjava.tio.core.maintain;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 
 import org.slf4j.Logger;
@@ -18,21 +19,32 @@ import com.litongjava.tio.utils.lock.MapWithLock;
 public class ClientNodes {
   private static final Logger log = LoggerFactory.getLogger(ClientNodes.class);
 
-  /** remoteAndChannelContext key: "ip:port" value: ChannelContext. */
-  private MapWithLock<Node, ChannelContext> mapWithLock = new MapWithLock<>();
+  /** remoteAndChannelContext key: Node value: ChannelContext. */
+  private final MapWithLock<Node, ChannelContext> mapWithLock = new MapWithLock<>();
 
   /**
    *
-   * @param key
+   * @param channelContext ChannelContext
+   * @return Node
+   * @author tanyaowu
+   */
+  public static Node getKey(ChannelContext channelContext) {
+    Node clientNode = channelContext.getClientNode();
+    return Objects.requireNonNull(clientNode, "client node is null");
+  }
+
+  /**
+   *
+   * @param clientNode
    * @return
    * @author tanyaowu
    */
-  public ChannelContext find(Node key) {
+  public ChannelContext find(Node clientNode) {
     Lock lock = mapWithLock.readLock();
     lock.lock();
     try {
       Map<Node, ChannelContext> m = mapWithLock.getObj();
-      return m.get(key);
+      return m.get(clientNode);
     } finally {
       lock.unlock();
     }
@@ -60,7 +72,7 @@ public class ClientNodes {
 
   /**
    * 添加映射
-   * @param channelContext
+   * @param channelContext ChannelContext
    * @author tanyaowu
    */
   public void put(ChannelContext channelContext) {
@@ -68,10 +80,10 @@ public class ClientNodes {
       return;
     }
     try {
-      Node clientNode = channelContext.getClientNode();
+      Node clientNode = getKey(channelContext);
       mapWithLock.put(clientNode, channelContext);
     } catch (Exception e) {
-      log.error("Excpetion:{}", e);
+      log.error(e.toString(), e);
     }
   }
 
@@ -85,8 +97,8 @@ public class ClientNodes {
       return;
     }
     try {
-      Node node = channelContext.getClientNode();
-      mapWithLock.remove(node);
+      Node clientNode = getKey(channelContext);
+      mapWithLock.remove(clientNode);
     } catch (Throwable e) {
       log.error(e.toString(), e);
     }

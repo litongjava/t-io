@@ -338,10 +338,11 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
         Node clientNode = createClientNode(asynchronousSocketChannel);
         setClientNode(clientNode);
       } catch (IOException e) {
-        log.info(e.toString(), e);
+        log.error(e.getMessage());
         assignAnUnknownClientNode();
       }
     } else {
+      log.error("assignAnUnknownClientNode:{}",asynchronousSocketChannel);
       assignAnUnknownClientNode();
     }
   }
