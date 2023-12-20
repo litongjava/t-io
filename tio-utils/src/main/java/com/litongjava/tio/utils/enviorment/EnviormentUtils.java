@@ -33,9 +33,13 @@ public class EnviormentUtils {
   public static String getStr(String key) {
     // comamdn line
     String value = cmdArgsMap.get(key);
-    // enviorment
+    // java env
     if (value == null) {
       value = System.getProperty(key);
+    }
+    // system env
+    if (value == null) {
+      value = System.getenv(key);
     }
 
     // config file
