@@ -11,6 +11,10 @@
       <groupId>com.litongjava</groupId>
       <artifactId>tio-http-common</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.alibaba.fastjson2</groupId>
+      <artifactId>fastjson2</artifactId>
+    </dependency>
 
     <!-- 如果用到freemarker，需要自己引入 -->
     <dependency>

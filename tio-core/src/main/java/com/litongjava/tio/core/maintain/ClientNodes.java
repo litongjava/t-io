@@ -16,37 +16,10 @@ import com.litongjava.tio.utils.lock.MapWithLock;
  * 2017年4月1日 上午9:35:20
  */
 public class ClientNodes {
-  private static Logger log = LoggerFactory.getLogger(ClientNodes.class);
-
-  /**
-   *
-   * @param channelContext
-   * @return
-   * @author tanyaowu
-   */
-  public static String getKey(ChannelContext channelContext) {
-    Node clientNode = channelContext.getClientNode();
-    if (clientNode == null) {
-      throw new RuntimeException("client node is null");
-    }
-    String key = getKey(clientNode.getIp(), clientNode.getPort());
-    return key;
-  }
-
-  /**
-   *
-   * @param ip
-   * @param port
-   * @return
-   * @author tanyaowu
-   */
-  public static String getKey(String ip, int port) {
-    String key = ip + ":" + port;
-    return key;
-  }
+  private static final Logger log = LoggerFactory.getLogger(ClientNodes.class);
 
   /** remoteAndChannelContext key: "ip:port" value: ChannelContext. */
-  private MapWithLock<String, ChannelContext> mapWithLock = new MapWithLock<>();
+  private MapWithLock<Node, ChannelContext> mapWithLock = new MapWithLock<>();
 
   /**
    *
@@ -54,14 +27,12 @@ public class ClientNodes {
    * @return
    * @author tanyaowu
    */
-  public ChannelContext find(String key) {
+  public ChannelContext find(Node key) {
     Lock lock = mapWithLock.readLock();
     lock.lock();
     try {
-      Map<String, ChannelContext> m = mapWithLock.getObj();
+      Map<Node, ChannelContext> m = mapWithLock.getObj();
       return m.get(key);
-    } catch (Throwable e) {
-      throw e;
     } finally {
       lock.unlock();
     }
@@ -75,8 +46,7 @@ public class ClientNodes {
    * @author tanyaowu
    */
   public ChannelContext find(String ip, int port) {
-    String key = getKey(ip, port);
-    return find(key);
+    return find(new Node(ip, port));
   }
 
   /**
@@ -84,7 +54,7 @@ public class ClientNodes {
    * @return
    * @author tanyaowu
    */
-  public MapWithLock<String, ChannelContext> getObjWithLock() {
+  public MapWithLock<Node, ChannelContext> getObjWithLock() {
     return mapWithLock;
   }
 
@@ -98,10 +68,10 @@ public class ClientNodes {
       return;
     }
     try {
-      String key = getKey(channelContext);
-      mapWithLock.put(key, channelContext);
+      Node clientNode = channelContext.getClientNode();
+      mapWithLock.put(clientNode, channelContext);
     } catch (Exception e) {
-      log.error(e.toString(), e);
+      log.error("Excpetion:{}", e);
     }
   }
 
@@ -115,8 +85,8 @@ public class ClientNodes {
       return;
     }
     try {
-      String key = getKey(channelContext);
-      mapWithLock.remove(key);
+      Node node = channelContext.getClientNode();
+      mapWithLock.remove(node);
     } catch (Throwable e) {
       log.error(e.toString(), e);
     }
