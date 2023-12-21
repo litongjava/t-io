@@ -1,4 +1,4 @@
-package com.litongjava.tio.utils.enviorment;
+package com.litongjava.tio.utils.environment;
 
 import java.io.File;
 import java.nio.charset.Charset;

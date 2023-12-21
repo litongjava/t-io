@@ -1,9 +1,9 @@
-package com.litongjava.tio.utils.enviorment;
+package com.litongjava.tio.utils.environment;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class EnviormentUtils {
+public class EnvironmentUtils {
   private static String[] args;
   private static Map<String, String> cmdArgsMap = new HashMap<>();
 
@@ -16,7 +16,7 @@ public class EnviormentUtils {
   }
 
   public static Map<String, String> buildCmdArgsMap(String[] args) {
-    EnviormentUtils.args = args;
+    EnvironmentUtils.args = args;
     Map<String, String> result = new HashMap<>();
     for (String arg : args) {
       if (arg.startsWith("--")) {
@@ -40,6 +40,9 @@ public class EnviormentUtils {
     // system env
     if (value == null) {
       value = System.getenv(key);
+      if (value == null) {
+        value = System.getenv(key.replace(".", "_").toUpperCase());
+      }
     }
 
     // config file
