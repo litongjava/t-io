@@ -180,6 +180,13 @@ public class HttpResponse extends HttpPacket {
     headerByteCount += (key.bytes.length + value.bytes.length + 3); // 冒号和\r\n
   }
 
+  public void addHeader(String name, String headeValue) {
+    HeaderName key = HeaderName.from(name);
+    HeaderValue value = HeaderValue.from(headeValue);
+    headers.put(key, value);
+    headerByteCount += (key.bytes.length + value.bytes.length + 3); // 冒号和\r\n
+  }
+
   public void addHeaders(Map<HeaderName, HeaderValue> headers) {
     if (headers != null) {
       Set<Entry<HeaderName, HeaderValue>> set = headers.entrySet();
