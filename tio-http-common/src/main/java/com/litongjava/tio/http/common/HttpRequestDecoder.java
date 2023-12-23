@@ -18,6 +18,7 @@ import com.litongjava.tio.http.common.HttpConst.RequestBodyFormat;
 import com.litongjava.tio.http.common.utils.HttpParseUtils;
 import com.litongjava.tio.http.common.utils.IpUtils;
 import com.litongjava.tio.utils.SysConst;
+import com.litongjava.tio.utils.environment.EnvironmentUtils;
 import com.litongjava.tio.utils.hutool.StrUtil;
 
 /**
@@ -338,9 +339,12 @@ public class HttpRequestDecoder {
         try {
           bodyString = new String(bodyBytes, httpRequest.getCharset());
           httpRequest.setBodyString(bodyString);
-          if (log.isInfoEnabled()) {
-            log.info("{} body value\r\n{}", channelContext, bodyString);
+          if (EnvironmentUtils.getBoolean("tio.devMode", false)) {
+            if (log.isInfoEnabled()) {
+              log.info("{} body value\r\n{}", channelContext, bodyString);
+            }
           }
+
         } catch (UnsupportedEncodingException e) {
           log.error(channelContext.toString(), e);
         }
@@ -356,33 +360,53 @@ public class HttpRequestDecoder {
   /**
    * Content-Type : application/x-www-form-urlencoded; charset=UTF-8
    * Content-Type : application/x-www-form-urlencoded; charset=UTF-8
+  在 `HttpRequest` 中，请求类型通常指的是请求正文（body）的内容类型（也称为 MIME 类型）。这些类型指定了请求正文的格式，以便服务器能够正确解析。除了您提到的 `application/x-www-form-urlencoded` (URLENCODED), `multipart/form-data` (MULTIPART), 和 `text/plain` (TEXT)，还有其他几种常见的请求类型：
+  1. **`application/json`**：用于发送 JSON 格式的数据。在现代的 Web API 中非常常见。
+  2. **`application/xml` 或 `text/xml`**：用于发送 XML 格式的数据。
+  3. **`application/javascript`**：用于发送 JavaScript 代码。
+  4. **`application/octet-stream`**：用于发送二进制数据，比如文件上传。
+  5. **`text/html`**：用于发送 HTML 格式的数据。
+  6. **`application/graphql`**：用于 GraphQL 请求。
+  7. **`image/png`, `image/jpeg` 等**：用于发送特定类型的图像数据。
+  
+  这些是一些常见的请求类型。实际上，请求类型可以是任何值，但为了确保数据正确解析，通常使用标准的 MIME 类型。不同的服务器和应用程序可能支持不同的请求类型。
    * @param httpRequest
    * @param headers
    * @author tanyaowu
    */
   public static void parseBodyFormat(HttpRequest httpRequest, Map<String, String> headers) {
     String contentType = headers.get(HttpConst.RequestHeaderKey.Content_Type);
-    String Content_Type = null;
     if (contentType != null) {
-      Content_Type = contentType.toLowerCase();
+      contentType = contentType.toLowerCase();
     }
 
-    if (Content_Type.startsWith(HttpConst.RequestHeaderValue.Content_Type.text_plain)) {
+    if (isText(contentType)) {
       httpRequest.setBodyFormat(RequestBodyFormat.TEXT);
-    } else if (Content_Type.startsWith(HttpConst.RequestHeaderValue.Content_Type.multipart_form_data)) {
+    } else if (contentType.startsWith(HttpConst.RequestHeaderValue.Content_Type.multipart_form_data)) {
       httpRequest.setBodyFormat(RequestBodyFormat.MULTIPART);
     } else {
       httpRequest.setBodyFormat(RequestBodyFormat.URLENCODED);
     }
 
-    if (StrUtil.isNotBlank(Content_Type)) {
-      String charset = HttpParseUtils.getSubAttribute(Content_Type, "charset");// .getPerprotyEqualValue(headers, HttpConst.RequestHeaderKey.Content_Type, "charset");
+    if (StrUtil.isNotBlank(contentType)) {
+      String charset = HttpParseUtils.getSubAttribute(contentType, "charset");// .getPerprotyEqualValue(headers, HttpConst.RequestHeaderKey.Content_Type, "charset");
       if (StrUtil.isNotBlank(charset)) {
         httpRequest.setCharset(charset);
       } else {
         httpRequest.setCharset(SysConst.DEFAULT_ENCODING);
       }
     }
+  }
+
+  /**
+   * 请求类型是否为文本
+   * @param contentType
+   * @return
+   */
+  private static boolean isText(String contentType) {
+    return contentType.startsWith(HttpConst.RequestHeaderValue.Content_Type.text_plain)
+        //
+        || contentType.startsWith(MimeType.TEXT_PLAIN_JSON.getType());
   }
 
   /**
@@ -642,7 +666,7 @@ public class HttpRequestDecoder {
           // methodStr = new String(allbs, lastPosition, len);
           lastPosition = buffer.position();
         }
-        //GET,POST,PUT,OPTIONS,没有http的方法名会超过10个字节
+        // GET,POST,PUT,OPTIONS,没有http的方法名会超过10个字节
         if (lastPosition > 10) {
           return null;
         }
