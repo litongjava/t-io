@@ -33,6 +33,10 @@ public class HttpResponse extends HttpPacket {
    * true: 静态资源
    */
   private boolean isStaticRes = false;
+  /**
+   * 是否向客户端发送消息,SSE的情况下不发送,由Controller控制具体的方式
+   */
+  private boolean send=false;
   private HttpRequest request = null;
   private List<Cookie> cookies = null;
   private Map<HeaderName, HeaderValue> headers = new HashMap<>();
@@ -384,5 +388,14 @@ public class HttpResponse extends HttpPacket {
 
   public void setContentType(String contentType) {
     this.addHeader(HeaderName.Content_Type, HeaderValue.from(contentType));
+  }
+
+  public boolean isSend() {
+    return send;
+  }
+
+  public HttpResponse setSend(boolean send) {
+    this.send = send;
+    return this;
   }
 }
