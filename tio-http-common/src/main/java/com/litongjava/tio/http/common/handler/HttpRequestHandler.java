@@ -24,7 +24,6 @@ public interface HttpRequestHandler {
    * 响应404
    * @param request
    * @param requestLine
-   * @param channelContext
    * @return
    * @author tanyaowu
    * @throws Exception 

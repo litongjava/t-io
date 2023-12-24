@@ -7,13 +7,12 @@ public interface HttpRoutes {
    * @param path
    * @param handler
    */
-  public void add(String path, RouteHandler handler);
+  public void add(String path, HttpRequestRouteHandler handler);
 
   /**
    * 查找路由
    * @param path
-   * @param handler
    * @return
    */
-  public RouteHandler find(String path);
+  public HttpRequestRouteHandler find(String path);
 }

@@ -4,13 +4,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SimpleHttpRoutes implements HttpRoutes {
-  Map<String, RouteHandler> requestMapping = new ConcurrentHashMap<>();
+  Map<String, HttpRequestRouteHandler> requestMapping = new ConcurrentHashMap<>();
 
-  public void add(String path, RouteHandler handler) {
+  public void add(String path, HttpRequestRouteHandler handler) {
     requestMapping.put(path, handler);
   }
 
-  public RouteHandler find(String path) {
+  public HttpRequestRouteHandler find(String path) {
     return requestMapping.get(path);
   }
 

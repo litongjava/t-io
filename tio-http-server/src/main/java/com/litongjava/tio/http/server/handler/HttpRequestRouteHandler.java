@@ -4,6 +4,6 @@ import com.litongjava.tio.http.common.HttpRequest;
 import com.litongjava.tio.http.common.HttpResponse;
 
 @FunctionalInterface
-public interface RouteHandler {
+public interface HttpRequestRouteHandler {
   HttpResponse handle(HttpRequest httpRequest) throws Exception;
 }

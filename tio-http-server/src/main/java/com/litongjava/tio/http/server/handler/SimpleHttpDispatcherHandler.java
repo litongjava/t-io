@@ -8,13 +8,13 @@ import com.litongjava.tio.http.common.handler.HttpRequestHandler;
 import com.litongjava.tio.http.server.intf.ThrowableHandler;
 import com.litongjava.tio.http.server.util.Resps;
 
-public class SimpleHttpDispahterHanlder implements HttpRequestHandler {
+public class SimpleHttpDispatcherHandler implements HttpRequestHandler {
 
   private HttpRoutes httpRoutes;
   private HttpConfig httpConfig;
   private ThrowableHandler throwableHandler;
 
-  public SimpleHttpDispahterHanlder(HttpConfig httpConfig, HttpRoutes httpRoutes) {
+  public SimpleHttpDispatcherHandler(HttpConfig httpConfig, HttpRoutes httpRoutes) {
     this.httpRoutes = httpRoutes;
     this.httpConfig = httpConfig;
   }
@@ -23,7 +23,7 @@ public class SimpleHttpDispahterHanlder implements HttpRequestHandler {
   public HttpResponse handler(HttpRequest httpRequest) throws Exception {
     RequestLine requestLine = httpRequest.getRequestLine();
     String path = requestLine.getPath();
-    RouteHandler handler = httpRoutes.find(path);
+    HttpRequestRouteHandler handler = httpRoutes.find(path);
     if (handler == null) {
       return this.resp404(httpRequest, requestLine);
       
@@ -43,7 +43,7 @@ public class SimpleHttpDispahterHanlder implements HttpRequestHandler {
   public HttpResponse resp404(HttpRequest request, RequestLine requestLine) throws Exception {
     if (httpRoutes != null) {
       String page404 = httpConfig.getPage404();
-      RouteHandler handler = httpRoutes.find(page404);
+      HttpRequestRouteHandler handler = httpRoutes.find(page404);
       if (handler != null) {
         return handler.handle(request);
       }
@@ -61,7 +61,7 @@ public class SimpleHttpDispahterHanlder implements HttpRequestHandler {
 
     if (httpRoutes != null) {
       String page404 = httpConfig.getPage404();
-      RouteHandler handler = httpRoutes.find(page404);
+      HttpRequestRouteHandler handler = httpRoutes.find(page404);
       if (handler != null) {
         return handler.handle(request);
       }
