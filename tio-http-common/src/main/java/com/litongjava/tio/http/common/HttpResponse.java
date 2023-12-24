@@ -1,6 +1,7 @@
 package com.litongjava.tio.http.common;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,11 @@ public class HttpResponse extends HttpPacket {
   /**
    * 是否向客户端发送消息,SSE的情况下不发送,由Controller控制具体的方式
    */
-  private boolean send=false;
+  private boolean send = true;
+  /**
+   * 是否后续返回流格式,如果是则在相应时不计算Content-Length
+   */
+  private boolean stream = false;
   private HttpRequest request = null;
   private List<Cookie> cookies = null;
   private Map<HeaderName, HeaderValue> headers = new HashMap<>();
@@ -397,5 +402,23 @@ public class HttpResponse extends HttpPacket {
   public HttpResponse setSend(boolean send) {
     this.send = send;
     return this;
+  }
+
+  public boolean isStream() {
+    return stream;
+  }
+
+  public void setStream(boolean stream) {
+    this.stream = stream;
+  }
+
+  public HttpResponse setServerSentEventsHeader() {
+    this.setContentType("text/event-stream");
+    this.addHeader(HeaderName.Connection, HeaderValue.from("keep-alive"));
+    this.addHeader(HeaderName.Date, HeaderValue.from(new Date().toString()));
+    this.addHeader(HeaderName.Keep_Alive, HeaderValue.from("timeout=60"));
+    this.stream = true;
+    return this;
+
   }
 }

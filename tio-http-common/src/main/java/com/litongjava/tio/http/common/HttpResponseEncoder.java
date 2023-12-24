@@ -84,7 +84,9 @@ public class HttpResponseEncoder {
     // StringBuilder sb = new StringBuilder(512);
 
     Map<HeaderName, HeaderValue> headers = httpResponse.getHeaders();
-    httpResponse.addHeader(HeaderName.Content_Length, HeaderValue.from(Integer.toString(bodyLength)));
+    if (!httpResponse.isStream()) {
+      httpResponse.addHeader(HeaderName.Content_Length, HeaderValue.from(Integer.toString(bodyLength)));
+    }
     int headerLength = httpResponse.getHeaderByteCount();
 
     // for (Entry<String, String> entry : headerSet) {

@@ -78,7 +78,7 @@ public class HttpServerAioHandler implements ServerAioHandler {
 
     String ip = request.getClientIp();
 
-    if(channelContext.tioConfig.ipBlacklist!=null) {
+    if (channelContext.tioConfig.ipBlacklist != null) {
       if (channelContext.tioConfig.ipBlacklist.isInBlacklist(ip)) {
         HttpResponse httpResponse = request.httpConfig.getRespForBlackIp();
         if (httpResponse != null) {
@@ -91,10 +91,11 @@ public class HttpServerAioHandler implements ServerAioHandler {
       }
     }
 
-
     HttpResponse httpResponse = requestHandler.handler(request);
-    if (httpResponse != null && httpResponse.isSend()) {
-      Tio.send(channelContext, httpResponse);
+    if (httpResponse != null) {
+      if (httpResponse.isSend()) {
+        Tio.send(channelContext, httpResponse);
+      }
     } else {
       if (log.isInfoEnabled()) {
         log.info("{}, {}, handler return null, request line: {}", channelContext.tioConfig.getName(),
