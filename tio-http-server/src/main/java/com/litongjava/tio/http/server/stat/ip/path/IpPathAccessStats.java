@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +13,9 @@ import org.slf4j.LoggerFactory;
 import com.litongjava.tio.core.TioConfig;
 import com.litongjava.tio.http.server.stat.DefaultStatPathFilter;
 import com.litongjava.tio.http.server.stat.StatPathFilter;
-import com.litongjava.tio.utils.cache.caffeine.CaffeineCache;
+import com.litongjava.tio.utils.cache.AbsCache;
+import com.litongjava.tio.utils.cache.CacheFactory;
+import com.litongjava.tio.utils.cache.RemovalListenerWrapper;
 import com.litongjava.tio.utils.hutool.StrUtil;
 
 /**
@@ -41,7 +42,7 @@ public class IpPathAccessStats {
    * key:   时长段，单位：秒
    * value: CaffeineCache: key: ip, value: IpAccessStat
    */
-  public final Map<Long, CaffeineCache> cacheMap = new HashMap<>();
+  public final Map<Long, AbsCache> cacheMap = new HashMap<>();
 
   /**
    * 时长段列表
@@ -58,7 +59,7 @@ public class IpPathAccessStats {
    * @author tanyaowu
    */
   public IpPathAccessStats(StatPathFilter statPathFilter, TioConfig tioConfig,
-      IpPathAccessStatListener ipPathAccessStatListener, Long[] durations) {
+      IpPathAccessStatListener ipPathAccessStatListener, Long[] durations,RemovalListenerWrapper<?> removalListenerWrapper) {
     this.statPathFilter = statPathFilter;
     if (this.statPathFilter == null) {
       this.statPathFilter = DefaultStatPathFilter.me;
@@ -67,7 +68,7 @@ public class IpPathAccessStats {
     this.tioConfigId = tioConfig.getId();
     if (durations != null) {
       for (Long duration : durations) {
-        addDuration(duration, ipPathAccessStatListener);
+        addDuration(duration, ipPathAccessStatListener,removalListenerWrapper);
       }
     }
   }
@@ -78,11 +79,12 @@ public class IpPathAccessStats {
    * @param ipPathAccessStatListener 可以为null
    * @author: tanyaowu
    */
-  public void addDuration(Long duration, IpPathAccessStatListener ipPathAccessStatListener) {
-    @SuppressWarnings("unchecked")
-    CaffeineCache caffeineCache = CaffeineCache.register(getCacheName(duration), duration, null,
-        new IpPathAccessStatRemovalListener(tioConfig, ipPathAccessStatListener));
-    cacheMap.put(duration, caffeineCache);
+  public void addDuration(Long duration, IpPathAccessStatListener ipPathAccessStatListener,RemovalListenerWrapper<?> removalListenerWrapper) {
+    CacheFactory cacheFactory = tioConfig.getCacheFactory();
+    //IpPathAccessStatRemovalListener ipPathAccessStatRemovalListener = new IpPathAccessStatRemovalListener(tioConfig, ipPathAccessStatListener);
+    
+    AbsCache absCache = cacheFactory.register(getCacheName(duration), duration, null,removalListenerWrapper);
+    cacheMap.put(duration,absCache);
     durationList.add(duration);
 
     if (ipPathAccessStatListener != null) {
@@ -106,10 +108,10 @@ public class IpPathAccessStats {
    * @param ipPathAccessStatListener 可以为null
    * @author: tanyaowu
    */
-  public void addDurations(Long[] durations, IpPathAccessStatListener ipPathAccessStatListener) {
+  public void addDurations(Long[] durations, IpPathAccessStatListener ipPathAccessStatListener,RemovalListenerWrapper<?> removalListenerWrapper) {
     if (durations != null) {
       for (Long duration : durations) {
-        addDuration(duration, ipPathAccessStatListener);
+        addDuration(duration, ipPathAccessStatListener,removalListenerWrapper);
       }
     }
   }
@@ -141,7 +143,7 @@ public class IpPathAccessStats {
    * @author: tanyaowu
    */
   public void clear(Long duration) {
-    CaffeineCache caffeineCache = cacheMap.get(duration);
+    AbsCache caffeineCache = cacheMap.get(duration);
     if (caffeineCache == null) {
       return;
     }
@@ -161,7 +163,7 @@ public class IpPathAccessStats {
       return null;
     }
 
-    CaffeineCache caffeineCache = cacheMap.get(duration);
+    AbsCache caffeineCache = cacheMap.get(duration);
     if (caffeineCache == null) {
       return null;
     }
@@ -198,12 +200,12 @@ public class IpPathAccessStats {
    * @return
    * @author tanyaowu
    */
-  public ConcurrentMap<String, Serializable> map(Long duration) {
-    CaffeineCache caffeineCache = cacheMap.get(duration);
+  public Map<String, Serializable> map(Long duration) {
+    AbsCache caffeineCache = cacheMap.get(duration);
     if (caffeineCache == null) {
       return null;
     }
-    ConcurrentMap<String, Serializable> map = caffeineCache.asMap();
+    Map<String, Serializable> map = caffeineCache.asMap();
     return map;
   }
 
@@ -213,7 +215,7 @@ public class IpPathAccessStats {
    * @author: tanyaowu
    */
   public Long size(Long duration) {
-    CaffeineCache caffeineCache = cacheMap.get(duration);
+    AbsCache caffeineCache = cacheMap.get(duration);
     if (caffeineCache == null) {
       return null;
     }
@@ -226,7 +228,7 @@ public class IpPathAccessStats {
    * @author: tanyaowu
    */
   public Collection<Serializable> values(Long duration) {
-    CaffeineCache caffeineCache = cacheMap.get(duration);
+    AbsCache caffeineCache = cacheMap.get(duration);
     if (caffeineCache == null) {
       return null;
     }

@@ -22,6 +22,8 @@ import com.litongjava.tio.server.intf.ServerAioListener;
 import com.litongjava.tio.utils.AppendJsonConverter;
 import com.litongjava.tio.utils.SysConst;
 import com.litongjava.tio.utils.SystemTimer;
+import com.litongjava.tio.utils.cache.CacheFactory;
+import com.litongjava.tio.utils.cache.RemovalListenerWrapper;
 import com.litongjava.tio.utils.hutool.CollUtil;
 import com.litongjava.tio.utils.hutool.StrUtil;
 import com.litongjava.tio.utils.lock.SetWithLock;
@@ -88,6 +90,23 @@ public class ServerTioConfig extends TioConfig {
   public ServerTioConfig(String name, ServerAioHandler serverAioHandler, ServerAioListener serverAioListener,
       SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
     super(tioExecutor, groupExecutor);
+    init(name, serverAioHandler, serverAioListener, tioExecutor, groupExecutor);
+  }
+
+  /**
+   * 
+   * @param name
+   * @param serverAioHandler
+   * @param serverAioListener
+   * @param tioExecutor
+   * @param groupExecutor
+   * @param cacheFactory 缓存类
+   * @param ipRemovalListenerWrapper
+   */
+  public ServerTioConfig(String name, ServerAioHandler serverAioHandler, ServerAioListener serverAioListener,
+      SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor, CacheFactory cacheFactory,
+      RemovalListenerWrapper<?> ipRemovalListenerWrapper) {
+    super(tioExecutor, groupExecutor, cacheFactory, ipRemovalListenerWrapper);
     init(name, serverAioHandler, serverAioListener, tioExecutor, groupExecutor);
   }
 

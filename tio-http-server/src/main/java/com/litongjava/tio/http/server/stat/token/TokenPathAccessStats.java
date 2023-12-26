@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +14,9 @@ import com.litongjava.tio.core.TioConfig;
 import com.litongjava.tio.http.server.intf.CurrUseridGetter;
 import com.litongjava.tio.http.server.stat.DefaultStatPathFilter;
 import com.litongjava.tio.http.server.stat.StatPathFilter;
-import com.litongjava.tio.utils.cache.caffeine.CaffeineCache;
+import com.litongjava.tio.utils.cache.AbsCache;
+import com.litongjava.tio.utils.cache.CacheFactory;
+import com.litongjava.tio.utils.cache.RemovalListenerWrapper;
 import com.litongjava.tio.utils.hutool.StrUtil;
 
 /**
@@ -42,7 +43,7 @@ public class TokenPathAccessStats {
    * key:   时长段，单位：秒
    * value: CaffeineCache: key: token, value: TokenAccessStat
    */
-  public final Map<Long, CaffeineCache> cacheMap = new HashMap<>();
+  public final Map<Long, AbsCache> cacheMap = new HashMap<>();
 
   /**
    * 时长段列表
@@ -65,7 +66,7 @@ public class TokenPathAccessStats {
    * @param durations
    */
   public TokenPathAccessStats(StatPathFilter statPathFilter, TokenGetter tokenGetter, CurrUseridGetter currUseridGetter,
-      TioConfig tioConfig, TokenPathAccessStatListener tokenPathAccessStatListener, Long[] durations) {
+      TioConfig tioConfig, TokenPathAccessStatListener tokenPathAccessStatListener, Long[] durations,RemovalListenerWrapper<?> removalListenerWrapper) {
     this.statPathFilter = statPathFilter;
     if (this.statPathFilter == null) {
       this.statPathFilter = DefaultStatPathFilter.me;
@@ -81,14 +82,14 @@ public class TokenPathAccessStats {
     this.tioConfigId = tioConfig.getId();
     if (durations != null) {
       for (Long duration : durations) {
-        addDuration(duration, tokenPathAccessStatListener);
+        addDuration(duration, tokenPathAccessStatListener,removalListenerWrapper);
       }
     }
   }
 
   public TokenPathAccessStats(StatPathFilter statPathFilter, CurrUseridGetter currUseridGetter, TioConfig tioConfig,
-      TokenPathAccessStatListener tokenPathAccessStatListener, Long[] durations) {
-    this(statPathFilter, DefaultTokenGetter.me, currUseridGetter, tioConfig, tokenPathAccessStatListener, durations);
+      TokenPathAccessStatListener tokenPathAccessStatListener, Long[] durations,RemovalListenerWrapper<?> removalListenerWrapper) {
+    this(statPathFilter, DefaultTokenGetter.me, currUseridGetter, tioConfig, tokenPathAccessStatListener, durations,removalListenerWrapper);
   }
 
   /**
@@ -97,11 +98,12 @@ public class TokenPathAccessStats {
    * @param tokenPathAccessStatListener 可以为null
    * @author: tanyaowu
    */
-  public void addDuration(Long duration, TokenPathAccessStatListener tokenPathAccessStatListener) {
-    @SuppressWarnings("unchecked")
-    CaffeineCache caffeineCache = CaffeineCache.register(getCacheName(duration), duration, null,
-        new TokenPathAccessStatRemovalListener(tioConfig, tokenPathAccessStatListener));
-    cacheMap.put(duration, caffeineCache);
+  public void addDuration(Long duration, TokenPathAccessStatListener tokenPathAccessStatListener,RemovalListenerWrapper<?> removalListenerWrapper) {
+    //new TokenPathAccessStatRemovalListener(tioConfig, tokenPathAccessStatListener)
+    CacheFactory cacheFactory = tioConfig.getCacheFactory();
+    AbsCache absCache = cacheFactory.register(getCacheName(duration), duration, null,removalListenerWrapper);
+        
+    cacheMap.put(duration, absCache);
     durationList.add(duration);
 
     if (tokenPathAccessStatListener != null) {
@@ -125,10 +127,10 @@ public class TokenPathAccessStats {
    * @param tokenPathAccessStatListener 可以为null
    * @author: tanyaowu
    */
-  public void addDurations(Long[] durations, TokenPathAccessStatListener tokenPathAccessStatListener) {
+  public void addDurations(Long[] durations, TokenPathAccessStatListener tokenPathAccessStatListener,RemovalListenerWrapper<?> removalListenerWrapper) {
     if (durations != null) {
       for (Long duration : durations) {
-        addDuration(duration, tokenPathAccessStatListener);
+        addDuration(duration, tokenPathAccessStatListener,removalListenerWrapper);
       }
     }
   }
@@ -160,7 +162,7 @@ public class TokenPathAccessStats {
    * @author: tanyaowu
    */
   public void clear(Long duration) {
-    CaffeineCache caffeineCache = cacheMap.get(duration);
+    AbsCache caffeineCache = cacheMap.get(duration);
     if (caffeineCache == null) {
       return;
     }
@@ -181,7 +183,7 @@ public class TokenPathAccessStats {
       return null;
     }
 
-    CaffeineCache caffeineCache = cacheMap.get(duration);
+    AbsCache caffeineCache = cacheMap.get(duration);
     if (caffeineCache == null) {
       return null;
     }
@@ -219,12 +221,12 @@ public class TokenPathAccessStats {
    * @return
    * @author tanyaowu
    */
-  public ConcurrentMap<String, Serializable> map(Long duration) {
-    CaffeineCache caffeineCache = cacheMap.get(duration);
+  public Map<String, Serializable> map(Long duration) {
+    AbsCache caffeineCache = cacheMap.get(duration);
     if (caffeineCache == null) {
       return null;
     }
-    ConcurrentMap<String, Serializable> map = caffeineCache.asMap();
+    Map<String, Serializable> map = caffeineCache.asMap();
     return map;
   }
 
@@ -234,7 +236,7 @@ public class TokenPathAccessStats {
    * @author: tanyaowu
    */
   public Long size(Long duration) {
-    CaffeineCache caffeineCache = cacheMap.get(duration);
+    AbsCache caffeineCache = cacheMap.get(duration);
     if (caffeineCache == null) {
       return null;
     }
@@ -247,7 +249,7 @@ public class TokenPathAccessStats {
    * @author: tanyaowu
    */
   public Collection<Serializable> values(Long duration) {
-    CaffeineCache caffeineCache = cacheMap.get(duration);
+    AbsCache caffeineCache = cacheMap.get(duration);
     if (caffeineCache == null) {
       return null;
     }

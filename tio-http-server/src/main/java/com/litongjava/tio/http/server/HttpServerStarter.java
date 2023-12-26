@@ -28,7 +28,8 @@ import com.litongjava.tio.http.common.session.id.impl.UUIDSessionIdGenerator;
 import com.litongjava.tio.server.ServerTioConfig;
 import com.litongjava.tio.server.TioServer;
 import com.litongjava.tio.utils.Threads;
-import com.litongjava.tio.utils.cache.caffeine.CaffeineCache;
+import com.litongjava.tio.utils.cache.AbsCache;
+import com.litongjava.tio.utils.cache.CacheFactory;
 import com.litongjava.tio.utils.http.HttpUtils;
 import com.litongjava.tio.utils.hutool.FileUtil;
 import com.litongjava.tio.utils.hutool.StrUtil;
@@ -253,9 +254,13 @@ public class HttpServerStarter {
   public void start(boolean preAccess) throws IOException {
     if (httpConfig.isUseSession()) {
       if (httpConfig.getSessionStore() == null) {
-        CaffeineCache caffeineCache = CaffeineCache.register(httpConfig.getSessionCacheName(), null,
+        CacheFactory cacheFactory = serverTioConfig.getCacheFactory();
+
+        // CaffeineCache caffeineCache = CaffeineCache.register(httpConfig.getSessionCacheName(), null,httpConfig.getSessionTimeout());
+        AbsCache absCache = cacheFactory.register(httpConfig.getSessionCacheName(), null,
             httpConfig.getSessionTimeout());
-        httpConfig.setSessionStore(caffeineCache);
+
+        httpConfig.setSessionStore(absCache);
       }
 
       if (httpConfig.getSessionIdGenerator() == null) {
