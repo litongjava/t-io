@@ -77,7 +77,8 @@
 package com.litongjava.tio.utils.cache.redis;
 
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -98,7 +99,6 @@ import com.litongjava.tio.utils.hutool.StrUtil;
  */
 public class RedisCache extends AbsCache {
   private static Logger log = LoggerFactory.getLogger(RedisCache.class);
-  private static Map<String, RedisCache> map = new HashMap<>();
 
   public static final String SPLIT_FOR_CACHENAME = ":";
 
@@ -106,45 +106,8 @@ public class RedisCache extends AbsCache {
     return keyPrefix(cacheName) + key;
   }
 
-  public static RedisCache getCache(String cacheName) {
-    RedisCache redisCache = map.get(cacheName);
-    if (redisCache == null) {
-      log.error("cacheName[{}]还没注册，请初始化时调用：{}.register(redisson, cacheName, timeToLiveSeconds, timeToIdleSeconds)",
-          cacheName, RedisCache.class.getSimpleName());
-    }
-    return redisCache;
-  }
-
   public static String keyPrefix(String cacheName) {
     return cacheName + SPLIT_FOR_CACHENAME;
-  }
-
-  /**
-   * timeToLiveSeconds和timeToIdleSeconds不允许同时为null
-   * @param cacheName
-   * @param timeToLiveSeconds
-   * @param timeToIdleSeconds
-   * @return
-   * @author tanyaowu
-   */
-  public static RedisCache register(RedissonClient redisson, String cacheName, Long timeToLiveSeconds,
-      Long timeToIdleSeconds) {
-    RedisExpireUpdateTask.start();
-
-    RedisCache redisCache = map.get(cacheName);
-    if (redisCache == null) {
-      synchronized (RedisCache.class) {
-        redisCache = map.get(cacheName);
-        if (redisCache == null) {
-          redisCache = new RedisCache(redisson, cacheName, timeToLiveSeconds, timeToIdleSeconds);
-
-          redisCache.setTimeToIdleSeconds(timeToIdleSeconds);
-          redisCache.setTimeToLiveSeconds(timeToLiveSeconds);
-          map.put(cacheName, redisCache);
-        }
-      }
-    }
-    return redisCache;
   }
 
   private RedissonClient redisson = null;
@@ -155,7 +118,7 @@ public class RedisCache extends AbsCache {
 
   private Long timeout = null;
 
-  private RedisCache(RedissonClient redisson, String cacheName, Long timeToLiveSeconds, Long timeToIdleSeconds) {
+  public RedisCache(RedissonClient redisson, String cacheName, Long timeToLiveSeconds, Long timeToIdleSeconds) {
     super(cacheName);
     this.redisson = redisson;
     this.timeToLiveSeconds = timeToLiveSeconds;
@@ -228,6 +191,21 @@ public class RedisCache extends AbsCache {
   }
 
   @Override
+  public Collection<String> keysCollection() {
+    RKeys keys = redisson.getKeys();
+    Iterable<String> allKeys = keys.getKeysByPattern(keyPrefix(cacheName) + "*");// .findKeysByPattern(keyPrefix(cacheName) + "*");
+    // Create a new collection to store the keys
+    Collection<String> keyCollection = new ArrayList<>();
+
+    // Add all elements from the iterable to the collection
+    for (String key : allKeys) {
+      keyCollection.add(key);
+    }
+
+    return keyCollection;
+  }
+
+  @Override
   public void put(String key, Serializable value) {
     if (StrUtil.isBlank(key)) {
       return;
@@ -271,6 +249,27 @@ public class RedisCache extends AbsCache {
     }
     long remainTimeToLive = bucket.remainTimeToLive();
     return remainTimeToLive;
+  }
+
+  @Override
+  public Map<String, Serializable> asMap() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public long size() {
+    RKeys keys = redisson.getKeys();
+    Iterable<String> allkeys = keys.getKeysByPattern(keyPrefix(cacheName) + "*");// .findKeysByPattern(keyPrefix(cacheName) + "*");
+    // Initialize a counter
+    long count = 0;
+
+    // Iterate over the Iterable and increment the counter for each element
+    for (@SuppressWarnings("unused") String key : allkeys) {
+      count++;
+    }
+
+    return count;
   }
 
   // @Override

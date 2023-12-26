@@ -7,7 +7,8 @@ import com.litongjava.tio.core.Tio;
 import com.litongjava.tio.core.TioConfig;
 import com.litongjava.tio.server.ServerTioConfig;
 import com.litongjava.tio.utils.SystemTimer;
-import com.litongjava.tio.utils.cache.caffeine.CaffeineCache;
+import com.litongjava.tio.utils.cache.AbsCache;
+import com.litongjava.tio.utils.cache.CacheFactory;
 import com.litongjava.tio.utils.time.Time;
 
 /**
@@ -22,21 +23,24 @@ public class IpBlacklist {
   private final static Long TIME_TO_LIVE_SECONDS = Time.DAY_1 * 120;
   private final static Long TIME_TO_IDLE_SECONDS = null;
   private String cacheName = null;
-  private CaffeineCache cache = null;
+  private AbsCache cache = null;
   private ServerTioConfig serverTioConfig;
-  public final static IpBlacklist GLOBAL = new IpBlacklist();
 
-  private IpBlacklist() {
+  public IpBlacklist(ServerTioConfig serverTioConfig) {
     this.id = "__global__";
+    this.serverTioConfig=serverTioConfig;
     this.cacheName = CACHE_NAME_PREFIX + this.id;
-    this.cache = CaffeineCache.register(this.cacheName, TIME_TO_LIVE_SECONDS, TIME_TO_IDLE_SECONDS, null);
+    CacheFactory cacheFactory = serverTioConfig.getCacheFactory();
+    this.cache = cacheFactory.register(this.cacheName, TIME_TO_LIVE_SECONDS, TIME_TO_IDLE_SECONDS,
+        null);
   }
 
   public IpBlacklist(String id, ServerTioConfig serverTioConfig) {
     this.id = id;
     this.serverTioConfig = serverTioConfig;
     this.cacheName = CACHE_NAME_PREFIX + this.id;
-    this.cache = CaffeineCache.register(this.cacheName, TIME_TO_LIVE_SECONDS, TIME_TO_IDLE_SECONDS, null);
+    this.cache = serverTioConfig.getCacheFactory().register(this.cacheName, TIME_TO_LIVE_SECONDS, TIME_TO_IDLE_SECONDS,
+        null);
   }
 
   public boolean add(String ip) {
@@ -64,7 +68,7 @@ public class IpBlacklist {
   }
 
   public Collection<String> getAll() {
-    return cache.keys();
+    return cache.keysCollection();
   }
 
   /**

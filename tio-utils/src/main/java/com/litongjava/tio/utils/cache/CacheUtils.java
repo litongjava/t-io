@@ -83,7 +83,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.litongjava.tio.utils.cache.caffeine.CaffeineCache;
+import com.litongjava.tio.utils.cache.caffeine.CaffeineCacheFactory;
 import com.litongjava.tio.utils.cache.caffeineredis.CaffeineRedisCache;
+import com.litongjava.tio.utils.cache.caffeineredis.CaffeineRedisCacheFactory;
 import com.litongjava.tio.utils.lock.LockUtils;
 
 /**
@@ -233,12 +235,12 @@ public abstract class CacheUtils {
    */
   public static CaffeineCache getCaffeineCache(Long timeToLiveSeconds, Long timeToIdleSeconds) {
     String cacheName = getCacheName(timeToLiveSeconds, timeToIdleSeconds);
-    CaffeineCache caffeineCache = CaffeineCache.getCache(cacheName, true);
+    CaffeineCache caffeineCache = CaffeineCacheFactory.INSTANCE.getCache(cacheName, true);
     if (caffeineCache == null) {
       synchronized (LOCK_FOR_GETCACHE) {
-        caffeineCache = CaffeineCache.getCache(cacheName, true);
+        caffeineCache = CaffeineCacheFactory.INSTANCE.getCache(cacheName, true);
         if (caffeineCache == null) {
-          caffeineCache = CaffeineCache.register(cacheName, timeToLiveSeconds, timeToIdleSeconds);
+          caffeineCache = CaffeineCacheFactory.INSTANCE.register(cacheName, timeToLiveSeconds, timeToIdleSeconds);
         }
       }
     }
@@ -249,16 +251,16 @@ public abstract class CacheUtils {
   public static CaffeineRedisCache getCaffeineRedisCache(RedissonClient redisson, Long timeToLiveSeconds,
       Long timeToIdleSeconds) {
     String cacheName = getCacheName(timeToLiveSeconds, timeToIdleSeconds);
-    CaffeineRedisCache caffeineCache = CaffeineRedisCache.getCache(cacheName, true);
+    CaffeineRedisCache caffeineCache = CaffeineRedisCacheFactory.INSTANCE.getCache(cacheName, true);
     if (caffeineCache == null) {
       synchronized (LOCK_FOR_GETCACHE) {
-        caffeineCache = CaffeineRedisCache.getCache(cacheName, true);
+        caffeineCache = CaffeineRedisCacheFactory.INSTANCE.getCache(cacheName, true);
         if (caffeineCache == null) {
-          caffeineCache = CaffeineRedisCache.register(redisson, cacheName, timeToLiveSeconds, timeToIdleSeconds);
+          CaffeineRedisCacheFactory.INSTANCE.init(redisson);
+          caffeineCache = CaffeineRedisCacheFactory.INSTANCE.register(cacheName, timeToLiveSeconds, timeToIdleSeconds);
         }
       }
     }
-
     return caffeineCache;
   }
 

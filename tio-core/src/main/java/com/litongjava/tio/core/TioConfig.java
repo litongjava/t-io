@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.litongjava.tio.client.ClientTioConfig;
+import com.litongjava.tio.core.cache.IpStatMapCacheRemovalListener;
 import com.litongjava.tio.core.intf.AioHandler;
 import com.litongjava.tio.core.intf.AioListener;
 import com.litongjava.tio.core.intf.GroupListener;
@@ -33,6 +34,9 @@ import com.litongjava.tio.core.task.CloseRunnable;
 import com.litongjava.tio.server.ServerTioConfig;
 import com.litongjava.tio.utils.SystemTimer;
 import com.litongjava.tio.utils.Threads;
+import com.litongjava.tio.utils.cache.CacheFactory;
+import com.litongjava.tio.utils.cache.RemovalListenerWrapper;
+import com.litongjava.tio.utils.cache.mapcache.ConcurrentMapCacheFactory;
 import com.litongjava.tio.utils.lock.MapWithLock;
 import com.litongjava.tio.utils.lock.SetWithLock;
 import com.litongjava.tio.utils.prop.MapWithLockPropSupport;
@@ -45,18 +49,7 @@ import com.litongjava.tio.utils.thread.pool.SynThreadPoolExecutor;
  */
 public abstract class TioConfig extends MapWithLockPropSupport {
   static Logger log = LoggerFactory.getLogger(TioConfig.class);
-  /**
-   * 默认的接收数据的buffer size
-   */
-  public static final int READ_BUFFER_SIZE = Integer.getInteger("tio.default.read.buffer.size", 20480);
-  private final static AtomicInteger ID_ATOMIC = new AtomicInteger();
-  private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
-  public boolean isShortConnection = false;
-  public SslConfig sslConfig = null;
-  public boolean debug = false;
-  public GroupStat groupStat = null;
-  public boolean statOn = true;
-  public PacketConverter packetConverter = null;
+
   /**
    * 本jvm中所有的ServerTioConfig对象
    */
@@ -69,6 +62,28 @@ public abstract class TioConfig extends MapWithLockPropSupport {
    * 本jvm中所有的TioConfig对象
    */
   public static final Set<TioConfig> ALL_GROUPCONTEXTS = new HashSet<>();
+  /**
+   * 默认的接收数据的buffer size
+   */
+  public static final int READ_BUFFER_SIZE = Integer.getInteger("tio.default.read.buffer.size", 20480);
+  private final static AtomicInteger ID_ATOMIC = new AtomicInteger();
+  private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
+  public boolean isShortConnection = false;
+  public SslConfig sslConfig = null;
+  public boolean debug = false;
+  public GroupStat groupStat = null;
+  public boolean statOn = true;
+  public PacketConverter packetConverter = null;
+
+  /**
+   * 缓存工厂
+   */
+  private CacheFactory cacheFactory;
+
+  /**
+   * 移除IP监听
+   */
+  private RemovalListenerWrapper<?> ipRemovalListenerWrapper;
   /**
    * 启动时间
    */
@@ -133,7 +148,36 @@ public abstract class TioConfig extends MapWithLockPropSupport {
    * @author: tanyaowu
    */
   public TioConfig(SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
-    super();
+    this(tioExecutor, groupExecutor, null, null);
+
+  }
+
+  public TioConfig(SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor, CacheFactory cacheFactory) {
+    this(tioExecutor, groupExecutor, cacheFactory, null);
+  }
+
+  @SuppressWarnings({ "unchecked" })
+  public TioConfig(SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor, CacheFactory cacheFactory,
+      RemovalListenerWrapper<?> ipRemovalListenerWrapper) {
+    if (cacheFactory == null) {
+      // 使用默认的mapCacheFactory
+      this.cacheFactory = ConcurrentMapCacheFactory.INSTANCE;
+    } else {
+      this.cacheFactory = cacheFactory;
+    }
+
+    if (ipRemovalListenerWrapper == null) {
+      @SuppressWarnings("rawtypes")
+      RemovalListenerWrapper defaultIpRemovalListenerWrapper = new RemovalListenerWrapper();
+      IpStatMapCacheRemovalListener ipStatMapCacheRemovalListener = new IpStatMapCacheRemovalListener(this,
+          ipStatListener);
+      defaultIpRemovalListenerWrapper.setListener(ipStatMapCacheRemovalListener);
+      
+      this.ipRemovalListenerWrapper = defaultIpRemovalListenerWrapper;
+
+    } else {
+      this.ipRemovalListenerWrapper = ipRemovalListenerWrapper;
+    }
     ALL_GROUPCONTEXTS.add(this);
     if (this instanceof ServerTioConfig) {
       ALL_SERVER_GROUPCONTEXTS.add((ServerTioConfig) this);
@@ -375,5 +419,21 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 
   public boolean isSsl() {
     return sslConfig != null;
+  }
+
+  public CacheFactory getCacheFactory() {
+    return cacheFactory;
+  }
+
+  public void setCacheFactory(CacheFactory cacheFactory) {
+    this.cacheFactory = cacheFactory;
+  }
+
+  public RemovalListenerWrapper<?> getIpRemovalListenerWrapper() {
+    return ipRemovalListenerWrapper;
+  }
+
+  public void setIpRemovalListenerWrapper(RemovalListenerWrapper<?> ipRemovalListenerWrapper) {
+    this.ipRemovalListenerWrapper = ipRemovalListenerWrapper;
   }
 }

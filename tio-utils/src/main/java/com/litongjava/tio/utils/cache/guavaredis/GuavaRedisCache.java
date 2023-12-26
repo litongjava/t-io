@@ -77,6 +77,7 @@
 package com.litongjava.tio.utils.cache.guavaredis;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -91,7 +92,9 @@ import com.litongjava.tio.utils.cache.AbsCache;
 import com.litongjava.tio.utils.cache.CacheChangeType;
 import com.litongjava.tio.utils.cache.CacheChangedVo;
 import com.litongjava.tio.utils.cache.guava.GuavaCache;
+import com.litongjava.tio.utils.cache.guava.GuavaCacheFactory;
 import com.litongjava.tio.utils.cache.redis.RedisCache;
+import com.litongjava.tio.utils.cache.redis.RedisCacheFactory;
 import com.litongjava.tio.utils.cache.redis.RedisExpireUpdateTask;
 import com.litongjava.tio.utils.hutool.StrUtil;
 
@@ -168,7 +171,8 @@ public class GuavaRedisCache extends AbsCache {
       synchronized (GuavaRedisCache.class) {
         guavaRedisCache = map.get(cacheName);
         if (guavaRedisCache == null) {
-          RedisCache redisCache = RedisCache.register(redisson, cacheName, timeToLiveSeconds, timeToIdleSeconds);
+          RedisCacheFactory.INSTANCE.setRedisson(redisson);
+          RedisCache redisCache = RedisCacheFactory.INSTANCE.register(cacheName, timeToLiveSeconds, timeToIdleSeconds);
 
           Long timeToLiveSecondsForGuava = timeToLiveSeconds;
           Long timeToIdleSecondsForGuava = timeToIdleSeconds;
@@ -179,7 +183,7 @@ public class GuavaRedisCache extends AbsCache {
           if (timeToIdleSecondsForGuava != null) {
             timeToIdleSecondsForGuava = Math.min(timeToIdleSecondsForGuava, MAX_EXPIRE_IN_LOCAL);
           }
-          GuavaCache guavaCache = GuavaCache.register(cacheName, timeToLiveSecondsForGuava, timeToIdleSecondsForGuava);
+          GuavaCache guavaCache = GuavaCacheFactory.INSTANCE.register(cacheName, timeToLiveSecondsForGuava, timeToIdleSecondsForGuava);
 
           guavaRedisCache = new GuavaRedisCache(cacheName, guavaCache, redisCache);
 
@@ -255,6 +259,11 @@ public class GuavaRedisCache extends AbsCache {
   public Iterable<String> keys() {
     return redisCache.keys();
   }
+  
+  @Override
+  public Collection<String> keysCollection() {
+    return redisCache.keysCollection();
+  }
 
   /**
    * @param key
@@ -301,5 +310,17 @@ public class GuavaRedisCache extends AbsCache {
   public long ttl(String key) {
     return redisCache.ttl(key);
   }
+
+  @Override
+  public Map<String, Serializable> asMap() {
+    return redisCache.asMap();
+  }
+
+  @Override
+  public long size() {
+    return redisCache.size();
+  }
+
+
 
 }

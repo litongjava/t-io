@@ -17,6 +17,7 @@ import com.litongjava.tio.client.ReconnConf;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
 import com.litongjava.tio.core.intf.Packet;
 import com.litongjava.tio.core.intf.Packet.Meta;
+import com.litongjava.tio.core.maintain.GlobalIpBlacklist;
 import com.litongjava.tio.server.ServerTioConfig;
 import com.litongjava.tio.utils.convert.Converter;
 import com.litongjava.tio.utils.lock.ReadLockHandler;
@@ -48,7 +49,7 @@ public class Tio {
      * @author tanyaowu
      */
     public static boolean add(String ip) {
-      return com.litongjava.tio.core.maintain.IpBlacklist.GLOBAL.add(ip);
+      return GlobalIpBlacklist.INSTANCE.global.add(ip);
     }
 
     /**
@@ -65,7 +66,7 @@ public class Tio {
      * @author tanyaowu
      */
     public static void clear() {
-      com.litongjava.tio.core.maintain.IpBlacklist.GLOBAL.clear();
+      GlobalIpBlacklist.INSTANCE.global.clear();
     }
 
     /**
@@ -84,7 +85,7 @@ public class Tio {
      * @author tanyaowu
      */
     public static Collection<String> getAll() {
-      return com.litongjava.tio.core.maintain.IpBlacklist.GLOBAL.getAll();
+      return GlobalIpBlacklist.INSTANCE.global.getAll();
     }
 
     /**
@@ -96,11 +97,10 @@ public class Tio {
      */
     public static boolean isInBlacklist(TioConfig tioConfig, String ip) {
       if (tioConfig.ipBlacklist != null) {
-        return tioConfig.ipBlacklist.isInBlacklist(ip)
-            || com.litongjava.tio.core.maintain.IpBlacklist.GLOBAL.isInBlacklist(ip);
-        
+        return tioConfig.ipBlacklist.isInBlacklist(ip) || GlobalIpBlacklist.INSTANCE.global.isInBlacklist(ip);
+
       } else {
-        return com.litongjava.tio.core.maintain.IpBlacklist.GLOBAL.isInBlacklist(ip);
+        return GlobalIpBlacklist.INSTANCE.global.isInBlacklist(ip);
       }
 
     }
@@ -121,7 +121,7 @@ public class Tio {
      * @author tanyaowu
      */
     public static void remove(String ip) {
-      com.litongjava.tio.core.maintain.IpBlacklist.GLOBAL.remove(ip);
+      GlobalIpBlacklist.INSTANCE.global.remove(ip);
     }
   }
 

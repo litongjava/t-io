@@ -15,6 +15,7 @@ import com.litongjava.tio.core.Tio;
 import com.litongjava.tio.core.TioConfig;
 import com.litongjava.tio.core.intf.AioHandler;
 import com.litongjava.tio.core.intf.AioListener;
+import com.litongjava.tio.core.maintain.GlobalIpBlacklist;
 import com.litongjava.tio.core.ssl.SslConfig;
 import com.litongjava.tio.server.intf.ServerAioHandler;
 import com.litongjava.tio.server.intf.ServerAioListener;
@@ -106,6 +107,7 @@ public class ServerTioConfig extends TioConfig {
     this.acceptCompletionHandler = new AcceptCompletionHandler();
     this.serverAioHandler = serverAioHandler;
     this.serverAioListener = serverAioListener;// == null ? new DefaultServerAioListener() : serverAioListener;
+    GlobalIpBlacklist.INSTANCE.init(this);
     checkHeartbeatThread = new Thread(new Runnable() {
       @Override
       public void run() {
@@ -119,8 +121,8 @@ public class ServerTioConfig extends TioConfig {
         while (needCheckHeartbeat && !isStopped()) {
           // long sleeptime = heartbeatTimeout;
           if (heartbeatTimeout <= 0) {
-            //log.info("{}, The user has canceled the heartbeat detection at the framework level, so if the business needs it, "
-            //    + "ask the user to complete the heartbeat detection by themselves", ServerTioConfig.this.name);
+            // log.info("{}, The user has canceled the heartbeat detection at the framework level, so if the business needs it, "
+            // + "ask the user to complete the heartbeat detection by themselves", ServerTioConfig.this.name);
             break;
           }
           try {
@@ -183,26 +185,26 @@ public class ServerTioConfig extends TioConfig {
     checkHeartbeatThread.setPriority(Thread.MIN_PRIORITY);
     checkHeartbeatThread.start();
   }
+
   private void debugInfo(long start, Set<ChannelContext> set, long start1, int count) {
     StringBuilder builder = new StringBuilder();
     builder.append(SysConst.CRLF).append(ServerTioConfig.this.getName());
     builder.append("\r\n ├ 当前时间:").append(SystemTimer.currTime);
     builder.append("\r\n ├ 连接统计");
-    builder.append("\r\n │ \t ├ 共接受过连接数  :").append(((ServerGroupStat) groupStat).accepted.get());
-    builder.append("\r\n │ \t ├ 当前连接数            :").append(set.size());
+    builder.append("\r\n │ \t ├ 共接受过连接数 :").append(((ServerGroupStat) groupStat).accepted.get());
+    builder.append("\r\n │ \t ├ 当前连接数 :").append(set.size());
     // builder.append("\r\n │ \t ├ 当前群组数 :").append(groups);
-    builder.append("\r\n │ \t ├ 异IP连接数           :")
-        .append(ServerTioConfig.this.ips.getIpmap().getObj().size());
-    builder.append("\r\n │ \t └ 关闭过的连接数  :").append(groupStat.closed.get());
+    builder.append("\r\n │ \t ├ 异IP连接数 :").append(ServerTioConfig.this.ips.getIpmap().getObj().size());
+    builder.append("\r\n │ \t └ 关闭过的连接数 :").append(groupStat.closed.get());
 
     builder.append("\r\n ├ 消息统计");
-    builder.append("\r\n │ \t ├ 已处理消息  :").append(groupStat.handledPackets.get());
-    builder.append("\r\n │ \t ├ 已接收消息(packet/byte):").append(groupStat.receivedPackets.get()).append("/")
+    builder.append("\r\n │ \t ├ 已处理消息 :").append(groupStat.handledPackets.get());
+    builder.append("\r\n │ \t ├ 已接收消息(packet/byte) :").append(groupStat.receivedPackets.get()).append("/")
         .append(groupStat.receivedBytes.get());
-    builder.append("\r\n │ \t ├ 已发送消息(packet/byte):").append(groupStat.sentPackets.get()).append("/")
+    builder.append("\r\n │ \t ├ 已发送消息(packet/byte) :").append(groupStat.sentPackets.get()).append("/")
         .append(groupStat.sentBytes.get()).append("b");
-    builder.append("\r\n │ \t ├ 平均每次TCP包接收的字节数  :").append(groupStat.getBytesPerTcpReceive());
-    builder.append("\r\n │ \t └ 平均每次TCP包接收的业务包  :").append(groupStat.getPacketsPerTcpReceive());
+    builder.append("\r\n │ \t ├ 平均每次TCP包接收的字节数 :").append(groupStat.getBytesPerTcpReceive());
+    builder.append("\r\n │ \t └ 平均每次TCP包接收的业务包 :").append(groupStat.getPacketsPerTcpReceive());
     builder.append("\r\n └ IP统计时段 ");
 
     if (CollUtil.isNotEmpty(ServerTioConfig.this.ipStats.durationList)) {
@@ -214,30 +216,25 @@ public class ServerTioConfig extends TioConfig {
     builder.append("\r\n ├ 节点统计");
     builder.append("\r\n │ \t ├ clientNodes :")
         .append(ServerTioConfig.this.clientNodes.getObjWithLock().getObj().size());
-    builder.append("\r\n │ \t ├ 所有连接               :")
-        .append(ServerTioConfig.this.connections.getObj().size());
-    builder.append("\r\n │ \t ├ 绑定user数         :")
-        .append(ServerTioConfig.this.users.getMap().getObj().size());
-    builder.append("\r\n │ \t ├ 绑定token数       :")
-        .append(ServerTioConfig.this.tokens.getMap().getObj().size());
+    builder.append("\r\n │ \t ├ 所有连接 :").append(ServerTioConfig.this.connections.getObj().size());
+    builder.append("\r\n │ \t ├ 绑定user数 :").append(ServerTioConfig.this.users.getMap().getObj().size());
+    builder.append("\r\n │ \t ├ 绑定token数 :").append(ServerTioConfig.this.tokens.getMap().getObj().size());
     builder.append("\r\n │ \t └ 等待同步消息响应 :").append(ServerTioConfig.this.waitingResps.getObj().size());
 
     builder.append("\r\n ├ 群组");
-    builder.append("\r\n │ \t └ groupmap:")
-        .append(ServerTioConfig.this.groups.getGroupmap().getObj().size());
+    builder.append("\r\n │ \t └ groupmap:").append(ServerTioConfig.this.groups.getGroupmap().getObj().size());
     builder.append("\r\n └ 拉黑IP ");
-    if(ServerTioConfig.this.ipBlacklist!=null){
-      builder.append("\r\n   \t └ ").append(AppendJsonConverter.convertCollectionStringToJson(this.ipBlacklist.getAll()));
+    if (ServerTioConfig.this.ipBlacklist != null) {
+      builder.append("\r\n   \t └ ")
+          .append(AppendJsonConverter.convertCollectionStringToJson(this.ipBlacklist.getAll()));
     }
-
 
     log.warn(builder.toString());
 
     long end = SystemTimer.currTime;
     long iv1 = start1 - start;
     long iv = end - start1;
-    log.warn("{}, 检查心跳, 共{}个连接, 取锁耗时{}ms, 循环耗时{}ms, 心跳超时时间:{}ms", ServerTioConfig.this.name, count, iv1, iv,
-        heartbeatTimeout);
+    log.warn("{}, 检查心跳, 共{}个连接, 取锁耗时{}ms, 循环耗时{}ms, 心跳超时时间:{}ms", super.name, count, iv1, iv, heartbeatTimeout);
   }
 
   /**
@@ -382,5 +379,4 @@ public class ServerTioConfig extends TioConfig {
       // }
     }
   }
-
 }
