@@ -6,31 +6,32 @@ The package is distributed through Maven Central.
 [tio-websocket-server](https://central.sonatype.com/artifact/com.litongjava/tio-websocket-server),
 [tio-server](https://central.sonatype.com/artifact/com.litongjava/tio--server),
 
-## Packaging tio-http-server into a Binary File
-### Source Code Location
+## tio-http-server打包为二进制文件
+### 源码地址
 https://github.com/litongjava/java-ee-tio-boot-study/tree/main/tio-http-server-study/tio-http-server-hello
 
-### Advantages of Packaging Java Applications into Binary Files
-Packaging Java applications as binary files brings a series of benefits that are very beneficial for improving the performance, distribution, and operational aspects of the application. Here are some of the main advantages:
 
-1. **Faster Startup Time**: Binary files usually start much faster than traditional JVM startup methods. This is because they are directly compiled into native code, reducing the time required for JVM initialization and class loading. This is especially useful in microservices and cloud functions (such as AWS Lambda) that require quick startup and execution.
+### 打包 Java 应用为二进制文件的优势
+打包 Java 应用为二进制文件，带来了一系列的好处，这些好处对于提升应用的性能、分发、以及运维方面都非常有益。以下是一些主要优势：
 
-2. **Reduced Memory Footprint**: Applications compiled into binary files typically have a smaller memory footprint. This is because they avoid some of the overheads of the runtime environment, such as JVM garbage collection and JIT compilation.
+1. **更快的启动时间**：二进制文件通常比传统的 JVM 启动方式快得多。这是因为它们直接编译到了本地代码，减少了JVM初始化和类加载所需的时间。这在需要快速启动和执行的微服务和云函数（如 AWS Lambda）中特别有用。
 
-3. **Simplified Deployment**: Binary files simplify the deployment process. You only need a single file, without the need to separately install and configure the JVM environment. This simplifies the deployment and migration process in different environments.
+2. **减少内存占用**：编译成二进制文件的应用通常有更小的内存占用。这是因为它们避免了运行时环境的一些开销，如 JVM 的垃圾收集和 JIT 编译。
 
-4. **Improved Performance**: Direct compilation into machine code can improve application performance, especially for compute-intensive applications. This approach can make better use of hardware resources and improve operational efficiency.
+3. **简化部署**：二进制文件使得部署过程更加简单。你只需要一个文件，不再需要单独安装和配置 JVM 环境。这简化了在不同环境中的部署和迁移过程。
 
-5. **Cross-Platform Compatibility**: With proper configuration and environmental settings, specialized binary files can be created for different operating systems and hardware architectures, increasing the portability of the application.
+4. **提高性能**：直接编译为机器码可以提高应用性能，尤其是对于计算密集型应用。这种方式可以更好地利用硬件资源，提高运行效率。
 
-6. **Enhanced Security**: Compiling into binary files can improve security to some extent, as it reduces the possibility of runtime code injection and other JVM-based attacks.
+5. **跨平台兼容性**：通过适当的配置和环境设置，可以为不同的操作系统和硬件架构创建专门的二进制文件，增加应用的可移植性。
 
-7. **Reduced Dependencies**: Since all necessary libraries and dependencies are included in a single binary file, it reduces the dependence on external libraries and environments.
+6. **安全性增强**：编译成二进制文件可以在一定程度上提高安全性，因为它减少了运行时代码注入和其他基于 JVM 的攻击的可能性。
 
-8. **Optimized Resource Utilization**: In containerized and cloud infrastructure environments, the optimization of resource utilization is particularly important. The low memory footprint and quick startup characteristics of binary files make them very suitable for these environments.
+7. **减少依赖**：由于所有必需的库和依赖都被包含在单个二进制文件中，因此减少了对外部库和环境的依赖。
 
-### 1.1. Creating the Project
-First, create a Maven project and add the necessary dependencies and configuration. It is specifically pointed out to use version `3.7.3.v20231223-RELEASE` of `tio-http-server`, which has been optimized to use a custom `mapcache` instead of `caffeine`. The example provides the configuration of the `pom.xml` file, covering the Java version, dependencies, and specific build configurations.
+8. **优化资源利用**：在容器化和云基础设施环境中，资源利用的优化尤为重要。二进制文件的低内存占用和快速启动特性使得它们非常适合这些环境。
+
+### 1.1.创建工程
+首先，创建一个 Maven 工程并添加所需的依赖和配置。这里特别指出了使用 `3.7.3.v20231223-RELEASE` 版本的 `tio-http-server`，该版本做了优化，使用了自定义的 `mapcache` 替代了 `caffeine`。示例中提供了 `pom.xml` 文件的配置，涵盖了 Java 版本、依赖库、以及特定的构建配置。
 ```
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -157,10 +158,9 @@ First, create a Maven project and add the necessary dependencies and configurati
     </profile>
   </profiles>
 ```
-The dependencies reveal that tio-http-server only depends on fastjson2 and slf4j-api.
-
-### 1.2. Writing the Code
-Next, write a simple controller `IndexController` and a startup class `DemoHttpServer`. These classes define basic HTTP request processing logic and set up routing.
+通过依赖可以分析得出tio-http-server仅仅依赖了fastjson2和slf4j-api
+### 1.2.编写代码
+接下来，编写一个简单的控制器 `IndexController` 和一个启动类 `DemoHttpServer`。这些类定义了基本的 HTTP 请求处理逻辑，并设置了路由。
 ```
 package demo.controller;
 
@@ -224,8 +224,8 @@ public class DemoHttpServer {
   }
 }
 ```
-### 1.3. Setting Up the Environment
-To package into a binary file, it's necessary to install GraalVM and Maven. The document provides detailed installation steps, including download links, extraction instructions, and setting environment variables.
+#### 1.3.配置环境
+为了打包成二进制文件，需要安装 GraalVM 和 Maven。文档中提供了详细的安装步骤，包括下载链接、解压指令和环境变量设置。
 #### Install GraalVM
 
 1. Download and extract GraalVM:
@@ -260,26 +260,26 @@ To package into a binary file, it's necessary to install GraalVM and Maven. The 
    export PATH=$MVN_HOME/bin:$PATH
    ```
 
-## 1.4.打包
-The following describes how to use Maven to package a Java Jar file and how to build a binary image.
+### 1.4.打包
+下面介绍如何使用 Maven 打包 Java Jar 文件，以及如何构建二进制镜像。
 
-### Build Java Jar (Optional)
+#### Build Java Jar (Optional)
 
 ```shell
 mvn package
 ```
 
-### Build Binary Image
+#### Build Binary Image
 
 ```shell
 mvn clean package -DskipTests -Pserver-graalvm
 ```
 
-#### Actual Packaging Command Executed
+#### 实际执行的打包命令是
 ```
 /root/program/graalvm-jdk-21.0.1+12.1/lib/svm/bin/native-image -cp /root/.m2/repository/com/litongjava/tio-http-server/3.7.3.v20231223-RELEASE/tio-http-server-3.7.3.v20231223-RELEASE.jar:/root/.m2/repository/com/litongjava/tio-http-common/3.7.3.v20231223-RELEASE/tio-http-common-3.7.3.v20231223-RELEASE.jar:/root/.m2/repository/com/litongjava/tio-core/3.7.3.v20231223-RELEASE/tio-core-3.7.3.v20231223-RELEASE.jar:/root/.m2/repository/com/litongjava/tio-utils/3.7.3.v20231223-RELEASE/tio-utils-3.7.3.v20231223-RELEASE.jar:/root/.m2/repository/com/alibaba/fastjson2/fastjson2/2.0.43/fastjson2-2.0.43.jar:/root/.m2/repository/org/slf4j/slf4j-jdk14/1.7.31/slf4j-jdk14-1.7.31.jar:/root/.m2/repository/org/slf4j/slf4j-api/1.7.31/slf4j-api-1.7.31.jar:/root/code/java-ee-tio-boot-study/tio-http-server-study/tio-http-server-hello/target/tio-http-server-graal.jar -H:+RemoveSaturatedTypeFlows --allow-incomplete-classpath --no-fallback -H:Class=demo.DemoHttpServer -H:Name=tio-http-server-hello
 ```
-#### Excerpts from the Packaging Log
+#### 打包过程中的部分日志如下
 ```
 ========================================================================================================================
 GraalVM Native Image: Generating 'tio-http-server-hello' (executable)...
@@ -347,10 +347,9 @@ Produced artifacts:
  /root/code/java-ee-tio-boot-study/tio-http-server-study/tio-http-server-hello/target/tio-http-server-hello (executable)
 ```
 
-The generated binary file tio-http-server-hello is 42MB.
-
-### 1.5. Startup Testing
-Start the server. The startup time is only 13ms. The server startup log includes server configuration, startup time, process ID, and other information.
+生成的二进制文件tio-http-server-hello有42M
+### 1.5.启动测试
+启动服务器,启动时间仅为13ms,服务器启动的日志如下包括服务器配置、启动时间和进程 ID 等信息。
 ```
 root@ping-Inspiron-3458:~/code/java-ee-tio-boot-study/tio-http-server-study/tio-http-server-hello# ./target/tio-http-server-hello 
 Dec 26, 2023 6:29:33 PM com.litongjava.tio.server.TioServer start
