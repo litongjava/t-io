@@ -1,7 +1,10 @@
 package com.litongjava.tio.utils.cache.j2cache;
 
+import java.util.Map;
+
 import com.litongjava.tio.utils.cache.AbsCache;
 import com.litongjava.tio.utils.cache.CacheFactory;
+import com.litongjava.tio.utils.cache.CacheName;
 import com.litongjava.tio.utils.cache.RemovalListenerWrapper;
 
 public class J2CacheFactory implements CacheFactory{
@@ -26,7 +29,19 @@ public class J2CacheFactory implements CacheFactory{
   }
 
   @Override
-  public AbsCache getCache(String cacheName) {
+  public J2Cache getCache(String cacheName) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Map<String, ? extends AbsCache> getMap() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public AbsCache register(CacheName cacheName) {
     // TODO Auto-generated method stub
     return null;
   }

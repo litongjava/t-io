@@ -9,7 +9,9 @@ import org.slf4j.LoggerFactory;
 
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.github.benmanes.caffeine.cache.RemovalListener;
+import com.litongjava.tio.utils.cache.AbsCache;
 import com.litongjava.tio.utils.cache.CacheFactory;
+import com.litongjava.tio.utils.cache.CacheName;
 import com.litongjava.tio.utils.cache.RemovalListenerWrapper;
 import com.litongjava.tio.utils.caffeine.CaffeineUtils;
 
@@ -37,9 +39,11 @@ public enum CaffeineCacheFactory implements CacheFactory {
       RemovalListenerWrapper<T> removalListenerWrapper) {
 
     RemovalListener<String, Serializable> removalListener = null;
-    // 检查 removalListenerWrapper 是否持有 RemovalListener 类型的监听器
-    if (removalListenerWrapper.getListener() instanceof RemovalListener) {
-      removalListener = (RemovalListener<String, Serializable>) removalListenerWrapper.getListener();
+    if (removalListenerWrapper != null) {
+      // 检查 removalListenerWrapper 是否持有 RemovalListener 类型的监听器
+      if (removalListenerWrapper.getListener() instanceof RemovalListener) {
+        removalListener = (RemovalListener<String, Serializable>) removalListenerWrapper.getListener();
+      }
     }
 
     CaffeineCache caffeineCache = map.get(cacheName);
@@ -78,6 +82,16 @@ public enum CaffeineCacheFactory implements CacheFactory {
 
   public CaffeineCache getCache(String cacheName) {
     return getCache(cacheName, false);
+  }
+
+  @Override
+  public Map<String, ? extends AbsCache> getMap() {
+    return map;
+  }
+
+  @Override
+  public CaffeineCache register(CacheName cacheName) {
+    return this.register(cacheName.getName(), cacheName.getTimeToLiveSeconds(), cacheName.getTimeToIdleSeconds(), null);
   }
 
 }

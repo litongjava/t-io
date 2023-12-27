@@ -4,7 +4,9 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.litongjava.tio.utils.cache.AbsCache;
 import com.litongjava.tio.utils.cache.CacheFactory;
+import com.litongjava.tio.utils.cache.CacheName;
 import com.litongjava.tio.utils.cache.CacheRemovalListener;
 import com.litongjava.tio.utils.cache.RemovalListenerWrapper;
 
@@ -52,5 +54,15 @@ public enum ConcurrentMapCacheFactory implements CacheFactory {
   @Override
   public ConcurrentMapCache getCache(String cacheName) {
     return map.get(cacheName);
+  }
+
+  @Override
+  public Map<String, ? extends AbsCache> getMap() {
+    return map;
+  }
+
+  @Override
+  public ConcurrentMapCache register(CacheName cacheName) {
+    return this.register(cacheName.getName(), cacheName.getTimeToLiveSeconds(), cacheName.getTimeToIdleSeconds(), null);
   }
 }

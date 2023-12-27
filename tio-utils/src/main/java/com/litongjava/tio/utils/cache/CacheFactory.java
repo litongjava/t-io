@@ -1,5 +1,7 @@
 package com.litongjava.tio.utils.cache;
 
+import java.util.Map;
+
 public interface CacheFactory {
 
   /**
@@ -13,10 +15,14 @@ public interface CacheFactory {
    */
   public AbsCache register(String cacheName, Long timeToLiveSeconds, Long timeToIdleSeconds);
 
+  public AbsCache register(CacheName cacheName);
+
   public <T> AbsCache register(String cacheName, Long timeToLiveSeconds, Long timeToIdleSeconds,
       RemovalListenerWrapper<T> removalListenerWrapper);
 
   public AbsCache getCache(String cacheName, boolean skipNull);
 
   public AbsCache getCache(String cacheName);
+
+  public Map<String, ? extends AbsCache> getMap();
 }

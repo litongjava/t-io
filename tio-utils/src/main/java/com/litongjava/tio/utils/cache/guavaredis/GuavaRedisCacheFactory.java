@@ -1,4 +1,4 @@
-package com.litongjava.tio.utils.cache.caffeineredis;
+package com.litongjava.tio.utils.cache.guavaredis;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,19 +17,19 @@ import com.litongjava.tio.utils.cache.CacheFactory;
 import com.litongjava.tio.utils.cache.CacheName;
 import com.litongjava.tio.utils.cache.ICache;
 import com.litongjava.tio.utils.cache.RemovalListenerWrapper;
-import com.litongjava.tio.utils.cache.caffeine.CaffeineCache;
-import com.litongjava.tio.utils.cache.caffeine.CaffeineCacheFactory;
+import com.litongjava.tio.utils.cache.guava.GuavaCache;
+import com.litongjava.tio.utils.cache.guava.GuavaCacheFactory;
 import com.litongjava.tio.utils.cache.redis.RedisCache;
 import com.litongjava.tio.utils.cache.redis.RedisCacheFactory;
 import com.litongjava.tio.utils.hutool.StrUtil;
 
-public enum CaffeineRedisCacheFactory implements CacheFactory {
+public enum GuavaRedisCacheFactory implements CacheFactory {
 
   INSTANCE;
 
   private Logger log = LoggerFactory.getLogger(this.getClass());
-  private Object lock = new Object();
-  private Map<String, CaffeineRedisCache> map = new HashMap<>();
+  //private Object lock = new Object();
+  private Map<String, GuavaRedisCache> map = new HashMap<>();
   private boolean inited = false;
   private RedissonClient redisson;
   private RTopic topic;
@@ -40,10 +40,9 @@ public enum CaffeineRedisCacheFactory implements CacheFactory {
    */
   public void init(RedissonClient redisson) {
     if (!inited) {
-      synchronized (lock) {
+      synchronized (GuavaRedisCache.class) {
         if (!inited) {
-          this.redisson = redisson;
-          topic = redisson.getTopic(CaffeineRedisCache.CACHE_CHANGE_TOPIC);
+          topic = redisson.getTopic(GuavaRedisCache.CACHE_CHANGE_TOPIC);
           addListener(topic);
           inited = true;
         }
@@ -66,31 +65,31 @@ public enum CaffeineRedisCacheFactory implements CacheFactory {
         }
 
         String cacheName = cacheChangedVo.getCacheName();
-        CaffeineRedisCache caffeineRedisCache = getCache(cacheName);
-        if (caffeineRedisCache == null) {
-          log.info("不能根据cacheName[{}]找到CaffeineRedisCache对象", cacheName);
+        GuavaRedisCache guavaRedisCache = getCache(cacheName);
+        if (guavaRedisCache == null) {
+          log.info("不能根据cacheName[{}]找到GuavaRedisCache对象", cacheName);
           return;
         }
 
         CacheChangeType type = cacheChangedVo.getType();
         if (type == CacheChangeType.PUT || type == CacheChangeType.UPDATE || type == CacheChangeType.REMOVE) {
           String key = cacheChangedVo.getKey();
-          caffeineRedisCache.localCache.remove(key);
+          guavaRedisCache.guavaCache.remove(key);
         } else if (type == CacheChangeType.CLEAR) {
-          caffeineRedisCache.localCache.clear();
+          guavaRedisCache.guavaCache.clear();
         }
       }
     });
   }
 
   @Override
-  public CaffeineRedisCache register(String cacheName, Long timeToLiveSeconds, Long timeToIdleSeconds) {
+  public GuavaRedisCache register(String cacheName, Long timeToLiveSeconds, Long timeToIdleSeconds) {
     init(redisson);
-    CaffeineRedisCache caffeineRedisCache = map.get(cacheName);
-    if (caffeineRedisCache == null) {
-      synchronized (CaffeineRedisCache.class) {
-        caffeineRedisCache = map.get(cacheName);
-        if (caffeineRedisCache == null) {
+    GuavaRedisCache guavaRedisCache = map.get(cacheName);
+    if (guavaRedisCache == null) {
+      synchronized (GuavaRedisCache.class) {
+        guavaRedisCache = map.get(cacheName);
+        if (guavaRedisCache == null) {
           RedisCacheFactory.INSTANCE.setRedisson(redisson);
           RedisCache redisCache = RedisCacheFactory.INSTANCE.register(cacheName, timeToLiveSeconds, timeToIdleSeconds);
 
@@ -103,40 +102,40 @@ public enum CaffeineRedisCacheFactory implements CacheFactory {
           if (timeToIdleSecondsForCaffeine != null) {
             timeToIdleSecondsForCaffeine = Math.min(timeToIdleSecondsForCaffeine, ICache.MAX_EXPIRE_IN_LOCAL);
           }
-          CaffeineCache caffeineCache = CaffeineCacheFactory.INSTANCE.register(cacheName, timeToLiveSecondsForCaffeine,
+          GuavaCache GuavaCache = GuavaCacheFactory.INSTANCE.register(cacheName, timeToLiveSecondsForCaffeine,
               timeToIdleSecondsForCaffeine);
 
-          caffeineRedisCache = new CaffeineRedisCache(cacheName, caffeineCache, redisCache);
-          caffeineRedisCache.setTopic(this.topic);
+          guavaRedisCache = new GuavaRedisCache(cacheName, GuavaCache, redisCache);
+          guavaRedisCache.setTopic(this.topic);
 
-          caffeineRedisCache.setTimeToIdleSeconds(timeToIdleSeconds);
-          caffeineRedisCache.setTimeToLiveSeconds(timeToLiveSeconds);
+          guavaRedisCache.setTimeToIdleSeconds(timeToIdleSeconds);
+          guavaRedisCache.setTimeToLiveSeconds(timeToLiveSeconds);
 
-          map.put(cacheName, caffeineRedisCache);
+          map.put(cacheName, guavaRedisCache);
         }
       }
     }
-    return caffeineRedisCache;
+    return guavaRedisCache;
 
   }
 
   @Override
-  public <T> CaffeineRedisCache register(String cacheName, Long timeToLiveSeconds, Long timeToIdleSeconds,
+  public <T> GuavaRedisCache register(String cacheName, Long timeToLiveSeconds, Long timeToIdleSeconds,
       RemovalListenerWrapper<T> removalListenerWrapper) {
     return null;
   }
 
   @Override
-  public CaffeineRedisCache getCache(String cacheName, boolean skipNull) {
-    CaffeineRedisCache caffeineRedisCache = map.get(cacheName);
-    if (caffeineRedisCache == null && !skipNull) {
+  public GuavaRedisCache getCache(String cacheName, boolean skipNull) {
+    GuavaRedisCache guavaRedisCache = map.get(cacheName);
+    if (guavaRedisCache == null && !skipNull) {
       log.error("cacheName[{}] is not yet registered, please register first.", cacheName);
     }
-    return caffeineRedisCache;
+    return guavaRedisCache;
   }
 
   @Override
-  public CaffeineRedisCache getCache(String cacheName) {
+  public GuavaRedisCache getCache(String cacheName) {
     return getCache(cacheName, false);
   }
 
@@ -146,7 +145,7 @@ public enum CaffeineRedisCacheFactory implements CacheFactory {
   }
 
   @Override
-  public CaffeineRedisCache register(CacheName cacheName) {
+  public GuavaRedisCache register(CacheName cacheName) {
     return this.register(cacheName.getName(), cacheName.getTimeToLiveSeconds(), cacheName.getTimeToIdleSeconds());
   }
 

@@ -7,11 +7,14 @@ import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.litongjava.tio.utils.cache.AbsCache;
 import com.litongjava.tio.utils.cache.CacheFactory;
+import com.litongjava.tio.utils.cache.CacheName;
 import com.litongjava.tio.utils.cache.RemovalListenerWrapper;
 
 public enum RedisCacheFactory implements CacheFactory {
   INSTANCE;
+
   private Logger log = LoggerFactory.getLogger(RedisCacheFactory.class);
   private Map<String, RedisCache> map = new HashMap<>();
   private RedissonClient redisson;
@@ -72,6 +75,16 @@ public enum RedisCacheFactory implements CacheFactory {
   @Override
   public RedisCache getCache(String cacheName) {
     return map.get(cacheName);
+  }
+
+  @Override
+  public Map<String, ? extends AbsCache> getMap() {
+    return map;
+  }
+
+  @Override
+  public RedisCache register(CacheName cacheName) {
+    return this.register(cacheName.getName(), cacheName.getTimeToLiveSeconds(), cacheName.getTimeToIdleSeconds());
   }
 
 }

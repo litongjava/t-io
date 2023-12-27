@@ -78,23 +78,15 @@ package com.litongjava.tio.utils.cache.guavaredis;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 import org.redisson.api.RTopic;
-import org.redisson.api.RedissonClient;
-import org.redisson.api.listener.MessageListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.litongjava.tio.utils.cache.AbsCache;
 import com.litongjava.tio.utils.cache.CacheChangeType;
 import com.litongjava.tio.utils.cache.CacheChangedVo;
 import com.litongjava.tio.utils.cache.guava.GuavaCache;
-import com.litongjava.tio.utils.cache.guava.GuavaCacheFactory;
 import com.litongjava.tio.utils.cache.redis.RedisCache;
-import com.litongjava.tio.utils.cache.redis.RedisCacheFactory;
 import com.litongjava.tio.utils.cache.redis.RedisExpireUpdateTask;
 import com.litongjava.tio.utils.hutool.StrUtil;
 
@@ -106,96 +98,7 @@ public class GuavaRedisCache extends AbsCache {
 
   public static final String CACHE_CHANGE_TOPIC = "TIO_CACHE_CHANGE_TOPIC_GUAVA";
 
-  private static Logger log = LoggerFactory.getLogger(GuavaRedisCache.class);
-  public static Map<String, GuavaRedisCache> map = new HashMap<>();
-
-  static RTopic topic;
-
-  private static boolean inited = false;
-
-  public static GuavaRedisCache getCache(String cacheName) {
-    GuavaRedisCache guavaRedisCache = map.get(cacheName);
-    if (guavaRedisCache == null) {
-      log.warn("cacheName[{}]还没注册，请初始化时调用：{}.register(cacheName, timeToLiveSeconds, timeToIdleSeconds)", cacheName,
-          GuavaRedisCache.class.getSimpleName());
-    }
-    return guavaRedisCache;
-  }
-
-  private static void init(RedissonClient redisson) {
-    if (!inited) {
-      synchronized (GuavaRedisCache.class) {
-        if (!inited) {
-          topic = redisson.getTopic(CACHE_CHANGE_TOPIC);
-          topic.addListener(CacheChangedVo.class, new MessageListener<CacheChangedVo>() {
-            @Override
-            public void onMessage(CharSequence channel, CacheChangedVo cacheChangedVo) {
-              String clientid = cacheChangedVo.getClientId();
-              if (StrUtil.isBlank(clientid)) {
-                log.error("clientid is null");
-                return;
-              }
-              if (Objects.equals(CacheChangedVo.CLIENTID, clientid)) {
-                log.debug("自己发布的消息,{}", clientid);
-                return;
-              }
-
-              String cacheName = cacheChangedVo.getCacheName();
-              GuavaRedisCache guavaRedisCache = GuavaRedisCache.getCache(cacheName);
-              if (guavaRedisCache == null) {
-                log.info("不能根据cacheName[{}]找到GuavaRedisCache对象", cacheName);
-                return;
-              }
-
-              CacheChangeType type = cacheChangedVo.getType();
-              if (type == CacheChangeType.PUT || type == CacheChangeType.UPDATE || type == CacheChangeType.REMOVE) {
-                String key = cacheChangedVo.getKey();
-                guavaRedisCache.guavaCache.remove(key);
-              } else if (type == CacheChangeType.CLEAR) {
-                guavaRedisCache.guavaCache.clear();
-              }
-            }
-          });
-          inited = true;
-        }
-      }
-    }
-  }
-
-  public static GuavaRedisCache register(RedissonClient redisson, String cacheName, Long timeToLiveSeconds,
-      Long timeToIdleSeconds) {
-    init(redisson);
-
-    GuavaRedisCache guavaRedisCache = map.get(cacheName);
-    if (guavaRedisCache == null) {
-      synchronized (GuavaRedisCache.class) {
-        guavaRedisCache = map.get(cacheName);
-        if (guavaRedisCache == null) {
-          RedisCacheFactory.INSTANCE.setRedisson(redisson);
-          RedisCache redisCache = RedisCacheFactory.INSTANCE.register(cacheName, timeToLiveSeconds, timeToIdleSeconds);
-
-          Long timeToLiveSecondsForGuava = timeToLiveSeconds;
-          Long timeToIdleSecondsForGuava = timeToIdleSeconds;
-
-          if (timeToLiveSecondsForGuava != null) {
-            timeToLiveSecondsForGuava = Math.min(timeToLiveSecondsForGuava, MAX_EXPIRE_IN_LOCAL);
-          }
-          if (timeToIdleSecondsForGuava != null) {
-            timeToIdleSecondsForGuava = Math.min(timeToIdleSecondsForGuava, MAX_EXPIRE_IN_LOCAL);
-          }
-          GuavaCache guavaCache = GuavaCacheFactory.INSTANCE.register(cacheName, timeToLiveSecondsForGuava, timeToIdleSecondsForGuava);
-
-          guavaRedisCache = new GuavaRedisCache(cacheName, guavaCache, redisCache);
-
-          guavaRedisCache.setTimeToIdleSeconds(timeToIdleSeconds);
-          guavaRedisCache.setTimeToLiveSeconds(timeToLiveSeconds);
-
-          map.put(cacheName, guavaRedisCache);
-        }
-      }
-    }
-    return guavaRedisCache;
-  }
+  private RTopic topic;
 
   GuavaCache guavaCache;
 
@@ -259,7 +162,7 @@ public class GuavaRedisCache extends AbsCache {
   public Iterable<String> keys() {
     return redisCache.keys();
   }
-  
+
   @Override
   public Collection<String> keysCollection() {
     return redisCache.keysCollection();
@@ -321,6 +224,9 @@ public class GuavaRedisCache extends AbsCache {
     return redisCache.size();
   }
 
+  public void setTopic(Object object) {
+    // TODO Auto-generated method stub
 
+  }
 
 }
