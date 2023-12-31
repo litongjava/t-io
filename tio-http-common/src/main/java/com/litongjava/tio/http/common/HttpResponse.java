@@ -317,6 +317,21 @@ public class HttpResponse extends HttpPacket {
     this.status = status;
   }
 
+  public void setStatus(int status, String description, String headerText) {
+    HttpResponseStatus custom = HttpResponseStatus.CUSTOM.build(status, description, headerText);
+    this.status = custom;
+  }
+
+  public void setStatus(int status, String description) {
+    HttpResponseStatus custom = HttpResponseStatus.CUSTOM.build(status, description);
+    this.status = custom;
+  }
+
+  public void setStatus(int status) {
+    HttpResponseStatus custom = HttpResponseStatus.CUSTOM.build(status);
+    this.status = custom;
+  }
+
   public boolean isHasGzipped() {
     return hasGzipped;
   }
