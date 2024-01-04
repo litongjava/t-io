@@ -1,6 +1,8 @@
 package com.litongjava.tio.http.common;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -736,6 +738,18 @@ public class HttpRequest extends HttpPacket {
 
   public void setForward(boolean isForward) {
     this.isForward = isForward;
+  }
+
+  public String getContentType() {
+    return this.getHeader(HttpConst.RequestHeaderKey.Content_Type);
+  }
+
+  public Enumeration<String> getParameterNames() {
+    return Collections.enumeration(params.keySet());
+  }
+
+  public String getParameter(String paramName) {
+    return getParam(paramName);
   }
 
   // /**
