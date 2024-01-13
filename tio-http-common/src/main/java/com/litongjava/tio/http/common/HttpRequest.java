@@ -543,7 +543,7 @@ public class HttpRequest extends HttpPacket {
       Set<Entry<String, String>> set = _cookiemap.entrySet();
       List<Map<String, String>> cookieListMap = new ArrayList<>();
       for (Entry<String, String> cookieMapEntry : set) {
-        HashMap<String, String> cookieOneMap = new HashMap<>();
+        HashMap<String, String> cookieOneMap = new HashMap<>(1);
         cookieOneMap.put(cookieMapEntry.getKey(), cookieMapEntry.getValue());
         cookieListMap.add(cookieOneMap);
 
