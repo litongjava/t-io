@@ -294,6 +294,14 @@ public class HttpRequest extends HttpPacket {
   }
 
   /**
+   * @return the cookies
+   */
+  public Cookie[] getCookiesArray() {
+    Cookie[] array = cookies.toArray(new Cookie[] {});
+    return array;
+  }
+
+  /**
    * @return the httpConfig
    */
   public HttpConfig getHttpConfig() {
@@ -750,6 +758,33 @@ public class HttpRequest extends HttpPacket {
 
   public String getParameter(String paramName) {
     return getParam(paramName);
+  }
+
+  public Map<String, Object[]> getParameterMap() {
+    return this.getParams();
+  }
+
+  public String getRequestURI() {
+    String path = requestLine.getPath();
+    return path;
+  }
+
+  public StringBuffer getRequestURL() {
+    StringBuffer stringBuffer = new StringBuffer();
+    stringBuffer.append(requestLine.getProtocol().toLowerCase()).append("://").append(host).append(requestLine.getPath());
+    return stringBuffer;
+  }
+
+  /**
+   * eg:GET
+   * @return
+   */
+  public String getMethod() {
+    return requestLine.getMethod().toString();
+  }
+
+  public RequestDispatcher getRequestDispatcher(String path) {
+    return new RequestDispatcher(path);
   }
 
   // /**

@@ -196,6 +196,10 @@ public class HttpResponse extends HttpPacket {
     headerByteCount += (key.bytes.length + value.bytes.length + 3); // 冒号和\r\n
   }
 
+  public void setHeader(String name, String value) {
+    this.addHeader(name, value);
+  }
+
   public void addHeaders(Map<HeaderName, HeaderValue> headers) {
     if (headers != null) {
       Set<Entry<HeaderName, HeaderValue>> set = headers.entrySet();
@@ -434,6 +438,12 @@ public class HttpResponse extends HttpPacket {
     this.addHeader(HeaderName.Keep_Alive, HeaderValue.from("timeout=60"));
     this.stream = true;
     return this;
+
+  }
+
+  public void sendRedirect(String url) {
+    setStatus(HttpResponseStatus.C302);
+    addHeader(HeaderName.Location, HeaderValue.from(url));
 
   }
 }

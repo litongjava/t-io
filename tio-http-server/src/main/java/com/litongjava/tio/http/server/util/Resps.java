@@ -358,6 +358,11 @@ public class Resps {
   public static HttpResponse json(HttpRequest request, Object body) {
     return json(request, body, request.httpConfig.getCharset());
   }
+  
+  public static HttpResponse json(HttpResponse response, Object body) {
+     String charset = response.getHttpRequest().getHttpConfig().getCharset();
+    return json(response, body, charset);
+  }
 
   /**
    * Content-Type: application/json;charset=utf-8
@@ -380,6 +385,21 @@ public class Resps {
     }
     return ret;
   }
+  
+
+  public static HttpResponse json(HttpResponse response, Object body, String charset) {
+    if (body == null) {
+      response = string(response, "", charset, getMimeTypeStr(MimeType.TEXT_PLAIN_JSON, charset));
+    } else {
+      if (body.getClass() == String.class || ClassUtil.isBasicType(body.getClass())) {
+        response = string(response, body + "", charset, getMimeTypeStr(MimeType.TEXT_PLAIN_JSON, charset));
+      } else {
+        response = string(response, JSON.toJSONString(body), charset, getMimeTypeStr(MimeType.TEXT_PLAIN_JSON, charset));
+      }
+    }
+    return response;
+  }
+
 
   private static String getMimeTypeStr(MimeType mimeType, String charset) {
     if (charset == null) {
@@ -485,6 +505,23 @@ public class Resps {
     ret.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.from(mimeTypeStr));
     return ret;
   }
+  
+
+  public static HttpResponse string(HttpResponse response, String bodyString, String charset, String mimeTypeStr) {
+    if (bodyString != null) {
+      if (charset == null) {
+        response.setBody(bodyString.getBytes());
+      } else {
+        try {
+          response.setBody(bodyString.getBytes(charset));
+        } catch (UnsupportedEncodingException e) {
+          log.error(e.toString(), e);
+        }
+      }
+    }
+    response.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.from(mimeTypeStr));
+    return response;
+  }
 
   /**
    * 尝试返回304，这个会new一个HttpResponse返回
@@ -544,5 +581,7 @@ public class Resps {
    */
   private Resps() {
   }
+
+
 
 }

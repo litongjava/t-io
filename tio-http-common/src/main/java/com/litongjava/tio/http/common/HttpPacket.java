@@ -64,6 +64,10 @@ public class HttpPacket extends Packet {
     props.put(key, value);
   }
 
+  public void setAttribute(String key, Object value) {
+    props.put(key, (Serializable) value);
+  }
+
   /**
    * 
    * @return key set
