@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.litongjava</groupId>
     <artifactId>t-io</artifactId>
-    <version>3.7.3.v20240110-RELEASE</version>
+    <version>3.7.3.v20240111-RELEASE</version>
   </parent>
   <artifactId>tio-server</artifactId>
   <dependencies>
