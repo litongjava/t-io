@@ -297,8 +297,11 @@ public class HttpRequest extends HttpPacket {
    * @return the cookies
    */
   public Cookie[] getCookiesArray() {
-    Cookie[] array = cookies.toArray(new Cookie[] {});
-    return array;
+    if(cookies==null) {
+      return new Cookie[] {};
+    }else {
+      return cookies.toArray(new Cookie[] {});
+    }
   }
 
   /**

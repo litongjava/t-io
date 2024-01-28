@@ -91,6 +91,10 @@ public class HttpPacket extends Packet {
     this.body = body;
   }
 
+  public void setBody(byte byteOne) {
+    this.body = new byte[] { byteOne };
+  }
+
   public String getHeaderString() {
     return headerString;
   }

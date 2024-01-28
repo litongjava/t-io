@@ -35,6 +35,9 @@ import com.litongjava.tio.utils.hutool.StrUtil;
 public class Resps {
   private static Logger log = LoggerFactory.getLogger(Resps.class);
 
+  private Resps() {
+  }
+
   /**
    * 构建css响应
    * Content-Type: text/css;charset=utf-8
@@ -82,6 +85,48 @@ public class Resps {
     }
     return bytesWithContentType(request, bodyBytes, contentType);
   }
+
+  /**
+   * @param response
+   * @param byteOne
+   * @param extension
+   * @return
+   */
+  public static HttpResponse bytes(HttpResponse response, Byte byteOne, String extension) {
+    String contentType = null;
+    if (StrUtil.isNotBlank(extension)) {
+      MimeType mimeType = MimeType.fromExtension(extension);
+      if (mimeType != null) {
+        contentType = mimeType.getType();
+      } else {
+        contentType = "application/octet-stream";
+      }
+    }
+    return bytesWithContentType(response, byteOne, contentType);
+    
+  }
+
+  /**
+   * @param response
+   * @param bodyBytes
+   * @param extension
+   * @return
+   */
+  public static HttpResponse bytes(HttpResponse response, byte[] bodyBytes, String extension) {
+    String contentType = null;
+    // String extension = FilenameUtils.getExtension(filename);
+    if (StrUtil.isNotBlank(extension)) {
+      MimeType mimeType = MimeType.fromExtension(extension);
+      if (mimeType != null) {
+        contentType = mimeType.getType();
+      } else {
+        contentType = "application/octet-stream";
+      }
+    }
+    return bytesWithContentType(response, bodyBytes, contentType);
+  }
+
+
 
   /**
    * 根据文件创建响应
@@ -271,6 +316,34 @@ public class Resps {
     }
     return ret;
   }
+  
+  /**
+   * @param response
+   * @param byteOne
+   * @param contentType
+   * @return
+   */
+  public static HttpResponse bytesWithContentType(HttpResponse response, byte byteOne, String contentType) {
+    response.setBody(byteOne);
+
+    if (StrUtil.isBlank(contentType)) {
+      response.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.DEFAULT_TYPE);
+    } else {
+      response.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.from(contentType));
+    }
+    return response;
+  }
+  
+  public static HttpResponse bytesWithContentType(HttpResponse response, byte[] bodyBytes, String contentType) {
+    response.setBody(bodyBytes);
+
+    if (StrUtil.isBlank(contentType)) {
+      response.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.DEFAULT_TYPE);
+    } else {
+      response.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.from(contentType));
+    }
+    return response;
+  }
 
   /**
    *
@@ -300,6 +373,15 @@ public class Resps {
   }
 
   /**
+   * @param response
+   * @param bodyString
+   * @return
+   */
+  public static HttpResponse html(HttpResponse response, String bodyString) {
+    return html(response, bodyString, response.getHttpRequest().httpConfig.getCharset());
+  }
+
+  /**
    * 
    * @param request
    * @param newPath
@@ -321,6 +403,16 @@ public class Resps {
   public static HttpResponse html(HttpRequest request, String bodyString, String charset) {
     HttpResponse ret = string(request, bodyString, charset, getMimeTypeStr(MimeType.TEXT_HTML_HTML, charset));
     return ret;
+  }
+
+  /**
+   * @param response
+   * @param bodyString
+   * @param charset
+   * @return
+   */
+  public static HttpResponse html(HttpResponse response, String bodyString, String charset) {
+    return string(response, bodyString, charset, getMimeTypeStr(MimeType.TEXT_HTML_HTML, charset));
   }
 
   /**
@@ -358,9 +450,9 @@ public class Resps {
   public static HttpResponse json(HttpRequest request, Object body) {
     return json(request, body, request.httpConfig.getCharset());
   }
-  
+
   public static HttpResponse json(HttpResponse response, Object body) {
-     String charset = response.getHttpRequest().getHttpConfig().getCharset();
+    String charset = response.getHttpRequest().getHttpConfig().getCharset();
     return json(response, body, charset);
   }
 
@@ -385,7 +477,6 @@ public class Resps {
     }
     return ret;
   }
-  
 
   public static HttpResponse json(HttpResponse response, Object body, String charset) {
     if (body == null) {
@@ -394,12 +485,12 @@ public class Resps {
       if (body.getClass() == String.class || ClassUtil.isBasicType(body.getClass())) {
         response = string(response, body + "", charset, getMimeTypeStr(MimeType.TEXT_PLAIN_JSON, charset));
       } else {
-        response = string(response, JSON.toJSONString(body), charset, getMimeTypeStr(MimeType.TEXT_PLAIN_JSON, charset));
+        response = string(response, JSON.toJSONString(body), charset,
+            getMimeTypeStr(MimeType.TEXT_PLAIN_JSON, charset));
       }
     }
     return response;
   }
-
 
   private static String getMimeTypeStr(MimeType mimeType, String charset) {
     if (charset == null) {
@@ -505,7 +596,6 @@ public class Resps {
     ret.addHeader(HeaderName.Content_Type, HeaderValue.Content_Type.from(mimeTypeStr));
     return ret;
   }
-  
 
   public static HttpResponse string(HttpResponse response, String bodyString, String charset, String mimeTypeStr) {
     if (bodyString != null) {
@@ -563,6 +653,15 @@ public class Resps {
   }
 
   /**
+   * @param reqponse
+   * @param bodyString
+   * @return
+   */
+  public static HttpResponse txt(HttpResponse reqponse, String bodyString) {
+    return txt(reqponse, bodyString, reqponse.getHttpRequest().getHttpConfig().getCharset());
+  }
+
+  /**
    * Content-Type: text/plain;charset=utf-8
    * @param request
    * @param bodyString
@@ -575,13 +674,8 @@ public class Resps {
     return ret;
   }
 
-  /**
-   *
-   * @author tanyaowu
-   */
-  private Resps() {
+  public static HttpResponse txt(HttpResponse response, String bodyString, String charset) {
+    return string(response, bodyString, charset, getMimeTypeStr(MimeType.TEXT_PLAIN_TXT, charset));
   }
-
-
 
 }

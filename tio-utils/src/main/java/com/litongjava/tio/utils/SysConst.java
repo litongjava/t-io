@@ -7,7 +7,7 @@ import java.nio.charset.Charset;
  * 2018年7月1日 下午10:51:59
  */
 public interface SysConst {
-  String TIO_CORE_VERSION = "3.7.3.v20240111-RELEASE";
+  String TIO_CORE_VERSION = "3.7.3.v20240113-RELEASE";
   String TIO_URL_GITEE = "https://gitee.com/ppnt/t-io";
   String TIO_URL_GITHUB = "https://github.com/litongjava/t-io";
   String TIO_URL_SITE = "https://www.litongjava.com/t-io";
