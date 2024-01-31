@@ -4,7 +4,7 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.jfinal.kit.StrKit;
+import com.litongjava.tio.utils.hutool.StrUtil;
 
 /**
  * PropKit. PropUtils can load properties file from CLASSPATH or File object.
@@ -93,7 +93,7 @@ public class PropUtils {
     if (env == null) {
       env = result.get(envKey);
     }
-    if (StrKit.notBlank(env)) {
+    if (StrUtil.isNotBlank(env)) {
       int index = fileName.lastIndexOf('.');
       String envConfigName = fileName.substring(0, index) + "-" + env + fileName.substring(index);
       Prop envConfig = new Prop(envConfigName);

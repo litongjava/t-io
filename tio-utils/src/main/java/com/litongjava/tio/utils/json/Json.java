@@ -1,117 +1,58 @@
-//package com.litongjava.tio.utils.json;
-//
-//import java.util.Date;
-//import java.util.List;
-//
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-//
-//import com.alibaba.fastjson.JSON;
-//import com.alibaba.fastjson.serializer.ObjectSerializer;
-//import com.alibaba.fastjson.serializer.SerializeConfig;
-//import com.alibaba.fastjson.serializer.SerializeFilter;
-//import com.alibaba.fastjson.serializer.SerializerFeature;
-//import com.alibaba.fastjson.serializer.SimpleDateFormatSerializer;
-//import com.litongjava.tio.utils.hutool.StrUtil;
-//
-///**
-// *
-// * @author tanyaowu
-// * 2017年4月16日 上午11:36:53
-// */
-//public class Json {
-//  private static Logger log = LoggerFactory.getLogger(Json.class);
-//
-//  private static SerializeConfig mapping = new SerializeConfig();
-//
-//  static {
-//    mapping.put(Date.class, new SimpleDateFormatSerializer("yyyy-MM-dd HH:mm:ss"));
-//    mapping.put(java.sql.Date.class, new SimpleDateFormatSerializer("yyyy-MM-dd HH:mm:ss"));
-//    mapping.put(java.sql.Timestamp.class, new SimpleDateFormatSerializer("yyyy-MM-dd HH:mm:ss"));
-//    mapping.put(java.sql.Time.class, new SimpleDateFormatSerializer("HH:mm:ss"));
-//  }
-//
-//  public static SerializeConfig put(Class<?> clazz, SerializeFilter filter) {
-//    mapping.addFilter(clazz, filter);
-//    return mapping;
-//  }
-//
-//  public static SerializeConfig put(Class<?> clazz, ObjectSerializer serializer) {
-//    mapping.put(clazz, serializer);
-//    return mapping;
-//  }
-//
-//  public static <T> T toBean(String jsonString, Class<T> tt) {
-//    try {
-//      if (StrUtil.isBlank(jsonString)) {
-//        return null;
-//      }
-//      // T t = JSON.parseObject(jsonString, tt);
-//      T t = com.alibaba.fastjson2.JSON.parseObject(jsonString.getBytes(), tt);
-//      return t;
-//    } catch (Exception e) {
-//      log.error(jsonString, e);
-//      return null;
-//    }
-//  }
-//
-//  public static <T> List<T> toList(String jsonString, Class<T> clazz) {
-//    try {
-//      if (StrUtil.isBlank(jsonString)) {
-//        return null;
-//      }
-//      List<T> list = JSON.parseArray(jsonString, clazz);
-//      return list;
-//    } catch (Exception e) {
-//      log.error(jsonString, e);
-//      return null;
-//    }
-//  }
-//
-//  /**
-//   * 
-//   * @param bean
-//   * @return
-//   * @author tanyaowu
-//   */
-//  public static String toFormatedJson(Object bean) {
-//    return JSON.toJSONString(bean, mapping, SerializerFeature.DisableCircularReferenceDetect,
-//        SerializerFeature.PrettyFormat);
-//  }
-//
-//  /**
-//   * 
-//   * @param bean
-//   * @return
-//   * @author tanyaowu
-//   */
-//  public static String toJson(Object bean) {
-//    return JSON.toJSONString(bean, mapping, SerializerFeature.DisableCircularReferenceDetect);
-//  }
-//
-//  /**
-//   * 可以返回null的key值
-//   * @param bean
-//   * @return
-//   * @author tanyaowu
-//   */
-//  public static String toJsonAboutNull(Object bean) {
-//    return JSON.toJSONString(bean, mapping, SerializerFeature.DisableCircularReferenceDetect,
-//        SerializerFeature.WriteNullStringAsEmpty);
-//  }
-//
-//  /**
-//   * 
-//   * @param bean
-//   * @param serializeFilter
-//   * @return
-//   * @author tanyaowu
-//   */
-//  public static String toJson(Object bean, SerializeFilter serializeFilter) {
-//    if (serializeFilter != null) {
-//      return JSON.toJSONString(bean, mapping, serializeFilter, SerializerFeature.DisableCircularReferenceDetect);
-//    } else {
-//      return JSON.toJSONString(bean, mapping, SerializerFeature.DisableCircularReferenceDetect);
-//    }
-//  }
-//}
+package com.litongjava.tio.utils.json;
+
+import java.util.Objects;
+
+/**
+ * json string 与 object 互转抽象
+ */
+public abstract class Json {
+	
+	//private static IJsonFactory defaultJsonFactory = new JFinalJsonFactory();
+  private static IJsonFactory defaultJsonFactory = new MixedJsonFactory();
+	
+	/**
+	 * 当对象级的 datePattern 为 null 时使用 defaultDatePattern
+	 * jfinal 2.1 版本暂定 defaultDatePattern 值为 null，即 jackson、fastjson
+	 * 默认使用自己的 date 转换策略
+	 */
+	private static String defaultDatePattern = "yyyy-MM-dd HH:mm:ss";	// null;
+	
+	/**
+	 * Json 继承类优先使用对象级的属性 datePattern, 然后才是全局性的 defaultDatePattern
+	 */
+	protected String datePattern = null;
+	
+	public static void setDefaultJsonFactory(IJsonFactory defaultJsonFactory) {
+		Objects.requireNonNull(defaultJsonFactory, "defaultJsonFactory can not be null");
+		Json.defaultJsonFactory = defaultJsonFactory;
+	}
+	
+	public static void setDefaultDatePattern(String defaultDatePattern) {
+		Json.defaultDatePattern = defaultDatePattern;
+	}
+	
+	public Json setDatePattern(String datePattern) {
+		this.datePattern = datePattern;
+		return this;
+	}
+	
+	public String getDatePattern() {
+		return datePattern;
+	}
+	
+	public String getDefaultDatePattern() {
+		return defaultDatePattern;
+	}
+	
+	public static Json getJson() {
+		return defaultJsonFactory.getJson();
+	}
+	
+	public abstract String toJson(Object object);
+	
+	public abstract <T> T parse(String jsonString, Class<T> type);
+}
+
+
+
+

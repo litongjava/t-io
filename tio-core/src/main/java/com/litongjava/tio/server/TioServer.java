@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.litongjava.tio.core.Node;
+import com.litongjava.tio.utils.JvmUtils;
 import com.litongjava.tio.utils.SysConst;
 import com.litongjava.tio.utils.hutool.DateUtil;
 import com.litongjava.tio.utils.hutool.StrUtil;
@@ -133,15 +134,25 @@ public class TioServer {
     infoList.add(StrUtil.fillAfter("Main Class", ' ', xxLen) + "| " + se.getClassName());
 
     try {
-      RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-      String runtimeName = runtimeMxBean.getName();
-      String pid = runtimeName.split("@")[0];
-      long startTime = runtimeMxBean.getStartTime();
-      long startCost = System.currentTimeMillis() - startTime;
-      infoList.add(StrUtil.fillAfter("Jvm start time", ' ', xxLen) + "| " + startCost + "ms");
+      String pid = null;
+      if (JvmUtils.isStandardJava()) {
+        // 仅在标准Java环境中执行
+        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+        String runtimeName = runtimeMxBean.getName();
+        pid = runtimeName.split("@")[0];
+        long startTime = runtimeMxBean.getStartTime();
+        long startCost = System.currentTimeMillis() - startTime;
+        infoList.add(StrUtil.fillAfter("Jvm start time", ' ', xxLen) + "| " + startCost + "ms");
+      } else {
+        // Android或其他非标准Java环境的处理逻辑
+        // 例如，你可以记录一条日志或者用其他方式获取所需信息
+        infoList.add(StrUtil.fillAfter("Jvm start time", ' ', xxLen) + "| Not available in Android");
+      }
+      // 其他共通的代码
       infoList
           .add(StrUtil.fillAfter("Tio start time", ' ', xxLen) + "| " + (System.currentTimeMillis() - start) + "ms");
-      infoList.add(StrUtil.fillAfter("Pid", ' ', xxLen) + "| " + pid);
+      infoList.add(
+          StrUtil.fillAfter("Pid", ' ', xxLen) + "| " + (JvmUtils.isStandardJava() ? pid : "Not available in Android"));
     } catch (Exception e) {
 
     }
