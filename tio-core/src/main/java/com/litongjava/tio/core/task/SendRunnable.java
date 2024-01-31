@@ -76,7 +76,7 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
   @Override
   public boolean addMsg(Packet packet) {
     if (this.isCanceled()) {
-      log.info("{}, 任务已经取消，{}添加到发送队列失败", channelContext, packet.logstr());
+      log.info("{}, The mission has been canceled，{} Failed to add to the send queue. Procedure", channelContext, packet.logstr());
       return false;
     }
 

@@ -279,7 +279,7 @@ public class TioClient {
 				while (!clientTioConfig.isStopped()) {
 					//					final long heartbeatTimeout = clientTioConfig.heartbeatTimeout;
 					if (clientTioConfig.heartbeatTimeout <= 0) {
-						log.warn("用户取消了框架层面的心跳定时发送功能，请用户自己去完成心跳机制");
+						log.warn("The user has cancelled the heartbeat sending function at the frame level, and asks the user to complete the heartbeat mechanism by himsel");
 						break;
 					}
           SetWithLock<ChannelContext> setWithLock = clientTioConfig.connecteds;

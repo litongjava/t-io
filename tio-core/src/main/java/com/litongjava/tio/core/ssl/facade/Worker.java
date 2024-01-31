@@ -202,7 +202,7 @@ class Worker {
       ByteBuffer plainText = _buffers.get(BufferType.OUT_PLAIN);
       ByteBuffer cipherText = _buffers.get(BufferType.OUT_CIPHER);
       if (log.isInfoEnabled()) {
-        log.info("{}, doWrap(加密): plainText:{} to cipherText: {}", channelContext, plainText, cipherText);
+        log.info("{}, doWrap(encryption): plainText:{} to cipherText: {}", channelContext, plainText, cipherText);
       }
       return _engine.wrap(plainText, cipherText);
     } catch (SSLException e) {

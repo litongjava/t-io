@@ -66,7 +66,7 @@ public class SslListener implements ISSLListener {
     // plainBytes:java.nio.HeapByteBuffer[pos=0 lim=507 cap=507]
 
     if (sslFacadeContext.isHandshakeCompleted()) {
-      log.info("{}, 收到SSL解密后的数据，SSL握手已经完成，准备解码，{}, isSSLHandshakeCompleted {}", channelContext, plainBuffer,
+      log.info("{}, After receiving the data decrypted by SSL, the SSL handshake is complete and ready to be decoded，{}, isSSLHandshakeCompleted {}", channelContext, plainBuffer,
           sslFacadeContext.isHandshakeCompleted());
       // plainBytes.flip();
       // channelContext.decodeRunnable.setNewByteBuffer(plainBuffer);
@@ -81,7 +81,7 @@ public class SslListener implements ISSLListener {
         channelContext.decodeRunnable.decode();
       }
     } else {
-      log.info("{}, 收到SSL解密后的数据，但SSL握手还没完成，{}, isSSLHandshakeCompleted {}", channelContext, plainBuffer,
+      log.info("{}, SSL decrypted data is received, but the SSL handshake is not complete，{}, isSSLHandshakeCompleted {}", channelContext, plainBuffer,
           sslFacadeContext.isHandshakeCompleted());
     }
   }

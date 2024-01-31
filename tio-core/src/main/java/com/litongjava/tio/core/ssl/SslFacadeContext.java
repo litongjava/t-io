@@ -59,7 +59,7 @@ public class SslFacadeContext {
 	 * @throws Exception
 	 */
 	public void beginHandshake() throws Exception {
-		log.info("{} 开始SSL握手", channelContext);
+		log.info("Start SSL Handshake {}", channelContext);
 		sslFacade.beginHandshake();
 	}
 
