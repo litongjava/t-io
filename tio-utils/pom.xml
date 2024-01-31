@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.litongjava</groupId>
     <artifactId>t-io</artifactId>
-    <version>3.7.3.v20240113-RELEASE</version>
+    <version>3.7.3.v20240130-RELEASE</version>
   </parent>
   <artifactId>tio-utils</artifactId>
   <dependencies>
@@ -129,12 +129,6 @@
       <scope>provided</scope>
     </dependency>
 
-    <dependency>
-      <groupId>com.litongjava</groupId>
-      <artifactId>jfinal-plugins</artifactId>
-      <version>1.0.7</version>
-      <scope>provided</scope>
-    </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-configuration2</artifactId>

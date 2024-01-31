@@ -5,8 +5,6 @@ import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Test;
-
 public class CookieTest {
 
   //@Test

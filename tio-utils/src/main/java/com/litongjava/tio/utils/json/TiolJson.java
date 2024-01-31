@@ -3,8 +3,8 @@ package com.litongjava.tio.utils.json;
 
 import java.util.function.Function;
 
-import com.litongjava.tio.utils.json.JFinalJsonKit.JsonResult;
-import com.litongjava.tio.utils.json.JFinalJsonKit.ToJson;
+import com.litongjava.tio.utils.json.TioJsonKit.JsonResult;
+import com.litongjava.tio.utils.json.TioJsonKit.ToJson;
 
 /**
  * Json 转换 JFinal 实现.
@@ -17,9 +17,9 @@ import com.litongjava.tio.utils.json.JFinalJsonKit.ToJson;
  * array			java.util.List
  * object			java.util.Map
  */
-public class JFinalJson extends Json {
+public class TiolJson extends Json {
 	
-	protected static final JFinalJsonKit kit = JFinalJsonKit.me;
+	protected static final TioJsonKit kit = TioJsonKit.me;
 	
 	protected static final ThreadLocal<JsonResult> TL = ThreadLocal.withInitial(() -> new JsonResult());
 	
@@ -28,8 +28,8 @@ public class JFinalJson extends Json {
 	protected int convertDepth = defaultConvertDepth;
 	protected String timestampPattern = "yyyy-MM-dd HH:mm:ss";
 	
-	public static JFinalJson getJson() {
-		return new JFinalJson();
+	public static TiolJson getJson() {
+		return new TiolJson();
 	}
 	
 	@Override
@@ -74,7 +74,7 @@ public class JFinalJson extends Json {
 	 * </pre>
 	 */
 	public static void addToJson(Class<?> type, ToJson<?> toJson) {
-		JFinalJsonKit.addToJson(type, toJson);
+		TioJsonKit.addToJson(type, toJson);
 	}
 	
 	/**
@@ -84,10 +84,10 @@ public class JFinalJson extends Json {
 		if (defaultConvertDepth < 2) {
 			throw new IllegalArgumentException("defaultConvertDepth depth can not less than 2.");
 		}
-		JFinalJson.defaultConvertDepth = defaultConvertDepth;
+		TiolJson.defaultConvertDepth = defaultConvertDepth;
 	}
 	
-	public JFinalJson setConvertDepth(int convertDepth) {
+	public TiolJson setConvertDepth(int convertDepth) {
 		if (convertDepth < 2) {
 			throw new IllegalArgumentException("convert depth can not less than 2.");
 		}
@@ -95,13 +95,13 @@ public class JFinalJson extends Json {
 		return this;
 	}
 	
-	public JFinalJson setTimestampPattern(String timestampPattern) {
+	public TiolJson setTimestampPattern(String timestampPattern) {
 		this.timestampPattern = timestampPattern;
 		return this;
 	}
 	
 	public static void setMaxBufferSize(int maxBufferSize) {
-		JFinalJsonKit.setMaxBufferSize(maxBufferSize);
+		TioJsonKit.setMaxBufferSize(maxBufferSize);
 	}
 	
 	/**
@@ -114,7 +114,7 @@ public class JFinalJson extends Json {
 	 * 使用生成器生成过 base model 的情况下才可以使用此配置
 	 */
 	public static void setTreatModelAsBean(boolean treatModelAsBean) {
-		JFinalJsonKit.setTreatModelAsBean(treatModelAsBean);
+		TioJsonKit.setTreatModelAsBean(treatModelAsBean);
 	}
 	
 	/**
@@ -131,7 +131,7 @@ public class JFinalJson extends Json {
 	 * </pre>
 	 */
 	public static void setModelAndRecordFieldNameConverter(Function<String, String>converter) {
-		JFinalJsonKit.setModelAndRecordFieldNameConverter(converter);
+		TioJsonKit.setModelAndRecordFieldNameConverter(converter);
 	}
 	
 	/**
@@ -144,7 +144,7 @@ public class JFinalJson extends Json {
 	 * </pre>
 	 */
 	public static void setModelAndRecordFieldNameToCamelCase(boolean toLowerCaseAnyway) {
-		JFinalJsonKit.setModelAndRecordFieldNameToCamelCase(toLowerCaseAnyway);
+		TioJsonKit.setModelAndRecordFieldNameToCamelCase(toLowerCaseAnyway);
 	}
 	
 	/**
@@ -155,7 +155,7 @@ public class JFinalJson extends Json {
 	 * 如果是 mysql 数据库，建议使用: setModelAndRecordFieldNameToCamelCase(false);
 	 */
 	public static void setModelAndRecordFieldNameToCamelCase() {
-		JFinalJsonKit.setModelAndRecordFieldNameToCamelCase();
+		TioJsonKit.setModelAndRecordFieldNameToCamelCase();
 	}
 	
 	/**
@@ -175,7 +175,7 @@ public class JFinalJson extends Json {
 	 * </pre>
 	 */
 	public static void setToJsonFactory(Function<Object, ToJson<?>> toJsonFactory) {
-		JFinalJsonKit.setToJsonFactory(toJsonFactory);
+		TioJsonKit.setToJsonFactory(toJsonFactory);
 	}
 	
 	/**
@@ -183,7 +183,7 @@ public class JFinalJson extends Json {
 	 * 本配置作用于 Model、Record、Map、java bean(getter 方法对应的属性) 这四种类型
 	 */
 	public static void setSkipNullValueField(boolean skipNullValueField) {
-		JFinalJsonKit.setSkipNullValueField(skipNullValueField);
+		TioJsonKit.setSkipNullValueField(skipNullValueField);
 	}
 	
 	public <T> T parse(String jsonString, Class<T> type) {

@@ -10,7 +10,7 @@ package com.litongjava.tio.utils.json;
  */
 public class MixedJson extends Json {
 
-  private JFinalJson jFinalJson;
+  private TiolJson jFinalJson;
   private FastJson fastJson;
 
   public static MixedJson getJson() {
@@ -25,9 +25,9 @@ public class MixedJson extends Json {
     return getFastJson().parse(jsonString, type);
   }
 
-  private JFinalJson getJFinalJson() {
+  private TiolJson getJFinalJson() {
     if (jFinalJson == null) {
-      jFinalJson = JFinalJson.getJson();
+      jFinalJson = TiolJson.getJson();
     }
     if (datePattern != null) {
       jFinalJson.setDatePattern(datePattern);

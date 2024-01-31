@@ -21,8 +21,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
-import com.litongjava.jfinal.plugin.activerecord.Model;
-import com.litongjava.jfinal.plugin.activerecord.Record;
 import com.litongjava.tio.utils.date.TioTimeUtils;
 import com.litongjava.tio.utils.hutool.StrUtil;
 import com.litongjava.tio.utils.map.SyncWriteMap;
@@ -31,9 +29,9 @@ import com.litongjava.tio.utils.map.SyncWriteMap;
  * JFinalJsonKit
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class JFinalJsonKit {
+public class TioJsonKit {
 
-  public static final JFinalJsonKit me = new JFinalJsonKit();
+  public static final TioJsonKit me = new TioJsonKit();
 
   // 缓存 ToJson 对象
   protected static SyncWriteMap<Class<?>, ToJson<?>> cache = new SyncWriteMap<>(512, 0.25F);
@@ -149,13 +147,6 @@ public class JFinalJsonKit {
       }
     }
 
-    // 集合、Bean 类型，需要检测 depth ---------------------------------
-    if (!treatModelAsBean) {
-      if (value instanceof Model) {
-        return new ModelToJson();
-      }
-    }
-
     if (value instanceof Map) {
       return new MapToJson();
     }
@@ -178,10 +169,6 @@ public class JFinalJsonKit {
 
     if (value instanceof Iterable) {
       return new IterableToJson();
-    }
-    
-    if (value instanceof Record) {
-      return new RecordToJson();
     }
 
     BeanToJson beanToJson = buildBeanToJson(value);
@@ -300,27 +287,6 @@ public class JFinalJsonKit {
     }
   }
 
-  static class ModelToJson implements ToJson<Model> {
-    public void toJson(Model model, int depth, JsonResult ret) {
-      if (checkDepth(depth--, ret)) {
-        return;
-      }
-
-      Map<String, Object> attrs = model.getAttrs();
-      modelAndRecordToJson(attrs, depth, ret);
-    }
-  }
-
-  static class RecordToJson implements ToJson<Record> {
-    public void toJson(Record record, int depth, JsonResult ret) {
-      if (checkDepth(depth--, ret)) {
-        return;
-      }
-
-      Map<String, Object> columns = record.getColumns();
-      modelAndRecordToJson(columns, depth, ret);
-    }
-  }
 
   public static void modelAndRecordToJson(Map<String, Object> map, int depth, JsonResult ret) {
     Iterator iter = map.entrySet().iterator();
@@ -810,7 +776,7 @@ public class JFinalJsonKit {
     if (maxBufferSize < size) {
       throw new IllegalArgumentException("maxBufferSize can not less than " + size);
     }
-    JFinalJsonKit.maxBufferSize = maxBufferSize;
+    TioJsonKit.maxBufferSize = maxBufferSize;
   }
 
   /**
@@ -823,7 +789,7 @@ public class JFinalJsonKit {
    * 使用生成器生成过 base model 的情况下才可以使用此配置
    */
   public static void setTreatModelAsBean(boolean treatModelAsBean) {
-    JFinalJsonKit.treatModelAsBean = treatModelAsBean;
+    TioJsonKit.treatModelAsBean = treatModelAsBean;
   }
 
   /**
@@ -840,7 +806,7 @@ public class JFinalJsonKit {
    * </pre>
    */
   public static void setModelAndRecordFieldNameConverter(Function<String, String> converter) {
-    JFinalJsonKit.modelAndRecordFieldNameConverter = converter;
+    TioJsonKit.modelAndRecordFieldNameConverter = converter;
   }
 
   /**
@@ -870,10 +836,10 @@ public class JFinalJsonKit {
   }
 
   public static void setToJsonFactory(Function<Object, ToJson<?>> toJsonFactory) {
-    JFinalJsonKit.toJsonFactory = toJsonFactory;
+    TioJsonKit.toJsonFactory = toJsonFactory;
   }
 
   public static void setSkipNullValueField(boolean skipNullValueField) {
-    JFinalJsonKit.skipNullValueField = skipNullValueField;
+    TioJsonKit.skipNullValueField = skipNullValueField;
   }
 }
