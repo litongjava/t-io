@@ -11,13 +11,7 @@
   <!-- <prerequisites> <maven>3.3.9</maven> </prerequisites> -->
 
   <modules>
-    <module>tio-http-server</module>
-    <module>tio-websocket-server</module>
-    <module>tio-http-common</module>
-    <module>tio-websocket-common</module>
     <module>tio-core</module>
-    <module>tio-utils</module>
-    <module>tio-server</module>
   </modules>
 
   <licenses>

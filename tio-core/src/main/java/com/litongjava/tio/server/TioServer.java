@@ -112,60 +112,6 @@ public class TioServer {
     serverSocketChannel.accept(this, acceptCompletionHandler);
 
     serverTioConfig.startTime = System.currentTimeMillis();
-
-    // 下面这段代码有点无聊，写得随意，纯粹是为了打印好看些
-    String baseStr = "|----------------------------------------------------------------------------------------|";
-    int baseLen = baseStr.length();
-    StackTraceElement[] ses = Thread.currentThread().getStackTrace();
-    StackTraceElement se = ses[ses.length - 1];
-    int xxLen = 18;
-    int aaLen = baseLen - 3;
-    List<String> infoList = new ArrayList<>();
-    infoList.add(StrUtil.fillAfter("t-io on gitee", ' ', xxLen) + "| " + SysConst.TIO_URL_GITEE);
-    infoList.add(StrUtil.fillAfter("t-io on github", ' ', xxLen) + "| " + SysConst.TIO_URL_GITHUB);
-
-    infoList.add(StrUtil.fillAfter("-", '-', aaLen));
-
-    infoList.add(StrUtil.fillAfter("TioConfig name", ' ', xxLen) + "| " + serverTioConfig.getName());
-    infoList.add(StrUtil.fillAfter("Started at", ' ', xxLen) + "| " + DateUtil.formatDateTime(new Date()));
-    infoList.add(StrUtil.fillAfter("Listen on", ' ', xxLen) + "| " + this.serverNode);
-    infoList.add(StrUtil.fillAfter("Main Class", ' ', xxLen) + "| " + se.getClassName());
-
-    try {
-      String pid = null;
-      if (JvmUtils.isStandardJava()) {
-        // 仅在标准Java环境中执行
-        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-        String runtimeName = runtimeMxBean.getName();
-        pid = runtimeName.split("@")[0];
-        long startTime = runtimeMxBean.getStartTime();
-        long startCost = System.currentTimeMillis() - startTime;
-        infoList.add(StrUtil.fillAfter("Jvm start time", ' ', xxLen) + "| " + startCost + "ms");
-      } else {
-        // Android或其他非标准Java环境的处理逻辑
-        // 例如，你可以记录一条日志或者用其他方式获取所需信息
-        infoList.add(StrUtil.fillAfter("Jvm start time", ' ', xxLen) + "| Not available in Android");
-      }
-      // 其他共通的代码
-      infoList
-          .add(StrUtil.fillAfter("Tio start time", ' ', xxLen) + "| " + (System.currentTimeMillis() - start) + "ms");
-      infoList.add(
-          StrUtil.fillAfter("Pid", ' ', xxLen) + "| " + (JvmUtils.isStandardJava() ? pid : "Not available in Android"));
-    } catch (Exception e) {
-
-    }
-    // 100
-    String printStr = SysConst.CRLF + baseStr + SysConst.CRLF;
-    // printStr += "|--" + leftStr + " " + info + " " + rightStr + "--|\r\n";
-    for (String string : infoList) {
-      printStr += "| " + StrUtil.fillAfter(string, ' ', aaLen) + "|\r\n";
-    }
-    printStr += baseStr + SysConst.CRLF;
-    if (log.isInfoEnabled()) {
-      log.info(printStr);
-    } else {
-      System.out.println(printStr);
-    }
   }
 
   /**
