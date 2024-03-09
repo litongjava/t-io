@@ -126,14 +126,14 @@ public class Tokens {
     try {
       String token = channelContext.getToken();
       if (StrUtil.isBlank(token)) {
-        log.debug("{}, {}, 并没有绑定Token", channelContext.tioConfig.getName(), channelContext.toString());
+        log.debug("{}, {}, unbind token", channelContext.tioConfig.getName(), channelContext.toString());
         return;
       }
 
       try {
         SetWithLock<ChannelContext> setWithLock = mapWithLock.get(token);
         if (setWithLock == null) {
-          log.warn("{}, {}, token:{}, 没有找到对应的SetWithLock", channelContext.tioConfig.getName(),
+          log.warn("{}, {}, token:{}, can't find SetWithLock", channelContext.tioConfig.getName(),
               channelContext.toString(), token);
           return;
         }

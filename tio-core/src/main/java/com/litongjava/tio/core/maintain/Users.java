@@ -112,14 +112,14 @@ public class Users {
 
     String userid = channelContext.userid;
     if (StrUtil.isBlank(userid)) {
-      log.debug("{}, {}, 并没有绑定用户", channelContext.tioConfig.getName(), channelContext.toString());
+      log.debug("{}, {}, unbind user", channelContext.tioConfig.getName(), channelContext.toString());
       return;
     }
 
     try {
       SetWithLock<ChannelContext> setWithLock = mapWithLock.get(userid);
       if (setWithLock == null) {
-        log.warn("{}, {}, userid:{}, 没有找到对应的SetWithLock", channelContext.tioConfig.getName(), channelContext.toString(),
+        log.warn("{}, {}, userid:{}, can't find SetWithLock", channelContext.tioConfig.getName(), channelContext.toString(),
             userid);
         return;
       }

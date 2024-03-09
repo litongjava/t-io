@@ -396,7 +396,7 @@ public class Tio {
       return;
     }
     if (channelContext.isWaitingClose) {
-      log.debug("{} 正在等待被关闭", channelContext);
+      log.debug("{} Waiting to be closed", channelContext);
       return;
     }
 
