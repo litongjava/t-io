@@ -225,8 +225,8 @@ class Worker {
       if (log.isInfoEnabled()) {
         byte[] bs = new byte[cipherText.limit()];
         System.arraycopy(cipherText.array(), 0, bs, 0, bs.length);
-        log.error(channelContext + ", 解密Error:" + e.toString() + ", byte:" + StrUtil.arrayToString(bs) + ", string:"
-            + new String(bs) + ", buffer:" + cipherText, e);
+        log.error(channelContext + ", Decode Error:" + e.toString() + ", byte:" + StrUtil.arrayToString(bs)
+            + ", buffer:" + cipherText, e);
       }
       throw e;
     }
