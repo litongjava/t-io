@@ -342,7 +342,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
         assignAnUnknownClientNode();
       }
     } else {
-      log.error("assignAnUnknownClientNode:{}",asynchronousSocketChannel);
+      log.error("assignAnUnknownClientNode:{}", asynchronousSocketChannel);
       assignAnUnknownClientNode();
     }
   }
