@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.litongjava</groupId>
   <artifactId>t-io</artifactId>
-  <version>3.7.3.v20240601-RELEASE</version>
+  <version>3.7.3.v20240701-RELEASE</version>
   <packaging>pom</packaging>
   <name>${project.artifactId}</name>
   <url>http://maven.apache.org</url>
