@@ -33,7 +33,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
   private static final Logger log = LoggerFactory.getLogger(DecodeRunnable.class);
   private ChannelContext channelContext = null;
   private TioConfig tioConfig = null;
-  private int MAX_ALLOWED_PACKET_SIZE = Integer.MAX_VALUE;
   /**
    * 上一次解码剩下的数据
    */
@@ -110,22 +109,15 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
         int readableLength = limit - initPosition;
         Packet packet = null;
 
-        // 优化：检查 packetNeededLength 是否过大
-        if (channelContext.packetNeededLength != null && channelContext.packetNeededLength > MAX_ALLOWED_PACKET_SIZE) {
-          log.warn("Packet needed length {} exceeds maximum allowed size. Closing connection.", channelContext.packetNeededLength);
-          Tio.close(channelContext, "Packet size too large", CloseCode.PACKET_TOO_LARGE);
-          return;
-        }
-
         if (channelContext.packetNeededLength != null) {
-          if (log.isWarnEnabled()) {
-            log.warn("{}, Length required for decoding:{}", channelContext, channelContext.packetNeededLength);
+          if (log.isDebugEnabled()) {
+            log.debug("{}, Length required for decoding:{}", channelContext, channelContext.packetNeededLength);
           }
           if (readableLength >= channelContext.packetNeededLength) {
             packet = tioConfig.getAioHandler().decode(byteBuffer, limit, initPosition, readableLength, channelContext);
           } else {
-            if (log.isWarnEnabled()) {
-              log.warn("Receiving large packet: received {}/{} bytes.", readableLength, channelContext.packetNeededLength);
+            if (log.isDebugEnabled()) {
+              log.debug("Receiving large packet: received {}/{} bytes.", readableLength, channelContext.packetNeededLength);
             }
             lastByteBuffer = ByteBufferUtils.copy(byteBuffer, initPosition, limit);
             return;
