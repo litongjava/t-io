@@ -33,6 +33,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
   private static final Logger log = LoggerFactory.getLogger(DecodeRunnable.class);
   private ChannelContext channelContext = null;
   private TioConfig tioConfig = null;
+
   /**
    * 上一次解码剩下的数据
    */
@@ -41,6 +42,10 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
    * 新收到的数据
    */
   private ByteBuffer newReceivedByteBuffer = null;
+  /**
+   * 上次解码进度百分比
+   */
+  private int lastPercentage = 0;
 
   /**
    *
@@ -101,7 +106,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
       byteBuffer = ByteBufferUtils.composite(lastByteBuffer, byteBuffer);
       lastByteBuffer = null;
     }
-
     label_2: while (true) {
       try {
         int initPosition = byteBuffer.position();
@@ -116,9 +120,12 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
           if (readableLength >= channelContext.packetNeededLength) {
             packet = tioConfig.getAioHandler().decode(byteBuffer, limit, initPosition, readableLength, channelContext);
           } else {
-            if (log.isDebugEnabled()) {
-              log.debug("Receiving large packet: received {}/{} bytes.", readableLength, channelContext.packetNeededLength);
+            int percentage = (int) (((double) readableLength / channelContext.packetNeededLength) * 100);
+            if (percentage != lastPercentage) {
+              lastPercentage = percentage;
+              log.info("Receiving large packet: received {}% of {} bytes.", percentage, channelContext.packetNeededLength);
             }
+
             lastByteBuffer = ByteBufferUtils.copy(byteBuffer, initPosition, limit);
             return;
           }
