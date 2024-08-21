@@ -26,14 +26,14 @@ import com.litongjava.tio.utils.thread.pool.AbstractQueueRunnable;
 /**
  * 解码任务对象，一个连接对应一个本对象
  *
- * @author 谭耀武
- * 2012-08-09
+ * @author 谭耀武 2012-08-09
  */
 @SuppressWarnings("deprecation")
 public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
   private static final Logger log = LoggerFactory.getLogger(DecodeRunnable.class);
   private ChannelContext channelContext = null;
   private TioConfig tioConfig = null;
+  private int MAX_ALLOWED_PACKET_SIZE = Integer.MAX_VALUE;
   /**
    * 上一次解码剩下的数据
    */
@@ -93,8 +93,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
   /**
    * @see java.lang.Runnable#run()
    *
-   * @author tanyaowu
-   * 2017年3月21日 下午4:26:39
+   * @author tanyaowu 2017年3月21日 下午4:26:39
    *
    */
   public void decode() {
@@ -110,12 +109,26 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
         int limit = byteBuffer.limit();
         int readableLength = limit - initPosition;
         Packet packet = null;
+
+        // 优化：检查 packetNeededLength 是否过大
+        if (channelContext.packetNeededLength != null && channelContext.packetNeededLength > MAX_ALLOWED_PACKET_SIZE) {
+          log.warn("Packet needed length {} exceeds maximum allowed size. Closing connection.", channelContext.packetNeededLength);
+          Tio.close(channelContext, "Packet size too large", CloseCode.PACKET_TOO_LARGE);
+          return;
+        }
+
         if (channelContext.packetNeededLength != null) {
-          if (log.isInfoEnabled()) {
-            log.info("{}, Length required for decoding:{}", channelContext, channelContext.packetNeededLength);
+          if (log.isWarnEnabled()) {
+            log.warn("{}, Length required for decoding:{}", channelContext, channelContext.packetNeededLength);
           }
           if (readableLength >= channelContext.packetNeededLength) {
             packet = tioConfig.getAioHandler().decode(byteBuffer, limit, initPosition, readableLength, channelContext);
+          } else {
+            if (log.isWarnEnabled()) {
+              log.warn("Receiving large packet: received {}/{} bytes.", readableLength, channelContext.packetNeededLength);
+            }
+            lastByteBuffer = ByteBufferUtils.copy(byteBuffer, initPosition, limit);
+            return;
           }
         } else {
           try {
@@ -140,16 +153,14 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
           channelStat.decodeFailCount++;
           // int len = byteBuffer.limit() - initPosition;
           if (log.isInfoEnabled()) {
-            log.info(
-                "{} Failed to decode this time, has failed to decode for {} consecutive times, the length of data involved in decoding is {} bytes.",
-                channelContext, channelStat.decodeFailCount, readableLength);
+            log.info("{} Failed to decode this time, has failed to decode for {} consecutive times, the length of data involved in decoding is {} bytes.", channelContext, channelStat.decodeFailCount,
+                readableLength);
           }
           if (channelStat.decodeFailCount > 5) {
             if (channelContext.packetNeededLength == null) {
               if (log.isInfoEnabled()) {
-                log.info(
-                    "{} Failed to decode this time, has failed to decode for {} consecutive times, the length of data involved in decoding is {} bytes.",
-                    channelContext, channelStat.decodeFailCount, readableLength);
+                log.info("{} Failed to decode this time, has failed to decode for {} consecutive times, the length of data involved in decoding is {} bytes.", channelContext,
+                    channelStat.decodeFailCount, readableLength);
               }
             }
 

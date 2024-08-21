@@ -1,24 +1,16 @@
 package com.litongjava.tio.server;
 
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
 import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.litongjava.tio.core.Node;
-import com.litongjava.tio.utils.JvmUtils;
-import com.litongjava.tio.utils.SysConst;
-import com.litongjava.tio.utils.hutool.DateUtil;
 import com.litongjava.tio.utils.hutool.StrUtil;
 
 /**
@@ -90,7 +82,7 @@ public class TioServer {
   }
 
   public void start(String serverIp, int serverPort) throws IOException {
-    long start = System.currentTimeMillis();
+    //long start = System.currentTimeMillis();
     this.serverNode = new Node(serverIp, serverPort);
     channelGroup = AsynchronousChannelGroup.withThreadPool(serverTioConfig.groupExecutor);
     serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);

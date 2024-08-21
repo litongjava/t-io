@@ -26,8 +26,7 @@ import com.litongjava.tio.utils.prop.MapWithLockPropSupport;
 
 /**
  *
- * @author tanyaowu
- * 2017年10月19日 上午9:39:46
+ * @author tanyaowu 2017年10月19日 上午9:39:46
  */
 public abstract class ChannelContext extends MapWithLockPropSupport {
   private static Logger log = LoggerFactory.getLogger(ChannelContext.class);
@@ -36,8 +35,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
   public static final AtomicInteger UNKNOWN_ADDRESS_PORT_SEQ = new AtomicInteger();
   public boolean isReconnect = false;
   /**
-   * 解码出现异常时，是否打印异常日志
-   * 此值默认与org.tio.core.TioConfig.logWhenDecodeError保持一致
+   * 解码出现异常时，是否打印异常日志 此值默认与org.tio.core.TioConfig.logWhenDecodeError保持一致
    */
   public boolean logWhenDecodeError = false;
   /**
@@ -106,6 +104,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 
   /**
    * 创建一个虚拟ChannelContext，主要用来模拟一些操作，譬如压力测试，真实场景中用得少
+   * 
    * @param tioConfig
    */
   public ChannelContext(TioConfig tioConfig) {
@@ -114,8 +113,9 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 
   /**
    * 创建一个虚拟ChannelContext，主要用来模拟一些操作，譬如压力测试，真实场景中用得少
+   * 
    * @param tioConfig
-   * @param id ChannelContext id
+   * @param id        ChannelContext id
    * @author tanyaowu
    */
   public ChannelContext(TioConfig tioConfig, String id) {
@@ -138,6 +138,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 
   /**
    * 创建Node
+   * 
    * @param asynchronousSocketChannel
    * @return
    * @throws IOException
@@ -174,6 +175,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 
   /**
    * 等价于：getAttribute(DEFAULT_ATTUBITE_KEY)
+   * 
    * @deprecated 建议使用get()
    * @return
    */
@@ -184,6 +186,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
   /**
    * 等价于：getAttribute(DEFAULT_ATTUBITE_KEY)<br>
    * 等价于：getAttribute()<br>
+   * 
    * @return
    */
   public Object get() {
@@ -350,6 +353,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
   /**
    * 等价于：setAttribute(DEFAULT_ATTUBITE_KEY, value)<br>
    * 仅仅是为了内部方便，不建议大家使用<br>
+   * 
    * @deprecated 不建议各位同学使用这个方法，建议使用set("name1", object1)
    * @param value
    * @author tanyaowu
@@ -361,6 +365,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
   /**
    * 等价于：set(DEFAULT_ATTUBITE_KEY, value)<br>
    * 等价于：setAttribute(Object value)<br>
+   * 
    * @deprecated 不建议各位同学使用这个方法，建议使用set("name1", object1)
    * @param value
    */
@@ -385,7 +390,8 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 
     if (this.clientNode != null && !Objects.equals(UNKNOWN_ADDRESS_IP, this.clientNode.getIp())) {
       tioConfig.clientNodes.put(this);
-      // clientNodeTraceFilename = StrUtil.replaceAll(clientNode.toString(), ":", "_");
+      // clientNodeTraceFilename = StrUtil.replaceAll(clientNode.toString(), ":",
+      // "_");
     }
   }
 
@@ -462,8 +468,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
   // }
 
   /**
-   * @param userid the userid to set
-   * 给框架内部用的，用户请勿调用此方法
+   * @param userid the userid to set 给框架内部用的，用户请勿调用此方法
    */
   public void setUserid(String userid) {
     this.userid = userid;
@@ -497,11 +502,13 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
   // * @param extmsg
   // * @author tanyaowu
   // */
-  // public void traceBlockPacket(SynPacketAction synPacketAction, Packet packet, CountDownLatch countDownLatch, Map<String, Object> extmsg) {
+  // public void traceBlockPacket(SynPacketAction synPacketAction, Packet packet,
+  // CountDownLatch countDownLatch, Map<String, Object> extmsg) {
   // if (isTraceSynPacket) {
   // ChannelContext channelContext = this;
   // Map<String, Object> map = new HashMap<>(10);
-  // map.put("currTime", DateTime.now().toString(DatePattern.NORM_DATETIME_MS_FORMAT));
+  // map.put("currTime",
+  // DateTime.now().toString(DatePattern.NORM_DATETIME_MS_FORMAT));
   // map.put("c_id", channelContext.getId());
   // map.put("c", channelContext.toString());
   // map.put("action", synPacketAction);
@@ -509,13 +516,15 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
   // MDC.put("tio_client_syn", channelContext.getClientNodeTraceFilename());
   //
   // if (packet != null) {
-  // map.put("p_id", channelContext.getClientNode().getPort() + "_" + packet.getId()); //packet id
+  // map.put("p_id", channelContext.getClientNode().getPort() + "_" +
+  // packet.getId()); //packet id
   // map.put("p_respId", packet.getRespId());
   // map.put("packet", packet.logstr());
   // }
   //
   // if (countDownLatch != null) {
-  // map.put("countDownLatch", countDownLatch.hashCode() + " " + countDownLatch.getCount());
+  // map.put("countDownLatch", countDownLatch.hashCode() + " " +
+  // countDownLatch.getCount());
   // }
   //
   // if (extmsg != null) {
@@ -535,9 +544,11 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
   // * @param extmsg
   // * @author tanyaowu
   // */
-  // public void traceClient(ChannelAction channelAction, Packet packet, Map<String, Object> extmsg) {
+  // public void traceClient(ChannelAction channelAction, Packet packet,
+  // Map<String, Object> extmsg) {
   // if (isTraceClient) {
-  // this.tioConfig.clientTraceHandler.traceChannel(this, channelAction, packet, extmsg);
+  // this.tioConfig.clientTraceHandler.traceChannel(this, channelAction, packet,
+  // extmsg);
   // }
   // }
 
@@ -561,6 +572,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 
   /**
    * 是否是服务器端
+   * 
    * @return
    * @author tanyaowu
    */
@@ -690,6 +702,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 
   /**
    * 连接关闭码
+   * 
    * @author tanyaowu
    */
   public static enum CloseCode {
@@ -806,7 +819,11 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     /**
      * 其它异常
      */
-    OTHER_ERROR((byte) 200),;
+    OTHER_ERROR((byte) 200),
+    /***
+     * 超出最大包长度
+     */
+    PACKET_TOO_LARGE((byte) 201);
 
     public static CloseCode from(Byte value) {
       CloseCode[] values = CloseCode.values();
