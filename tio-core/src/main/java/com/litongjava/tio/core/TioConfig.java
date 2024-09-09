@@ -44,8 +44,7 @@ import com.litongjava.tio.utils.thread.pool.SynThreadPoolExecutor;
 
 /**
  * 
- * @author tanyaowu 
- * 2016年10月10日 下午5:25:43
+ * @author tanyaowu 2016年10月10日 下午5:25:43
  */
 public abstract class TioConfig extends MapWithLockPropSupport {
   static Logger log = LoggerFactory.getLogger(TioConfig.class);
@@ -83,7 +82,8 @@ public abstract class TioConfig extends MapWithLockPropSupport {
   /**
    * 移除IP监听
    */
-  private RemovalListenerWrapper<?> ipRemovalListenerWrapper;
+  @SuppressWarnings("rawtypes")
+  private RemovalListenerWrapper ipRemovalListenerWrapper;
   /**
    * 启动时间
    */
@@ -93,7 +93,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
    */
   public boolean useQueueSend = true;
   /**
-   *  是否用队列解码（系统初始化时确定该值，中途不要变更此值，否则在切换的时候可能导致消息丢失）
+   * 是否用队列解码（系统初始化时确定该值，中途不要变更此值，否则在切换的时候可能导致消息丢失）
    */
   public boolean useQueueDecode = false;
   /**
@@ -122,13 +122,13 @@ public abstract class TioConfig extends MapWithLockPropSupport {
   public Ids ids = new Ids();
   public BsIds bsIds = new BsIds();
   public Ips ips = new Ips();
-  public IpStats ipStats = null;
+  public IpStats ipStats = new IpStats(this, null);;
   protected String id;
   /**
    * 解码异常多少次就把ip拉黑
    */
   protected int maxDecodeErrorCountForIp = 10;
-  protected String name = "未命名";
+  protected String name = "Untitled";
   private IpStatListener ipStatListener = DefaultIpStatListener.me;
   private boolean isStopped = false;
   /**
@@ -138,7 +138,6 @@ public abstract class TioConfig extends MapWithLockPropSupport {
   public MapWithLock<Integer, Packet> waitingResps = new MapWithLock<Integer, Packet>(new HashMap<Integer, Packet>());
 
   public TioConfig() {
-    this(null, null);
   }
 
   /**
@@ -148,77 +147,47 @@ public abstract class TioConfig extends MapWithLockPropSupport {
    * @author: tanyaowu
    */
   public TioConfig(SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
-    this(tioExecutor, groupExecutor, null, null);
+    this.tioExecutor = tioExecutor;
+    this.groupExecutor = groupExecutor;
 
   }
 
   public TioConfig(SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor, CacheFactory cacheFactory) {
-    this(tioExecutor, groupExecutor, cacheFactory, null);
-  }
-
-  @SuppressWarnings({ "unchecked" })
-  public TioConfig(SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor, CacheFactory cacheFactory,
-      RemovalListenerWrapper<?> ipRemovalListenerWrapper) {
-    if (cacheFactory == null) {
-      // 使用默认的mapCacheFactory
-      this.cacheFactory = ConcurrentMapCacheFactory.INSTANCE;
-    } else {
-      this.cacheFactory = cacheFactory;
-    }
-
-    if (ipRemovalListenerWrapper == null) {
-      @SuppressWarnings("rawtypes")
-      RemovalListenerWrapper defaultIpRemovalListenerWrapper = new RemovalListenerWrapper();
-      IpStatMapCacheRemovalListener ipStatMapCacheRemovalListener = new IpStatMapCacheRemovalListener(this,
-          ipStatListener);
-      defaultIpRemovalListenerWrapper.setListener(ipStatMapCacheRemovalListener);
-      
-      this.ipRemovalListenerWrapper = defaultIpRemovalListenerWrapper;
-
-    } else {
-      this.ipRemovalListenerWrapper = ipRemovalListenerWrapper;
-    }
-    ALL_GROUPCONTEXTS.add(this);
-    if (this instanceof ServerTioConfig) {
-      ALL_SERVER_GROUPCONTEXTS.add((ServerTioConfig) this);
-    } else {
-      ALL_CLIENT_GROUPCONTEXTS.add((ClientTioConfig) this);
-    }
-
-    if (ALL_GROUPCONTEXTS.size() > 20) {
-      log.warn("已经产生{}个TioConfig对象，t-io作者怀疑你在误用t-io", ALL_GROUPCONTEXTS.size());
-    }
-    this.id = ID_ATOMIC.incrementAndGet() + "";
-
-    this.ipStats = new IpStats(this, null);
-
     this.tioExecutor = tioExecutor;
-    if (this.tioExecutor == null) {
-      this.tioExecutor = Threads.getTioExecutor();
-    }
-
     this.groupExecutor = groupExecutor;
-    if (this.groupExecutor == null) {
-      this.groupExecutor = Threads.getGroupExecutor();
-    }
-
-    closeRunnable = new CloseRunnable(this.tioExecutor);
+    this.cacheFactory = cacheFactory;
   }
 
-  // /**
-  // *
-  // * @param tioClusterConfig
-  // * @param tioExecutor
-  // * @param groupExecutor
-  // * @author: tanyaowu
-  // */
-  // public TioConfig(TioClusterConfig tioClusterConfig, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
-  // this(tioExecutor, groupExecutor);
-  // this.setTioClusterConfig(tioClusterConfig);
-  // }
+  public TioConfig(SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor, CacheFactory cacheFactory, RemovalListenerWrapper<?> ipRemovalListenerWrapper) {
+    this.tioExecutor = tioExecutor;
+    this.groupExecutor = groupExecutor;
+    this.cacheFactory = cacheFactory;
+    this.ipRemovalListenerWrapper = ipRemovalListenerWrapper;
+  }
+
+  public TioConfig(String name) {
+    this.name = name;
+  }
+
+  public void setTioExecutor(SynThreadPoolExecutor tioExecutor) {
+    this.tioExecutor = tioExecutor;
+  }
+
+  public SynThreadPoolExecutor getTioExecutor() {
+    return tioExecutor;
+  }
+
+  public void setGroupExecutor(ThreadPoolExecutor groupExecutor) {
+    this.groupExecutor = groupExecutor;
+  }
+
+  public ThreadPoolExecutor getGroupExecutor() {
+    return groupExecutor;
+  }
 
   /**
    * 获取AioHandler对象
+   * 
    * @return
    * @author: tanyaowu
    */
@@ -226,6 +195,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 
   /**
    * 获取AioListener对象
+   * 
    * @return
    * @author: tanyaowu
    */
@@ -261,10 +231,6 @@ public abstract class TioConfig extends MapWithLockPropSupport {
    */
   public String getId() {
     return id;
-  }
-
-  public String getName() {
-    return name;
   }
 
   /**
@@ -312,9 +278,11 @@ public abstract class TioConfig extends MapWithLockPropSupport {
   }
 
   /**
-   * @param isEncodeCareWithChannelContext the isEncodeCareWithChannelContext to set
+   * @param isEncodeCareWithChannelContext the isEncodeCareWithChannelContext to
+   *                                       set
    */
-  // public void setEncodeCareWithChannelContext(boolean isEncodeCareWithChannelContext) {
+  // public void setEncodeCareWithChannelContext(boolean
+  // isEncodeCareWithChannelContext) {
   // this.isEncodeCareWithChannelContext = isEncodeCareWithChannelContext;
   // }
 
@@ -334,6 +302,10 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public String getName() {
+    return name;
   }
 
   /**
@@ -381,7 +353,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 
   public void setIpStatListener(IpStatListener ipStatListener) {
     this.ipStatListener = ipStatListener;
-    // this.ipStats.setIpStatListener(ipStatListener);
+    setDefaultIpRemovalListenerWrapper();
   }
 
   public GroupStat getGroupStat() {
@@ -390,6 +362,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 
   /**
    * 是否用队列解码（系统初始化时确定该值，中途不要变更此值，否则在切换的时候可能导致消息丢失
+   * 
    * @param useQueueDecode
    * @author tanyaowu
    */
@@ -399,6 +372,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 
   /**
    * 是否用队列发送，可以随时切换
+   * 
    * @param useQueueSend
    * @author tanyaowu
    */
@@ -408,6 +382,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 
   /**
    * 是服务器端还是客户端
+   * 
    * @return
    * @author tanyaowu
    */
@@ -421,19 +396,64 @@ public abstract class TioConfig extends MapWithLockPropSupport {
     return sslConfig != null;
   }
 
+  public void setCacheFactory(CacheFactory cacheFactory) {
+    this.cacheFactory = cacheFactory;
+  }
+
   public CacheFactory getCacheFactory() {
     return cacheFactory;
   }
 
-  public void setCacheFactory(CacheFactory cacheFactory) {
-    this.cacheFactory = cacheFactory;
+  public void setIpRemovalListenerWrapper(RemovalListenerWrapper<?> ipRemovalListenerWrapper) {
+    this.ipRemovalListenerWrapper = ipRemovalListenerWrapper;
   }
 
   public RemovalListenerWrapper<?> getIpRemovalListenerWrapper() {
     return ipRemovalListenerWrapper;
   }
 
-  public void setIpRemovalListenerWrapper(RemovalListenerWrapper<?> ipRemovalListenerWrapper) {
-    this.ipRemovalListenerWrapper = ipRemovalListenerWrapper;
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public void setDefaultIpRemovalListenerWrapper() {
+    this.ipRemovalListenerWrapper = new RemovalListenerWrapper();
+    IpStatMapCacheRemovalListener ipStatMapCacheRemovalListener = new IpStatMapCacheRemovalListener(this, ipStatListener);
+    ipRemovalListenerWrapper.setListener(ipStatMapCacheRemovalListener);
   }
+
+  public void init() {
+    if (cacheFactory == null) {
+      // mapCacheFactory
+      this.cacheFactory = ConcurrentMapCacheFactory.INSTANCE;
+    }
+
+    if (ipRemovalListenerWrapper == null) {
+      setDefaultIpRemovalListenerWrapper();
+    }
+
+    ALL_GROUPCONTEXTS.add(this);
+    if (this instanceof ServerTioConfig) {
+      ALL_SERVER_GROUPCONTEXTS.add((ServerTioConfig) this);
+    } else {
+      ALL_CLIENT_GROUPCONTEXTS.add((ClientTioConfig) this);
+    }
+
+    if (ALL_GROUPCONTEXTS.size() > 20) {
+      log.warn("You have created {} TioConfig objects, you might be misusing t-io.", ALL_GROUPCONTEXTS.size());
+    }
+    this.id = ID_ATOMIC.incrementAndGet() + "";
+
+    if (this.tioExecutor == null) {
+      this.tioExecutor = Threads.getTioExecutor();
+    }
+
+    if (this.groupExecutor == null) {
+      this.groupExecutor = Threads.getGroupExecutor();
+    }
+
+    if (this.ipStats == null) {
+      this.ipStats = new IpStats(this, null);
+    }
+    closeRunnable = new CloseRunnable(this.tioExecutor);
+
+  }
+
 }

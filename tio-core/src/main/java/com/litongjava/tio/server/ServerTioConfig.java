@@ -31,8 +31,7 @@ import com.litongjava.tio.utils.thread.pool.SynThreadPoolExecutor;
 
 /**
  * 
- * @author tanyaowu 
- * 2016年10月10日 下午5:51:56
+ * @author tanyaowu 2016年10月10日 下午5:51:56
  */
 public class ServerTioConfig extends TioConfig {
   static Logger log = LoggerFactory.getLogger(ServerTioConfig.class);
@@ -73,8 +72,7 @@ public class ServerTioConfig extends TioConfig {
    * @param groupExecutor
    * @author: tanyaowu
    */
-  public ServerTioConfig(ServerAioHandler serverAioHandler, ServerAioListener serverAioListener,
-      SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
+  public ServerTioConfig(ServerAioHandler serverAioHandler, ServerAioListener serverAioListener, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
     this(null, serverAioHandler, serverAioListener, tioExecutor, groupExecutor);
   }
 
@@ -87,10 +85,11 @@ public class ServerTioConfig extends TioConfig {
    * @param groupExecutor
    * @author: tanyaowu
    */
-  public ServerTioConfig(String name, ServerAioHandler serverAioHandler, ServerAioListener serverAioListener,
-      SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
+  public ServerTioConfig(String name, ServerAioHandler serverAioHandler, ServerAioListener serverAioListener, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
     super(tioExecutor, groupExecutor);
-    init(name, serverAioHandler, serverAioListener, tioExecutor, groupExecutor);
+    this.name = name;
+    this.serverAioHandler = serverAioHandler;
+    this.serverAioListener = serverAioListener;
   }
 
   /**
@@ -100,109 +99,19 @@ public class ServerTioConfig extends TioConfig {
    * @param serverAioListener
    * @param tioExecutor
    * @param groupExecutor
-   * @param cacheFactory 缓存类
+   * @param cacheFactory             缓存类
    * @param ipRemovalListenerWrapper
    */
-  public ServerTioConfig(String name, ServerAioHandler serverAioHandler, ServerAioListener serverAioListener,
-      SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor, CacheFactory cacheFactory,
-      RemovalListenerWrapper<?> ipRemovalListenerWrapper) {
+  public ServerTioConfig(String name, ServerAioHandler serverAioHandler, ServerAioListener serverAioListener, SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor,
+      CacheFactory cacheFactory, RemovalListenerWrapper<?> ipRemovalListenerWrapper) {
     super(tioExecutor, groupExecutor, cacheFactory, ipRemovalListenerWrapper);
-    init(name, serverAioHandler, serverAioListener, tioExecutor, groupExecutor);
+    this.name = name;
+    this.serverAioHandler = serverAioHandler;
+    this.serverAioListener = serverAioListener;
   }
 
-  /**
-   * 
-   * @param name
-   * @param serverAioHandler
-   * @param serverAioListener
-   * @param tioExecutor
-   * @param groupExecutor
-   * @author tanyaowu
-   */
-  private void init(String name, ServerAioHandler serverAioHandler, ServerAioListener serverAioListener,
-      SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
-    this.name = name;
-    this.groupStat = new ServerGroupStat();
-    this.acceptCompletionHandler = new AcceptCompletionHandler();
-    this.serverAioHandler = serverAioHandler;
-    this.serverAioListener = serverAioListener;// == null ? new DefaultServerAioListener() : serverAioListener;
-    GlobalIpBlacklist.INSTANCE.init(this);
-    checkHeartbeatThread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        // 第一次先休息一下
-        try {
-          Thread.sleep(1000 * 10);
-        } catch (InterruptedException e1) {
-          log.error(e1.toString(), e1);
-        }
-
-        while (needCheckHeartbeat && !isStopped()) {
-          // long sleeptime = heartbeatTimeout;
-          if (heartbeatTimeout <= 0) {
-            // log.info("{}, The user has canceled the heartbeat detection at the framework level, so if the business needs it, "
-            // + "ask the user to complete the heartbeat detection by themselves", ServerTioConfig.this.name);
-            break;
-          }
-          try {
-            Thread.sleep(heartbeatTimeout);
-          } catch (InterruptedException e1) {
-            log.error(e1.toString(), e1);
-          }
-          long start = SystemTimer.currTime;
-          SetWithLock<ChannelContext> setWithLock = ServerTioConfig.this.connections;
-          Set<ChannelContext> set = null;
-          long start1 = 0;
-          int count = 0;
-          ReadLock readLock = setWithLock.readLock();
-          readLock.lock();
-          try {
-            start1 = SystemTimer.currTime;
-            set = setWithLock.getObj();
-
-            for (ChannelContext channelContext : set) {
-              count++;
-              long compareTime = Math.max(channelContext.stat.latestTimeOfReceivedByte,
-                  channelContext.stat.latestTimeOfSentPacket);
-              long currtime = SystemTimer.currTime;
-              long interval = currtime - compareTime;
-
-              boolean needRemove = false;
-              if (channelContext.heartbeatTimeout != null && channelContext.heartbeatTimeout > 0) {
-                needRemove = interval > channelContext.heartbeatTimeout;
-              } else {
-                needRemove = interval > heartbeatTimeout;
-              }
-
-              if (needRemove) {
-                if (!ServerTioConfig.this.serverAioListener.onHeartbeatTimeout(channelContext, interval,
-                    channelContext.stat.heartbeatTimeoutCount.incrementAndGet())) {
-                  log.info("{}, {} ms没有收发消息", channelContext, interval);
-                  channelContext.setCloseCode(CloseCode.HEARTBEAT_TIMEOUT);
-                  Tio.remove(channelContext, interval + " ms没有收发消息");
-                }
-              }
-            }
-          } catch (Throwable e) {
-            log.error("", e);
-          } finally {
-            try {
-              readLock.unlock();
-              if (debug) {
-                debugInfo(start, set, start1, count);
-              }
-            } catch (Throwable e) {
-              log.error("", e);
-            }
-          }
-        }
-
-        // log.error(name + "--" + needCheckHeartbeat + "-" + isStopped() + "--执行完成了---------------------------------------------------------------------------------------------------执行完成了");
-      }
-    }, "tio-timer-checkheartbeat-" + id + "-" + name);
-    checkHeartbeatThread.setDaemon(true);
-    checkHeartbeatThread.setPriority(Thread.MIN_PRIORITY);
-    checkHeartbeatThread.start();
+  public ServerTioConfig(String name) {
+    super(name);
   }
 
   private void debugInfo(long start, Set<ChannelContext> set, long start1, int count) {
@@ -218,10 +127,8 @@ public class ServerTioConfig extends TioConfig {
 
     builder.append("\r\n ├ 消息统计");
     builder.append("\r\n │ \t ├ 已处理消息 :").append(groupStat.handledPackets.get());
-    builder.append("\r\n │ \t ├ 已接收消息(packet/byte) :").append(groupStat.receivedPackets.get()).append("/")
-        .append(groupStat.receivedBytes.get());
-    builder.append("\r\n │ \t ├ 已发送消息(packet/byte) :").append(groupStat.sentPackets.get()).append("/")
-        .append(groupStat.sentBytes.get()).append("b");
+    builder.append("\r\n │ \t ├ 已接收消息(packet/byte) :").append(groupStat.receivedPackets.get()).append("/").append(groupStat.receivedBytes.get());
+    builder.append("\r\n │ \t ├ 已发送消息(packet/byte) :").append(groupStat.sentPackets.get()).append("/").append(groupStat.sentBytes.get()).append("b");
     builder.append("\r\n │ \t ├ 平均每次TCP包接收的字节数 :").append(groupStat.getBytesPerTcpReceive());
     builder.append("\r\n │ \t └ 平均每次TCP包接收的业务包 :").append(groupStat.getPacketsPerTcpReceive());
     builder.append("\r\n └ IP统计时段 ");
@@ -233,8 +140,7 @@ public class ServerTioConfig extends TioConfig {
     }
 
     builder.append("\r\n ├ 节点统计");
-    builder.append("\r\n │ \t ├ clientNodes :")
-        .append(ServerTioConfig.this.clientNodes.getObjWithLock().getObj().size());
+    builder.append("\r\n │ \t ├ clientNodes :").append(ServerTioConfig.this.clientNodes.getObjWithLock().getObj().size());
     builder.append("\r\n │ \t ├ 所有连接 :").append(ServerTioConfig.this.connections.getObj().size());
     builder.append("\r\n │ \t ├ 绑定user数 :").append(ServerTioConfig.this.users.getMap().getObj().size());
     builder.append("\r\n │ \t ├ 绑定token数 :").append(ServerTioConfig.this.tokens.getMap().getObj().size());
@@ -244,8 +150,7 @@ public class ServerTioConfig extends TioConfig {
     builder.append("\r\n │ \t └ groupmap:").append(ServerTioConfig.this.groups.getGroupmap().getObj().size());
     builder.append("\r\n └ 拉黑IP ");
     if (ServerTioConfig.this.ipBlacklist != null) {
-      builder.append("\r\n   \t └ ")
-          .append(AppendJsonConverter.convertCollectionStringToJson(this.ipBlacklist.getAll()));
+      builder.append("\r\n   \t └ ").append(AppendJsonConverter.convertCollectionStringToJson(this.ipBlacklist.getAll()));
     }
 
     log.warn(builder.toString());
@@ -258,9 +163,9 @@ public class ServerTioConfig extends TioConfig {
 
   /**
    * 
-   * @param keyStoreFile 如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
+   * @param keyStoreFile   如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
    * @param trustStoreFile 如果是以"classpath:"开头，则从classpath中查找，否则视为普通的文件路径
-   * @param keyStorePwd 
+   * @param keyStorePwd
    * @throws FileNotFoundException
    */
   public void useSsl(String keyStoreFile, String trustStoreFile, String keyStorePwd) throws Exception {
@@ -278,8 +183,7 @@ public class ServerTioConfig extends TioConfig {
    * @throws Exception
    * @author tanyaowu
    */
-  public void useSsl(InputStream keyStoreInputStream, InputStream trustStoreInputStream, String passwd)
-      throws Exception {
+  public void useSsl(InputStream keyStoreInputStream, InputStream trustStoreInputStream, String passwd) throws Exception {
     SslConfig sslConfig = SslConfig.forServer(keyStoreInputStream, trustStoreInputStream, passwd);
     this.setSslConfig(sslConfig);
   }
@@ -295,8 +199,7 @@ public class ServerTioConfig extends TioConfig {
    * @see org.tio.core.TioConfig#getAioHandler()
    *
    * @return
-   * @author tanyaowu
-   * 2016年12月20日 上午11:34:37
+   * @author tanyaowu 2016年12月20日 上午11:34:37
    *
    */
   @Override
@@ -308,8 +211,7 @@ public class ServerTioConfig extends TioConfig {
    * @see org.tio.core.TioConfig#getAioListener()
    *
    * @return
-   * @author tanyaowu
-   * 2016年12月20日 上午11:34:37
+   * @author tanyaowu 2016年12月20日 上午11:34:37
    *
    */
   @Override
@@ -335,7 +237,7 @@ public class ServerTioConfig extends TioConfig {
     this.serverAioListener = serverAioListener;
   }
 
-  /** 
+  /**
    * @return
    * @author tanyaowu
    */
@@ -377,25 +279,90 @@ public class ServerTioConfig extends TioConfig {
       // 下面这两行代码要放到前面if的后面
       tioConfig.isShared = true;
       this.isShared = true;
-
-      // if (SHARED_SET == null) {
-      // SHARED_SET = new HashSet<>();
-      // }
-      //
-      // SHARED_SET.add(this);
-      // SHARED_SET.add(tioConfig);
-      //
-      // boolean need = true;
-      // for (ServerTioConfig gc : SHARED_SET) {
-      // if (!need) {
-      // gc.needCheckHeartbeat = false;
-      // continue;
-      // }
-      //
-      // if (gc.needCheckHeartbeat) {
-      // need = false;
-      // }
-      // }
     }
   }
+
+  public void setServerAioHandler(ServerAioHandler serverAioHandler) {
+    this.serverAioHandler = serverAioHandler;
+  }
+
+  public void init() {
+    super.init();
+    this.groupStat = new ServerGroupStat();
+    this.acceptCompletionHandler = new AcceptCompletionHandler();
+    GlobalIpBlacklist.INSTANCE.init(this);
+    Runnable check = new Runnable() {
+      @Override
+      public void run() {
+        // 第一次先休息一下
+        try {
+          Thread.sleep(1000 * 10);
+        } catch (InterruptedException e1) {
+          log.error(e1.toString(), e1);
+        }
+
+        while (needCheckHeartbeat && !isStopped()) {
+          // long sleeptime = heartbeatTimeout;
+          if (heartbeatTimeout <= 0) {
+            break;
+          }
+          try {
+            Thread.sleep(heartbeatTimeout);
+          } catch (InterruptedException e1) {
+            log.error(e1.toString(), e1);
+          }
+          long start = SystemTimer.currTime;
+          SetWithLock<ChannelContext> setWithLock = ServerTioConfig.this.connections;
+          Set<ChannelContext> set = null;
+          long start1 = 0;
+          int count = 0;
+          ReadLock readLock = setWithLock.readLock();
+          readLock.lock();
+          try {
+            start1 = SystemTimer.currTime;
+            set = setWithLock.getObj();
+
+            for (ChannelContext channelContext : set) {
+              count++;
+              long compareTime = Math.max(channelContext.stat.latestTimeOfReceivedByte, channelContext.stat.latestTimeOfSentPacket);
+              long currtime = SystemTimer.currTime;
+              long interval = currtime - compareTime;
+
+              boolean needRemove = false;
+              if (channelContext.heartbeatTimeout != null && channelContext.heartbeatTimeout > 0) {
+                needRemove = interval > channelContext.heartbeatTimeout;
+              } else {
+                needRemove = interval > heartbeatTimeout;
+              }
+
+              if (needRemove) {
+                if (!ServerTioConfig.this.serverAioListener.onHeartbeatTimeout(channelContext, interval, channelContext.stat.heartbeatTimeoutCount.incrementAndGet())) {
+                  log.info("{}, {} ms or not send and receive message", channelContext, interval);
+                  channelContext.setCloseCode(CloseCode.HEARTBEAT_TIMEOUT);
+                  Tio.remove(channelContext, interval + " ms not send and receive message");
+                }
+              }
+            }
+          } catch (Throwable e) {
+            log.error("", e);
+          } finally {
+            try {
+              readLock.unlock();
+              if (debug) {
+                debugInfo(start, set, start1, count);
+              }
+            } catch (Throwable e) {
+              log.error("", e);
+            }
+          }
+        }
+      }
+    };
+    
+    checkHeartbeatThread = new Thread(check, "tio-timer-checkheartbeat-" + id + "-" + name);
+    checkHeartbeatThread.setDaemon(true);
+    checkHeartbeatThread.setPriority(Thread.MIN_PRIORITY);
+    checkHeartbeatThread.start();
+  }
+
 }
