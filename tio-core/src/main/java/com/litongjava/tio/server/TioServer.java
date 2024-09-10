@@ -10,7 +10,9 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.Node;
+import com.litongjava.tio.utils.cache.AbsCache;
 import com.litongjava.tio.utils.hutool.StrUtil;
 
 /**
@@ -30,8 +32,7 @@ public class TioServer {
    *
    * @param serverTioConfig
    *
-   * @author tanyaowu
-   * 2017年1月2日 下午5:53:06
+   * @author tanyaowu 2017年1月2日 下午5:53:06
    *
    */
   public TioServer(ServerTioConfig serverTioConfig) {
@@ -82,7 +83,9 @@ public class TioServer {
   }
 
   public void start(String serverIp, int serverPort) throws IOException {
-    //long start = System.currentTimeMillis();
+    // long start = System.currentTimeMillis();
+    serverTioConfig.getCacheFactory().register(TioCoreConfigKeys.REQEUST_PROCESSING, null, null, null);
+
     this.serverNode = new Node(serverIp, serverPort);
     channelGroup = AsynchronousChannelGroup.withThreadPool(serverTioConfig.groupExecutor);
     serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);

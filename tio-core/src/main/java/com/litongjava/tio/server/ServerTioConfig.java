@@ -9,6 +9,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
 import com.litongjava.tio.core.Tio;
@@ -114,7 +115,7 @@ public class ServerTioConfig extends TioConfig {
     super(name);
   }
 
-  private void debugInfo(long start, Set<ChannelContext> set, long start1, int count) {
+  private void diagnostic(long start, Set<ChannelContext> set, long start1, int count) {
     StringBuilder builder = new StringBuilder();
     builder.append(SysConst.CRLF).append(ServerTioConfig.this.getName());
     builder.append("\r\n ├ 当前时间:").append(SystemTimer.currTime);
@@ -133,25 +134,27 @@ public class ServerTioConfig extends TioConfig {
     builder.append("\r\n │ \t └ 平均每次TCP包接收的业务包 :").append(groupStat.getPacketsPerTcpReceive());
     builder.append("\r\n └ IP统计时段 ");
 
-    if (CollUtil.isNotEmpty(ServerTioConfig.this.ipStats.durationList)) {
+    if (CollUtil.isNotEmpty(ipStats.durationList)) {
       builder.append("\r\n   \t └ ").append(AppendJsonConverter.convertListLongToJson(this.ipStats.durationList));
     } else {
       builder.append("\r\n   \t └ ").append("没有设置ip统计时间");
     }
 
     builder.append("\r\n ├ 节点统计");
-    builder.append("\r\n │ \t ├ clientNodes :").append(ServerTioConfig.this.clientNodes.getObjWithLock().getObj().size());
-    builder.append("\r\n │ \t ├ 所有连接 :").append(ServerTioConfig.this.connections.getObj().size());
-    builder.append("\r\n │ \t ├ 绑定user数 :").append(ServerTioConfig.this.users.getMap().getObj().size());
-    builder.append("\r\n │ \t ├ 绑定token数 :").append(ServerTioConfig.this.tokens.getMap().getObj().size());
-    builder.append("\r\n │ \t └ 等待同步消息响应 :").append(ServerTioConfig.this.waitingResps.getObj().size());
+    builder.append("\r\n │ \t ├ clientNodes :").append(this.clientNodes.getObjWithLock().getObj().size());
+    builder.append("\r\n │ \t ├ 所有连接 :").append(this.connections.getObj().size());
+    builder.append("\r\n │ \t ├ 绑定user数 :").append(this.users.getMap().getObj().size());
+    builder.append("\r\n │ \t ├ 绑定token数 :").append(this.tokens.getMap().getObj().size());
+    builder.append("\r\n │ \t └ 等待同步消息响应 :").append(this.waitingResps.getObj().size());
 
     builder.append("\r\n ├ 群组");
-    builder.append("\r\n │ \t └ groupmap:").append(ServerTioConfig.this.groups.getGroupmap().getObj().size());
+    builder.append("\r\n │ \t └ groupmap:").append(this.groups.getGroupmap().getObj().size());
     builder.append("\r\n └ 拉黑IP ");
     if (ServerTioConfig.this.ipBlacklist != null) {
       builder.append("\r\n   \t └ ").append(AppendJsonConverter.convertCollectionStringToJson(this.ipBlacklist.getAll()));
     }
+    builder.append("\r\n └ 正在处理的请求数量 ").append(getCacheFactory().getCache(TioCoreConfigKeys.REQEUST_PROCESSING).keysCollection().size());
+    
 
     log.warn(builder.toString());
 
@@ -349,7 +352,7 @@ public class ServerTioConfig extends TioConfig {
             try {
               readLock.unlock();
               if (debug) {
-                debugInfo(start, set, start1, count);
+                diagnostic(start, set, start1, count);
               }
             } catch (Throwable e) {
               log.error("", e);
@@ -358,7 +361,7 @@ public class ServerTioConfig extends TioConfig {
         }
       }
     };
-    
+
     checkHeartbeatThread = new Thread(check, "tio-timer-checkheartbeat-" + id + "-" + name);
     checkHeartbeatThread.setDaemon(true);
     checkHeartbeatThread.setPriority(Thread.MIN_PRIORITY);

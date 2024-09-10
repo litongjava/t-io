@@ -10,17 +10,18 @@ import java.nio.channels.CompletionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ReadCompletionHandler;
 import com.litongjava.tio.core.Tio.IpBlacklist;
 import com.litongjava.tio.core.ssl.SslUtils;
 import com.litongjava.tio.core.stat.IpStat;
 import com.litongjava.tio.utils.SystemTimer;
+import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.hutool.CollUtil;
 
 /**
  *
- * @author tanyaowu
- * 2017年4月4日 上午9:27:45
+ * @author tanyaowu 2017年4月4日 上午9:27:45
  */
 public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSocketChannel, TioServer> {
 
@@ -37,9 +38,21 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
    */
   @Override
   public void completed(AsynchronousSocketChannel asynchronousSocketChannel, TioServer tioServer) {
+    if (tioServer.isWaitingStop()) {
+      log.info("The server will be shut down and no new requests will be accepted:{}", tioServer.getServerNode());
+    } else {
+      AsynchronousServerSocketChannel serverSocketChannel = tioServer.getServerSocketChannel();
+      serverSocketChannel.accept(tioServer, this);
+    }
+
+    ServerTioConfig serverTioConfig = tioServer.getServerTioConfig();
     try {
-      ServerTioConfig serverTioConfig = tioServer.getServerTioConfig();
+
       InetSocketAddress inetSocketAddress = (InetSocketAddress) asynchronousSocketChannel.getRemoteAddress();
+      if (EnvUtils.getBoolean(TioCoreConfigKeys.TCP_CORE_DIAGNOSTIC, false)) {
+        log.info("new connection:{},{}", inetSocketAddress.getHostString(), inetSocketAddress.getPort());
+      }
+
       String clientIp = inetSocketAddress.getHostString();
       // serverTioConfig.ips.get(clientIp).getRequestCount().incrementAndGet();
 
@@ -50,7 +63,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
       // }
 
       if (IpBlacklist.isInBlacklist(serverTioConfig, clientIp)) {
-        log.info("{}在黑名单中, {}", clientIp, serverTioConfig.getName());
+        log.info("{} on the blacklist, {}", clientIp, serverTioConfig.getName());
         asynchronousSocketChannel.close();
         return;
       }
@@ -69,7 +82,6 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
       // IpStat.getActivatedCount().incrementAndGet();
       // }
       // IpStat.getActivatedCount(clientIp, true).incrementAndGet();
-
       asynchronousSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
       asynchronousSocketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 64 * 1024);
       asynchronousSocketChannel.setOption(StandardSocketOptions.SO_SNDBUF, 64 * 1024);
@@ -117,14 +129,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
         asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, readCompletionHandler);
       }
     } catch (Throwable e) {
-      log.error("", e);
-    } finally {
-      if (tioServer.isWaitingStop()) {
-        log.info("{}即将关闭服务器，不再接受新请求", tioServer.getServerNode());
-      } else {
-        AsynchronousServerSocketChannel serverSocketChannel = tioServer.getServerSocketChannel();
-        serverSocketChannel.accept(tioServer, this);
-      }
+      e.printStackTrace();
     }
   }
 
