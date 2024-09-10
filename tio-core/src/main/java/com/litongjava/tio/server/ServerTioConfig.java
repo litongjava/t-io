@@ -23,6 +23,7 @@ import com.litongjava.tio.server.intf.ServerAioListener;
 import com.litongjava.tio.utils.AppendJsonConverter;
 import com.litongjava.tio.utils.SysConst;
 import com.litongjava.tio.utils.SystemTimer;
+import com.litongjava.tio.utils.Threads;
 import com.litongjava.tio.utils.cache.CacheFactory;
 import com.litongjava.tio.utils.cache.RemovalListenerWrapper;
 import com.litongjava.tio.utils.hutool.CollUtil;
@@ -150,10 +151,12 @@ public class ServerTioConfig extends TioConfig {
     builder.append("\r\n ├ 群组");
     builder.append("\r\n │ \t └ groupmap:").append(this.groups.getGroupmap().getObj().size());
     builder.append("\r\n └ 拉黑IP ");
-    if (ServerTioConfig.this.ipBlacklist != null) {
+    if (this.ipBlacklist != null) {
       builder.append("\r\n   \t └ ").append(AppendJsonConverter.convertCollectionStringToJson(this.ipBlacklist.getAll()));
     }
-    builder.append("\r\n └ 正在处理的请求数量 ").append(getCacheFactory().getCache(TioCoreConfigKeys.REQEUST_PROCESSING).keysCollection().size());
+    builder.append("\r\n └ 正在处理的请求数量: ").append(getCacheFactory().getCache(TioCoreConfigKeys.REQEUST_PROCESSING).keysCollection().size());
+    builder.append("\r\n └ 线程池信息: \n").append(Threads.status());
+    
     
 
     log.warn(builder.toString());
