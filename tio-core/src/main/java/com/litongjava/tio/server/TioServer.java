@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.Node;
-import com.litongjava.tio.utils.cache.AbsCache;
 import com.litongjava.tio.utils.hutool.StrUtil;
 
 /**
@@ -87,9 +86,9 @@ public class TioServer {
     serverTioConfig.getCacheFactory().register(TioCoreConfigKeys.REQEUST_PROCESSING, null, null, null);
 
     this.serverNode = new Node(serverIp, serverPort);
-    channelGroup = AsynchronousChannelGroup.withThreadPool(serverTioConfig.groupExecutor);
-    serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);
-
+    // channelGroup = AsynchronousChannelGroup.withThreadPool(serverTioConfig.groupExecutor);
+    // serverSocketChannel= AsynchronousServerSocketChannel.open(channelGroup);
+    serverSocketChannel = AsynchronousServerSocketChannel.open();
     serverSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
     serverSocketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 64 * 1024);
 

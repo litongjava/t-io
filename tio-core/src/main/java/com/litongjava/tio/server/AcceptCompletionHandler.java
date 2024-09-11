@@ -38,29 +38,24 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
    */
   @Override
   public void completed(AsynchronousSocketChannel asynchronousSocketChannel, TioServer tioServer) {
+    AsynchronousServerSocketChannel serverSocketChannel = tioServer.getServerSocketChannel();
+
     if (tioServer.isWaitingStop()) {
       log.info("The server will be shut down and no new requests will be accepted:{}", tioServer.getServerNode());
     } else {
-      AsynchronousServerSocketChannel serverSocketChannel = tioServer.getServerSocketChannel();
       serverSocketChannel.accept(tioServer, this);
     }
 
     ServerTioConfig serverTioConfig = tioServer.getServerTioConfig();
+    String clientIp = null;
+    int port = 0;
     try {
-
       InetSocketAddress inetSocketAddress = (InetSocketAddress) asynchronousSocketChannel.getRemoteAddress();
+      clientIp = inetSocketAddress.getHostString();
+      port = inetSocketAddress.getPort();
       if (EnvUtils.getBoolean(TioCoreConfigKeys.TCP_CORE_DIAGNOSTIC, false)) {
-        log.info("new connection:{},{}", inetSocketAddress.getHostString(), inetSocketAddress.getPort());
+        log.info("new connection:{},{}", clientIp, port);
       }
-
-      String clientIp = inetSocketAddress.getHostString();
-      // serverTioConfig.ips.get(clientIp).getRequestCount().incrementAndGet();
-
-      // CaffeineCache[] caches = serverTioConfig.ips.getCaches();
-      // for (CaffeineCache guavaCache : caches) {
-      // IpStat ipStat = (IpStat) guavaCache.get(clientIp);
-      // ipStat.getRequestCount().incrementAndGet();
-      // }
 
       if (IpBlacklist.isInBlacklist(serverTioConfig, clientIp)) {
         log.info("{} on the blacklist, {}", clientIp, serverTioConfig.getName());
@@ -72,16 +67,6 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
         ((ServerGroupStat) serverTioConfig.groupStat).accepted.incrementAndGet();
       }
 
-      // channelContext.getIpStat().getActivatedCount().incrementAndGet();
-      // for (CaffeineCache guavaCache : caches) {
-      // IpStat ipStat = (IpStat) guavaCache.get(clientIp);
-      // ipStat.getActivatedCount().incrementAndGet();
-      // }
-      // for (Long v : durationList) {
-      // IpStat ipStat = (IpStat) serverTioConfig.ips.get(v, clientIp);
-      // IpStat.getActivatedCount().incrementAndGet();
-      // }
-      // IpStat.getActivatedCount(clientIp, true).incrementAndGet();
       asynchronousSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
       asynchronousSocketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 64 * 1024);
       asynchronousSocketChannel.setOption(StandardSocketOptions.SO_SNDBUF, 64 * 1024);
@@ -129,6 +114,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
         asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, readCompletionHandler);
       }
     } catch (Throwable e) {
+      log.error("Failed to read data from :{},{}", clientIp, port);
       e.printStackTrace();
     }
   }
@@ -143,9 +129,6 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
   public void failed(Throwable exc, TioServer tioServer) {
     AsynchronousServerSocketChannel serverSocketChannel = tioServer.getServerSocketChannel();
     serverSocketChannel.accept(tioServer, this);
-
-    log.error("[" + tioServer.getServerNode() + "]监听出现异常", exc);
-
+    log.error("[" + tioServer.getServerNode() + "] listening exception", exc);
   }
-
 }

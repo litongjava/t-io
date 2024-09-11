@@ -23,7 +23,6 @@ import com.litongjava.tio.server.intf.ServerAioListener;
 import com.litongjava.tio.utils.AppendJsonConverter;
 import com.litongjava.tio.utils.SysConst;
 import com.litongjava.tio.utils.SystemTimer;
-import com.litongjava.tio.utils.Threads;
 import com.litongjava.tio.utils.cache.CacheFactory;
 import com.litongjava.tio.utils.cache.RemovalListenerWrapper;
 import com.litongjava.tio.utils.hutool.CollUtil;
@@ -124,7 +123,7 @@ public class ServerTioConfig extends TioConfig {
     builder.append("\r\n │ \t ├ 共接受过连接数 :").append(((ServerGroupStat) groupStat).accepted.get());
     builder.append("\r\n │ \t ├ 当前连接数 :").append(set.size());
     // builder.append("\r\n │ \t ├ 当前群组数 :").append(groups);
-    builder.append("\r\n │ \t ├ 异IP连接数 :").append(ServerTioConfig.this.ips.getIpmap().getObj().size());
+    builder.append("\r\n │ \t ├ 异IP连接数 :").append(this.ips.getIpmap().getObj().size());
     builder.append("\r\n │ \t └ 关闭过的连接数 :").append(groupStat.closed.get());
 
     builder.append("\r\n ├ 消息统计");
@@ -155,12 +154,8 @@ public class ServerTioConfig extends TioConfig {
       builder.append("\r\n   \t └ ").append(AppendJsonConverter.convertCollectionStringToJson(this.ipBlacklist.getAll()));
     }
     builder.append("\r\n └ 正在处理的请求数量: ").append(getCacheFactory().getCache(TioCoreConfigKeys.REQEUST_PROCESSING).keysCollection().size());
-    builder.append("\r\n └ 线程池信息: \n").append(Threads.status());
-    
-    
-
+    // builder.append("\r\n └ 线程池信息: \n").append(Threads.status());
     log.warn(builder.toString());
-
     long end = SystemTimer.currTime;
     long iv1 = start1 - start;
     long iv = end - start1;

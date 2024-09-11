@@ -6,24 +6,26 @@ import java.nio.channels.CompletionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
 import com.litongjava.tio.core.stat.IpStat;
 import com.litongjava.tio.core.utils.ByteBufferUtils;
 import com.litongjava.tio.core.utils.TioUtils;
 import com.litongjava.tio.utils.SystemTimer;
+import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.hutool.CollUtil;
 
 /**
  *
- * @author tanyaowu
- * 2017年4月4日 上午9:22:04
+ * @author tanyaowu 2017年4月4日 上午9:22:04
  */
 public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuffer> {
   private static Logger log = LoggerFactory.getLogger(ReadCompletionHandler.class);
   private ChannelContext channelContext = null;
   private ByteBuffer readByteBuffer;
 
-  // private ByteBuffer byteBuffer = ByteBuffer.allocate(ChannelContext.READ_BUFFER_SIZE);
+  // private ByteBuffer byteBuffer =
+  // ByteBuffer.allocate(ChannelContext.READ_BUFFER_SIZE);
 
   /**
    *
@@ -39,7 +41,6 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
   @Override
   public void completed(Integer result, ByteBuffer byteBuffer) {
     if (result > 0) {
-//			log.error("读取数据:{}字节", result);
       TioConfig tioConfig = channelContext.tioConfig;
 
       if (tioConfig.statOn) {
@@ -99,15 +100,22 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
       }
 
     } else if (result == 0) {
-      log.error("{}, 读到的数据长度为0", channelContext);
-      Tio.close(channelContext, null, "读到的数据长度为0", CloseCode.READ_COUNT_IS_ZERO);
+      String message = "The length of the read data is 0";
+      log.error("close {}, because {}", channelContext, message);
+      Tio.close(channelContext, null, message, CloseCode.READ_COUNT_IS_ZERO);
       return;
     } else if (result < 0) {
       if (result == -1) {
-        Tio.close(channelContext, null, "对方关闭了连接", CloseCode.CLOSED_BY_PEER);
+        String message = "The connection closed by peer";
+        if (EnvUtils.getBoolean(TioCoreConfigKeys.TCP_CORE_DIAGNOSTIC, false)) {
+          log.info("close {}, because {}", channelContext, message);
+        }
+        Tio.close(channelContext, null, message, CloseCode.CLOSED_BY_PEER);
         return;
       } else {
+        String message = "The length of the read data is less than -1";
         Tio.close(channelContext, null, "读数据时返回" + result, CloseCode.READ_COUNT_IS_NEGATIVE);
+        log.error("close {}, because {}", channelContext, message);
         return;
       }
     }

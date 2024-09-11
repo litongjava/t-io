@@ -9,8 +9,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author tanyaowu
- * 2017年4月1日 上午9:34:59
+ * @author tanyaowu 2017年4月1日 上午9:34:59
  */
 public class Packet implements java.io.Serializable, Cloneable {
   private static Logger log = LoggerFactory.getLogger(Packet.class);
@@ -25,9 +24,9 @@ public class Packet implements java.io.Serializable, Cloneable {
   private PacketListener packetListener;
   private boolean isBlockSend = false;
   private Meta meta = null;
+
   /**
-   * 消息是否是另外一台机器通过topic转过来的，如果是就不要死循环地再一次转发啦
-   * 这个属性是tio内部使用，业务层的用户请勿使用
+   * 消息是否是另外一台机器通过topic转过来的，如果是就不要死循环地再一次转发啦 这个属性是tio内部使用，业务层的用户请勿使用
    */
   private boolean isFromCluster = false;
   /**
@@ -42,6 +41,16 @@ public class Packet implements java.io.Serializable, Cloneable {
    * 是否已经进行ssl加密过
    */
   private boolean isSslEncrypted = false;
+
+  protected boolean keepedConnection = true;
+
+  public void setKeepedConnectin(boolean keepedConnection) {
+    this.keepedConnection = keepedConnection;
+  }
+
+  public boolean isKeepedConnection() {
+    return keepedConnection;
+  }
 
   @Override
   public Packet clone() {

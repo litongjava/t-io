@@ -9,12 +9,14 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
 import com.litongjava.tio.core.WriteCompletionHandler.WriteCompletionVo;
 import com.litongjava.tio.core.intf.Packet;
 import com.litongjava.tio.core.intf.Packet.Meta;
 import com.litongjava.tio.core.stat.IpStat;
 import com.litongjava.tio.utils.SystemTimer;
+import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.hutool.CollUtil;
 
 /**
@@ -57,8 +59,7 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
     }
     if (writeCompletionVo.byteBuffer.hasRemaining()) {
       if (log.isInfoEnabled()) {
-        log.info("{} {}/{} has sent", channelContext, writeCompletionVo.byteBuffer.position(),
-            writeCompletionVo.byteBuffer.limit());
+        log.info("{} {}/{} has sent", channelContext, writeCompletionVo.byteBuffer.position(), writeCompletionVo.byteBuffer.limit());
       }
       channelContext.asynchronousSocketChannel.write(writeCompletionVo.byteBuffer, writeCompletionVo, this);
     } else {
@@ -152,10 +153,14 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 
     try {
       channelContext.processAfterSent(packet, isSentSuccess);
+      if (!packet.isKeepedConnection()) {
+        if (EnvUtils.getBoolean(TioCoreConfigKeys.TCP_CORE_DIAGNOSTIC, false)) {
+          log.info("remove conneciton because KeepedConnection is false:{}", packet.logstr());
+        }
+        channelContext.asynchronousSocketChannel.close();
+      }
     } catch (Throwable e) {
       log.error(e.toString(), e);
     }
-
   }
-
 }
