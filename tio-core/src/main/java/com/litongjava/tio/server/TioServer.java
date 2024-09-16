@@ -5,13 +5,15 @@ import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.Node;
+import com.litongjava.tio.utils.Threads;
+import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.hutool.StrUtil;
 
 /**
@@ -86,9 +88,13 @@ public class TioServer {
     serverTioConfig.getCacheFactory().register(TioCoreConfigKeys.REQEUST_PROCESSING, null, null, null);
 
     this.serverNode = new Node(serverIp, serverPort);
-    // channelGroup = AsynchronousChannelGroup.withThreadPool(serverTioConfig.groupExecutor);
-    // serverSocketChannel= AsynchronousServerSocketChannel.open(channelGroup);
-    serverSocketChannel = AsynchronousServerSocketChannel.open();
+    if (EnvUtils.getBoolean("tio.core.hotswap.reload", false)) {
+      ExecutorService groupExecutor = Threads.getGroupExecutor();
+      channelGroup = AsynchronousChannelGroup.withThreadPool(groupExecutor);
+      serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);
+    } else {
+      serverSocketChannel = AsynchronousServerSocketChannel.open();
+    }
     serverSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
     serverSocketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 64 * 1024);
 
@@ -115,39 +121,23 @@ public class TioServer {
    */
   public boolean stop() {
     isWaitingStop = true;
-    boolean ret = true;
 
     try {
-      channelGroup.shutdownNow();
+      if (channelGroup != null) {
+        channelGroup.shutdownNow();
+      }
     } catch (Exception e) {
-      log.error("channelGroup.shutdownNow()时报错", e);
+      log.error("Faild to execute channelGroup.shutdownNow()", e);
     }
 
     try {
       serverSocketChannel.close();
-    } catch (Exception e1) {
-      log.error("serverSocketChannel.close()时报错", e1);
-    }
-
-    try {
-      serverTioConfig.groupExecutor.shutdown();
-    } catch (Exception e1) {
-      log.error(e1.toString(), e1);
-    }
-    try {
-      serverTioConfig.tioExecutor.shutdown();
-    } catch (Exception e1) {
-      log.error(e1.toString(), e1);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to close serverSocketChannel", e);
     }
 
     serverTioConfig.setStopped(true);
-    try {
-      ret = ret && serverTioConfig.groupExecutor.awaitTermination(6000, TimeUnit.SECONDS);
-      ret = ret && serverTioConfig.tioExecutor.awaitTermination(6000, TimeUnit.SECONDS);
-    } catch (InterruptedException e) {
-      log.error(e.getLocalizedMessage(), e);
-    }
-
+    boolean ret = Threads.close();
     log.info(this.serverNode + " stopped");
     return ret;
   }

@@ -19,6 +19,7 @@ import com.litongjava.tio.core.stat.IpStat;
 import com.litongjava.tio.core.task.DecodeRunnable;
 import com.litongjava.tio.core.task.HandlerRunnable;
 import com.litongjava.tio.core.task.SendRunnable;
+import com.litongjava.tio.utils.Threads;
 import com.litongjava.tio.utils.hutool.CollUtil;
 import com.litongjava.tio.utils.hutool.StrUtil;
 import com.litongjava.tio.utils.lock.SetWithLock;
@@ -416,9 +417,9 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     this.tioConfig = tioConfig;
 
     if (tioConfig != null) {
-      decodeRunnable = new DecodeRunnable(this, tioConfig.tioExecutor);
-      handlerRunnable = new HandlerRunnable(this, tioConfig.tioExecutor);
-      sendRunnable = new SendRunnable(this, tioConfig.tioExecutor);
+      decodeRunnable = new DecodeRunnable(this, Threads.getTioExecutor());
+      handlerRunnable = new HandlerRunnable(this, Threads.getTioExecutor());
+      sendRunnable = new SendRunnable(this, Threads.getTioExecutor());
       tioConfig.connections.add(this);
     }
   }
@@ -494,63 +495,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 
     return sb.toString();
   }
-
-  // /**
-  // * 跟踪同步消息，主要是跟踪锁的情况，用于问题排查。
-  // * @param synPacketAction
-  // * @param packet
-  // * @param extmsg
-  // * @author tanyaowu
-  // */
-  // public void traceBlockPacket(SynPacketAction synPacketAction, Packet packet,
-  // CountDownLatch countDownLatch, Map<String, Object> extmsg) {
-  // if (isTraceSynPacket) {
-  // ChannelContext channelContext = this;
-  // Map<String, Object> map = new HashMap<>(10);
-  // map.put("currTime",
-  // DateTime.now().toString(DatePattern.NORM_DATETIME_MS_FORMAT));
-  // map.put("c_id", channelContext.getId());
-  // map.put("c", channelContext.toString());
-  // map.put("action", synPacketAction);
-  //
-  // MDC.put("tio_client_syn", channelContext.getClientNodeTraceFilename());
-  //
-  // if (packet != null) {
-  // map.put("p_id", channelContext.getClientNode().getPort() + "_" +
-  // packet.getId()); //packet id
-  // map.put("p_respId", packet.getRespId());
-  // map.put("packet", packet.logstr());
-  // }
-  //
-  // if (countDownLatch != null) {
-  // map.put("countDownLatch", countDownLatch.hashCode() + " " +
-  // countDownLatch.getCount());
-  // }
-  //
-  // if (extmsg != null) {
-  // map.putAll(extmsg);
-  // }
-  // String logstr = Json.toJson(map);
-  // traceSynPacketLog.info(logstr);
-  // log.error(logstr);
-  //
-  // }
-  // }
-
-  // /**
-  // * 跟踪消息
-  // * @param channelAction
-  // * @param packet
-  // * @param extmsg
-  // * @author tanyaowu
-  // */
-  // public void traceClient(ChannelAction channelAction, Packet packet,
-  // Map<String, Object> extmsg) {
-  // if (isTraceClient) {
-  // this.tioConfig.clientTraceHandler.traceChannel(this, channelAction, packet,
-  // extmsg);
-  // }
-  // }
 
   /**
    * @return the bsId

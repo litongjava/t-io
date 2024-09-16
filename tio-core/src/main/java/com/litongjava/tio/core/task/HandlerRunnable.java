@@ -78,7 +78,7 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
         Long id = packet.getId();
         String requestInfo = ip + ":" + port + "_" + id;
         String currentTimeMillis = System.currentTimeMillis() + "";
-        if (EnvUtils.getBoolean(TioCoreConfigKeys.TCP_CORE_DIAGNOSTIC, false)) {
+        if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
           log.info("handle:{},{},{}", ip, port, id);
         }
         AbsCache cache = tioConfig.getCacheFactory().getCache(TioCoreConfigKeys.REQEUST_PROCESSING);

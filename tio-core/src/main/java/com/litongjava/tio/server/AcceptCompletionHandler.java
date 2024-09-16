@@ -53,7 +53,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
       InetSocketAddress inetSocketAddress = (InetSocketAddress) asynchronousSocketChannel.getRemoteAddress();
       clientIp = inetSocketAddress.getHostString();
       port = inetSocketAddress.getPort();
-      if (EnvUtils.getBoolean(TioCoreConfigKeys.TCP_CORE_DIAGNOSTIC, false)) {
+      if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
         log.info("new connection:{},{}", clientIp, port);
       }
 
@@ -108,7 +108,8 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 
       if (!tioServer.isWaitingStop()) {
         ReadCompletionHandler readCompletionHandler = channelContext.getReadCompletionHandler();
-        ByteBuffer readByteBuffer = readCompletionHandler.getReadByteBuffer();// ByteBuffer.allocateDirect(channelContext.tioConfig.getReadBufferSize());
+        ByteBuffer readByteBuffer = readCompletionHandler.getReadByteBuffer();
+        // ByteBuffer.allocateDirect(channelContext.tioConfig.getReadBufferSize());
         readByteBuffer.position(0);
         readByteBuffer.limit(readByteBuffer.capacity());
         asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, readCompletionHandler);
@@ -127,8 +128,13 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
    */
   @Override
   public void failed(Throwable exc, TioServer tioServer) {
-    AsynchronousServerSocketChannel serverSocketChannel = tioServer.getServerSocketChannel();
-    serverSocketChannel.accept(tioServer, this);
-    log.error("[" + tioServer.getServerNode() + "] listening exception", exc);
+    if (tioServer.isWaitingStop()) {
+      log.info("The server will be shut down and no new requests will be accepted:{}", tioServer.getServerNode());
+    } else {
+      AsynchronousServerSocketChannel serverSocketChannel = tioServer.getServerSocketChannel();
+      serverSocketChannel.accept(tioServer, this);
+      log.error("[" + tioServer.getServerNode() + "] listening exception", exc);
+    }
+    
   }
 }

@@ -4,7 +4,6 @@ import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
@@ -40,7 +39,6 @@ import com.litongjava.tio.utils.cache.mapcache.ConcurrentMapCacheFactory;
 import com.litongjava.tio.utils.lock.MapWithLock;
 import com.litongjava.tio.utils.lock.SetWithLock;
 import com.litongjava.tio.utils.prop.MapWithLockPropSupport;
-import com.litongjava.tio.utils.thread.pool.SynThreadPoolExecutor;
 
 /**
  * 
@@ -111,9 +109,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
   private int readBufferSize = READ_BUFFER_SIZE;
   private GroupListener groupListener = null;
   private TioUuid tioUuid = new DefaultTioUuid();
-  public SynThreadPoolExecutor tioExecutor = null;
   public CloseRunnable closeRunnable;
-  public ThreadPoolExecutor groupExecutor = null;
   public ClientNodes clientNodes = new ClientNodes();
   public SetWithLock<ChannelContext> connections = new SetWithLock<ChannelContext>(new HashSet<ChannelContext>());
   public Groups groups = new Groups();
@@ -140,49 +136,17 @@ public abstract class TioConfig extends MapWithLockPropSupport {
   public TioConfig() {
   }
 
-  /**
-   * 
-   * @param tioExecutor
-   * @param groupExecutor
-   * @author: tanyaowu
-   */
-  public TioConfig(SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
-    this.tioExecutor = tioExecutor;
-    this.groupExecutor = groupExecutor;
-
-  }
-
-  public TioConfig(SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor, CacheFactory cacheFactory) {
-    this.tioExecutor = tioExecutor;
-    this.groupExecutor = groupExecutor;
+  public TioConfig(CacheFactory cacheFactory) {
     this.cacheFactory = cacheFactory;
   }
 
-  public TioConfig(SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor, CacheFactory cacheFactory, RemovalListenerWrapper<?> ipRemovalListenerWrapper) {
-    this.tioExecutor = tioExecutor;
-    this.groupExecutor = groupExecutor;
+  public TioConfig(CacheFactory cacheFactory, RemovalListenerWrapper<?> ipRemovalListenerWrapper) {
     this.cacheFactory = cacheFactory;
     this.ipRemovalListenerWrapper = ipRemovalListenerWrapper;
   }
 
   public TioConfig(String name) {
     this.name = name;
-  }
-
-  public void setTioExecutor(SynThreadPoolExecutor tioExecutor) {
-    this.tioExecutor = tioExecutor;
-  }
-
-  public SynThreadPoolExecutor getTioExecutor() {
-    return tioExecutor;
-  }
-
-  public void setGroupExecutor(ThreadPoolExecutor groupExecutor) {
-    this.groupExecutor = groupExecutor;
-  }
-
-  public ThreadPoolExecutor getGroupExecutor() {
-    return groupExecutor;
   }
 
   /**
@@ -441,19 +405,9 @@ public abstract class TioConfig extends MapWithLockPropSupport {
     }
     this.id = ID_ATOMIC.incrementAndGet() + "";
 
-    if (this.tioExecutor == null) {
-      this.tioExecutor = Threads.getTioExecutor();
-    }
-
-    if (this.groupExecutor == null) {
-      this.groupExecutor = Threads.getGroupExecutor();
-    }
-
     if (this.ipStats == null) {
       this.ipStats = new IpStats(this, null);
     }
-    closeRunnable = new CloseRunnable(this.tioExecutor);
-
+    closeRunnable = new CloseRunnable(Threads.getTioExecutor());
   }
-
 }

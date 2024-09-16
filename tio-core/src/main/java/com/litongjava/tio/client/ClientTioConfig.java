@@ -1,7 +1,6 @@
 package com.litongjava.tio.client;
 
 import java.util.HashSet;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,12 +13,10 @@ import com.litongjava.tio.core.intf.AioHandler;
 import com.litongjava.tio.core.intf.AioListener;
 import com.litongjava.tio.core.ssl.SslConfig;
 import com.litongjava.tio.utils.lock.SetWithLock;
-import com.litongjava.tio.utils.thread.pool.SynThreadPoolExecutor;
 
 /**
  *
- * @author tanyaowu
- * 2017年4月1日 上午9:31:31
+ * @author tanyaowu 2017年4月1日 上午9:31:31
  */
 public class ClientTioConfig extends TioConfig {
   static Logger log = LoggerFactory.getLogger(ClientTioConfig.class);
@@ -37,6 +34,7 @@ public class ClientTioConfig extends TioConfig {
 
   /**
    * 不重连
+   * 
    * @param aioHandler
    * @param aioListener
    * @author tanyaowu
@@ -49,23 +47,9 @@ public class ClientTioConfig extends TioConfig {
    * 
    * @param aioHandler
    * @param aioListener
-   * @param reconnConf 不用框架自动重连，就传null
+   * @param reconnConf    不用框架自动重连，就传null
    */
   public ClientTioConfig(ClientAioHandler aioHandler, ClientAioListener aioListener, ReconnConf reconnConf) {
-    this(aioHandler, aioListener, reconnConf, null, null);
-  }
-
-  /**
-   * 
-   * @param aioHandler
-   * @param aioListener
-   * @param reconnConf 不用框架自动重连，就传null
-   * @param tioExecutor
-   * @param groupExecutor
-   */
-  public ClientTioConfig(ClientAioHandler aioHandler, ClientAioListener aioListener, ReconnConf reconnConf,
-      SynThreadPoolExecutor tioExecutor, ThreadPoolExecutor groupExecutor) {
-    super(tioExecutor, groupExecutor);
     this.groupStat = new ClientGroupStat();
     this.setClientAioHandler(aioHandler);
     this.setClientAioListener(aioListener);
@@ -75,6 +59,7 @@ public class ClientTioConfig extends TioConfig {
 
   /**
    * 使用ssl访问
+   * 
    * @throws Exception
    * @author tanyaowu
    */
@@ -87,8 +72,7 @@ public class ClientTioConfig extends TioConfig {
    * @see org.tio.core.TioConfig#getAioHandler()
    *
    * @return
-   * @author tanyaowu
-   * 2016年12月20日 上午11:33:46
+   * @author tanyaowu 2016年12月20日 上午11:33:46
    *
    */
   @Override
@@ -100,8 +84,7 @@ public class ClientTioConfig extends TioConfig {
    * @see org.tio.core.TioConfig#getAioListener()
    *
    * @return
-   * @author tanyaowu
-   * 2016年12月20日 上午11:33:46
+   * @author tanyaowu 2016年12月20日 上午11:33:46
    *
    */
   @Override
@@ -170,7 +153,7 @@ public class ClientTioConfig extends TioConfig {
     return reconnConf;
   }
 
-  /** 
+  /**
    * @return
    * @author tanyaowu
    */

@@ -107,7 +107,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
     } else if (result < 0) {
       if (result == -1) {
         String message = "The connection closed by peer";
-        if (EnvUtils.getBoolean(TioCoreConfigKeys.TCP_CORE_DIAGNOSTIC, false)) {
+        if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
           log.info("close {}, because {}", channelContext, message);
         }
         Tio.close(channelContext, null, message, CloseCode.CLOSED_BY_PEER);

@@ -69,7 +69,6 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
     this.tioConfig = channelContext.tioConfig;
     this.aioHandler = tioConfig.getAioHandler();
     this.isSsl = SslUtils.isSsl(tioConfig);
-
     getMsgQueue();
   }
 
