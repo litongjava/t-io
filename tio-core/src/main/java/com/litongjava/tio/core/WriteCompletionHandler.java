@@ -9,11 +9,11 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.litongjava.aio.Packet;
+import com.litongjava.aio.Packet.Meta;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
 import com.litongjava.tio.core.WriteCompletionHandler.WriteCompletionVo;
-import com.litongjava.tio.core.intf.Packet;
-import com.litongjava.tio.core.intf.Packet.Meta;
 import com.litongjava.tio.core.stat.IpStat;
 import com.litongjava.tio.utils.SystemTimer;
 import com.litongjava.tio.utils.environment.EnvUtils;

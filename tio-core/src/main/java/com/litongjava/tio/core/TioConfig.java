@@ -9,13 +9,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.litongjava.aio.AioId;
+import com.litongjava.aio.Packet;
 import com.litongjava.tio.client.ClientTioConfig;
 import com.litongjava.tio.core.cache.IpStatMapCacheRemovalListener;
 import com.litongjava.tio.core.intf.AioHandler;
 import com.litongjava.tio.core.intf.AioListener;
 import com.litongjava.tio.core.intf.GroupListener;
-import com.litongjava.tio.core.intf.Packet;
-import com.litongjava.tio.core.intf.TioUuid;
 import com.litongjava.tio.core.maintain.BsIds;
 import com.litongjava.tio.core.maintain.ClientNodes;
 import com.litongjava.tio.core.maintain.Groups;
@@ -108,7 +108,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
    */
   private int readBufferSize = READ_BUFFER_SIZE;
   private GroupListener groupListener = null;
-  private TioUuid tioUuid = new DefaultTioUuid();
+  private AioId tioUuid = new DefaultTAioId();
   public CloseRunnable closeRunnable;
   public ClientNodes clientNodes = new ClientNodes();
   public SetWithLock<ChannelContext> connections = new SetWithLock<ChannelContext>(new HashSet<ChannelContext>());
@@ -200,7 +200,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
   /**
    * @return the tioUuid
    */
-  public TioUuid getTioUuid() {
+  public AioId getTioUuid() {
     return tioUuid;
   }
 
@@ -280,7 +280,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
   /**
    * @param tioUuid the tioUuid to set
    */
-  public void setTioUuid(TioUuid tioUuid) {
+  public void setTioUuid(AioId tioUuid) {
     this.tioUuid = tioUuid;
   }
 

@@ -6,12 +6,12 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.litongjava.aio.Packet;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Node;
 import com.litongjava.tio.core.PacketHandlerMode;
 import com.litongjava.tio.core.TioConfig;
-import com.litongjava.tio.core.intf.Packet;
 import com.litongjava.tio.core.stat.IpStat;
 import com.litongjava.tio.utils.SystemTimer;
 import com.litongjava.tio.utils.cache.AbsCache;

@@ -12,6 +12,7 @@ import javax.net.ssl.SSLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.litongjava.aio.Packet;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
 import com.litongjava.tio.core.TcpConst;
@@ -19,7 +20,6 @@ import com.litongjava.tio.core.Tio;
 import com.litongjava.tio.core.TioConfig;
 import com.litongjava.tio.core.WriteCompletionHandler.WriteCompletionVo;
 import com.litongjava.tio.core.intf.AioHandler;
-import com.litongjava.tio.core.intf.Packet;
 import com.litongjava.tio.core.ssl.SslUtils;
 import com.litongjava.tio.core.ssl.SslVo;
 import com.litongjava.tio.core.utils.TioUtils;

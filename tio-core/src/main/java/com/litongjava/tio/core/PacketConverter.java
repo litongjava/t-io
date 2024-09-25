@@ -1,6 +1,6 @@
 package com.litongjava.tio.core;
 
-import com.litongjava.tio.core.intf.Packet;
+import com.litongjava.aio.Packet;
 
 /**
  * @author tanyaowu

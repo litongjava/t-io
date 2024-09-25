@@ -11,8 +11,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.litongjava.tio.core.intf.Packet;
-import com.litongjava.tio.core.intf.Packet.Meta;
+import com.litongjava.aio.Packet;
+import com.litongjava.aio.Packet.Meta;
 import com.litongjava.tio.core.ssl.SslFacadeContext;
 import com.litongjava.tio.core.stat.ChannelStat;
 import com.litongjava.tio.core.stat.IpStat;
@@ -109,7 +109,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
    * @param tioConfig
    */
   public ChannelContext(TioConfig tioConfig) {
-    this(tioConfig, tioConfig.getTioUuid().uuid());
+    this(tioConfig, tioConfig.getTioUuid().id());
   }
 
   /**
@@ -126,7 +126,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     this.clientNode = clientNode;
     this.id = id;// tioConfig.getTioUuid().uuid();
     if (StrUtil.isBlank(id)) {
-      this.id = tioConfig.getTioUuid().uuid();
+      this.id = tioConfig.getTioUuid().id();
     }
 
     initOther();
@@ -252,7 +252,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
   }
 
   public void init(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel) {
-    id = tioConfig.getTioUuid().uuid();
+    id = tioConfig.getTioUuid().id();
     this.setTioConfig(tioConfig);
     tioConfig.ids.bind(this);
     this.setAsynchronousSocketChannel(asynchronousSocketChannel);
@@ -320,15 +320,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     } catch (Throwable e) {
       log.error(e.toString(), e);
     }
-
-    if (packet.getPacketListener() != null) {
-      try {
-        packet.getPacketListener().onAfterSent(this, packet, isSentSuccess);
-      } catch (Throwable e) {
-        log.error(e.toString(), e);
-      }
-    }
-
   }
 
   /**

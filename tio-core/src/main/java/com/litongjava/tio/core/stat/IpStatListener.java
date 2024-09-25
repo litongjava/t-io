@@ -1,8 +1,8 @@
 package com.litongjava.tio.core.stat;
 
+import com.litongjava.aio.Packet;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.TioConfig;
-import com.litongjava.tio.core.intf.Packet;
 
 /**
  * @author tanyaowu 

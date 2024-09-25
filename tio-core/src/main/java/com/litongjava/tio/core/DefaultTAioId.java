@@ -1,18 +1,18 @@
 package com.litongjava.tio.core;
 
-import com.litongjava.tio.core.intf.TioUuid;
+import com.litongjava.aio.AioId;
 
 /**
  * @author tanyaowu
  * 2017年6月5日 上午10:31:40
  */
-public class DefaultTioUuid implements TioUuid {
+public class DefaultTAioId implements AioId {
 
   /**
    *
    * @author tanyaowu
    */
-  public DefaultTioUuid() {
+  public DefaultTAioId() {
   }
 
   /**
@@ -20,7 +20,7 @@ public class DefaultTioUuid implements TioUuid {
    * @author tanyaowu
    */
   @Override
-  public String uuid() {
+  public String id() {
     return java.util.UUID.randomUUID().toString();
   }
 }

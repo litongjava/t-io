@@ -1,7 +1,7 @@
 package com.litongjava.tio.core;
 
+import com.litongjava.aio.Packet;
 import com.litongjava.tio.client.intf.ClientAioListener;
-import com.litongjava.tio.core.intf.Packet;
 import com.litongjava.tio.server.intf.ServerAioListener;
 
 /**

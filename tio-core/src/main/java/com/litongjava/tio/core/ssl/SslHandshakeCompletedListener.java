@@ -5,8 +5,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.litongjava.aio.Packet;
 import com.litongjava.tio.core.ChannelContext;
-import com.litongjava.tio.core.intf.Packet;
 import com.litongjava.tio.core.ssl.facade.IHandshakeCompletedListener;
 
 /**
