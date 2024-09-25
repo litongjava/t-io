@@ -73,18 +73,19 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
           client = channelContext.getClientNode();
         }
 
-        String ip = client.getIp();
-        int port = client.getPort();
-        Long id = packet.getId();
-        String requestInfo = ip + ":" + port + "_" + id;
-        String currentTimeMillis = System.currentTimeMillis() + "";
         if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
+          String ip = client.getIp();
+          int port = client.getPort();
+          Long id = packet.getId();
+          String requestInfo = ip + ":" + port + "_" + id;
           log.info("handle:{},{},{}", ip, port, id);
+          AbsCache cache = tioConfig.getCacheFactory().getCache(TioCoreConfigKeys.REQEUST_PROCESSING);
+          cache.put(SystemTimer.currTime + "", requestInfo);
+          tioConfig.getAioHandler().handler(packet, channelContext);
+          cache.remove(SystemTimer.currTime + "");
+        } else {
+          tioConfig.getAioHandler().handler(packet, channelContext);
         }
-        AbsCache cache = tioConfig.getCacheFactory().getCache(TioCoreConfigKeys.REQEUST_PROCESSING);
-        cache.put(currentTimeMillis.toString(), requestInfo);
-        tioConfig.getAioHandler().handler(packet, channelContext);
-        cache.remove(currentTimeMillis);
       }
     } catch (Throwable e) {
       e.printStackTrace();

@@ -212,20 +212,6 @@ public abstract class TioConfig extends MapWithLockPropSupport {
   }
 
   /**
-   * @return the isEncodeCareWithChannelContext
-   */
-  // public boolean isEncodeCareWithChannelContext() {
-  // return isEncodeCareWithChannelContext;
-  // }
-
-  // /**
-  // * @return the isShortConnection
-  // */
-  // public boolean isShortConnection {
-  // return isShortConnection;
-  // }
-
-  /**
    * @return the isStop
    */
   public boolean isStopped() {
@@ -240,15 +226,6 @@ public abstract class TioConfig extends MapWithLockPropSupport {
   public void setByteOrder(ByteOrder byteOrder) {
     this.byteOrder = byteOrder;
   }
-
-  /**
-   * @param isEncodeCareWithChannelContext the isEncodeCareWithChannelContext to
-   *                                       set
-   */
-  // public void setEncodeCareWithChannelContext(boolean
-  // isEncodeCareWithChannelContext) {
-  // this.isEncodeCareWithChannelContext = isEncodeCareWithChannelContext;
-  // }
 
   /**
    * @param groupListener the groupListener to set

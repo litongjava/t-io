@@ -153,12 +153,12 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 
     try {
       channelContext.processAfterSent(packet, isSentSuccess);
-//      if (!packet.isKeepedConnection()) {
-//        if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
-//          log.info("remove conneciton because KeepedConnection is false:{}", packet.logstr());
-//        }
-//        channelContext.asynchronousSocketChannel.close();
-//      }
+      if (!packet.isKeepedConnection()) {
+        if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
+          log.info("remove conneciton because KeepedConnection is false:{}", packet.logstr());
+        }
+        Tio.close(channelContext, "");
+      }
     } catch (Throwable e) {
       log.error(e.toString(), e);
     }

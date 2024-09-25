@@ -5,8 +5,8 @@ import org.slf4j.LoggerFactory;
 
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
-import com.litongjava.tio.core.Tio;
 import com.litongjava.tio.utils.thread.TioThreadUtils;
+import com.litongjava.tio.core.Tio;
 
 /**
  * 
@@ -33,7 +33,6 @@ public class TioUtils {
             log.error(e.toString(), e);
           }
         }
-        //log.info("{}, isopen:{}, isClosed:{}, isRemoved:{}", channelContext, isopen, channelContext.isClosed, channelContext.isRemoved);
         return false;
       }
     } else {

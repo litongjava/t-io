@@ -24,9 +24,6 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
   private ChannelContext channelContext = null;
   private ByteBuffer readByteBuffer;
 
-  // private ByteBuffer byteBuffer =
-  // ByteBuffer.allocate(ChannelContext.READ_BUFFER_SIZE);
-
   /**
    *
    * @param channelContext
@@ -126,7 +123,6 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
       readByteBuffer.position(0);
       readByteBuffer.limit(readByteBuffer.capacity());
     } else {
-//			log.error("动态调整了readbuffersize, 原:{} / 新:{}", readByteBuffer.capacity(), channelContext.getReadBufferSize());
       readByteBuffer = ByteBuffer.allocate(channelContext.getReadBufferSize());
     }
 

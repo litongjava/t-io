@@ -79,8 +79,7 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
       return false;
     }
 
-    if (channelContext.sslFacadeContext != null && !channelContext.sslFacadeContext.isHandshakeCompleted()
-        && SslUtils.needSslEncrypt(packet, tioConfig)) {
+    if (channelContext.sslFacadeContext != null && !channelContext.sslFacadeContext.isHandshakeCompleted() && SslUtils.needSslEncrypt(packet, tioConfig)) {
       return this.getForSendAfterSslHandshakeCompleted(true).add(packet);
     } else {
       return msgQueue.add(packet);
@@ -126,18 +125,10 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
    * @param newValue
    * @return
    */
-  // private static boolean changed(Boolean oldValue, boolean newValue) {
-  // if (oldValue == null) {
-  // return false;
-  // }
-  //
-  // return oldValue != newValue;
-  // }
 
-  private static final int MAX_CAPACITY_MIN = TcpConst.MAX_DATA_LENGTH - 1024; // 减掉1024是尽量防止溢出的一小部分还分成一个tcp包发出
+  //减掉1024是尽量防止溢出的一小部分还分成一个tcp包发出
+  private static final int MAX_CAPACITY_MIN = TcpConst.MAX_DATA_LENGTH - 1024;
   private static final int MAX_CAPACITY_MAX = MAX_CAPACITY_MIN * 10;
-
-  // private int repeatCount = 0;
 
   @Override
   public void runTask() {
@@ -182,8 +173,7 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
         needSslEncrypted = _needSslEncrypted;
       }
 
-      if ((canSend && allBytebufferCapacity >= MAX_CAPACITY_MIN) || (allBytebufferCapacity >= MAX_CAPACITY_MAX)
-          || sslChanged) {
+      if ((canSend && allBytebufferCapacity >= MAX_CAPACITY_MIN) || (allBytebufferCapacity >= MAX_CAPACITY_MAX) || sslChanged) {
         break;
       }
     }
@@ -268,8 +258,7 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
     try {
       canSend = false;
       WriteCompletionVo writeCompletionVo = new WriteCompletionVo(byteBuffer, packets);
-      channelContext.asynchronousSocketChannel.write(byteBuffer, writeCompletionVo,
-          channelContext.writeCompletionHandler);
+      channelContext.asynchronousSocketChannel.write(byteBuffer, writeCompletionVo, channelContext.writeCompletionHandler);
       channelContext.writeCompletionHandler.condition.await();
     } catch (InterruptedException e) {
       log.error(e.toString(), e);

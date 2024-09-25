@@ -5,7 +5,6 @@ import java.nio.ByteBuffer;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.TioConfig;
 import com.litongjava.tio.core.exception.AioDecodeException;
-import com.litongjava.tio.core.exception.TioDecodeException;
 
 /**
  * 
@@ -26,7 +25,7 @@ public interface AioHandler {
 	 * @return
 	 * @throws AioDecodeException
 	 */
-	Packet decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext) throws TioDecodeException;
+	Packet decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext) throws Exception;
 
 	/**
 	 * 编码

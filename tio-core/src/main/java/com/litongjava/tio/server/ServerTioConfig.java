@@ -8,6 +8,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.litongjava.model.sys.SysConst;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
@@ -20,7 +21,6 @@ import com.litongjava.tio.core.ssl.SslConfig;
 import com.litongjava.tio.server.intf.ServerAioHandler;
 import com.litongjava.tio.server.intf.ServerAioListener;
 import com.litongjava.tio.utils.AppendJsonConverter;
-import com.litongjava.tio.utils.SysConst;
 import com.litongjava.tio.utils.SystemTimer;
 import com.litongjava.tio.utils.hutool.CollUtil;
 import com.litongjava.tio.utils.hutool.StrUtil;
