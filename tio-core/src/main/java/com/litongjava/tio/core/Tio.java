@@ -447,7 +447,7 @@ public class Tio {
         isNeedRemove = true;
       } else {
         ClientChannelContext clientChannelContext = (ClientChannelContext) channelContext;
-        if (!ReconnConf.isNeedReconn(clientChannelContext, false)) { // 不需要重连
+        if (!ReconnConf.isNeedReconn(clientChannelContext, false)) { // do not to send
           isNeedRemove = true;
         }
       }
@@ -455,7 +455,8 @@ public class Tio {
     channelContext.closeMeta.setNeedRemove(isNeedRemove);
 
     channelContext.tioConfig.closeRunnable.addMsg(channelContext);
-    channelContext.tioConfig.closeRunnable.execute();
+    CompletableFuture.runAsync(channelContext.tioConfig.closeRunnable::runTask);
+    //channelContext.tioConfig.closeRunnable.execute();
   }
 
   /**

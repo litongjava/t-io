@@ -37,12 +37,11 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
     }
     ChannelContext channelContext = null;
     while ((channelContext = msgQueue.poll()) != null) {
-      // System.out.println(count++);
       try {
         boolean isNeedRemove = channelContext.closeMeta.isNeedRemove;
         String remark = channelContext.closeMeta.remark;
         Throwable throwable = channelContext.closeMeta.throwable;
-  
+
         channelContext.stat.timeClosed = SystemTimer.currTime;
         if (channelContext.tioConfig.getAioListener() != null) {
           try {
@@ -71,7 +70,6 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
           channelContext.sendRunnable.clearMsgQueue();
 
           //log.info("{}, {} 准备关闭连接, isNeedRemove:{}, {}", channelContext.tioConfig, channelContext, isNeedRemove,remark);
-              
 
           try {
             if (isNeedRemove) {
