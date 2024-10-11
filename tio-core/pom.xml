@@ -6,12 +6,12 @@
     <version>3.7.3.v20240601-RELEASE</version>
   </parent>
   <artifactId>tio-core</artifactId>
-  <version>3.7.3.v20241004-RELEASE</version>
+  <version>3.7.3.v20241005-RELEASE</version>
   <dependencies>
     <dependency>
       <groupId>com.litongjava</groupId>
       <artifactId>tio-utils</artifactId>
-      <version>3.7.3.v20241004-RELEASE</version>
+      <version>3.7.3.v20241005-RELEASE</version>
     </dependency>
 
     <dependency>

@@ -23,6 +23,7 @@ import com.litongjava.tio.core.ssl.SslFacadeContext;
 import com.litongjava.tio.core.stat.ChannelStat;
 import com.litongjava.tio.utils.SystemTimer;
 import com.litongjava.tio.utils.Threads;
+import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.hutool.StrUtil;
 import com.litongjava.tio.utils.lock.SetWithLock;
 
@@ -51,7 +52,9 @@ public class TioClient {
   public TioClient(final ClientTioConfig clientTioConfig) throws IOException {
     super();
     this.clientTioConfig = clientTioConfig;
-    this.channelGroup = AsynchronousChannelGroup.withThreadPool(Threads.getGroupExecutor());
+    if (EnvUtils.getBoolean("tio.core.hotswap.reload", false)) {
+      this.channelGroup = AsynchronousChannelGroup.withThreadPool(Threads.getGroupExecutor());
+    }
 
     startHeartbeatTask();
     startReconnTask();
@@ -157,7 +160,12 @@ public class TioClient {
     // ClientAioListener clientAioListener = clientTioConfig.getClientAioListener();
 
     long start = SystemTimer.currTime;
-    asynchronousSocketChannel = AsynchronousSocketChannel.open(channelGroup);
+    if (EnvUtils.getBoolean("tio.core.hotswap.reload", false)) {
+      asynchronousSocketChannel = AsynchronousSocketChannel.open(channelGroup);
+    } else {
+      asynchronousSocketChannel = AsynchronousSocketChannel.open();
+    }
+
     long end = SystemTimer.currTime;
     long iv = end - start;
     if (iv >= 100) {
