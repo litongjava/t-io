@@ -25,6 +25,7 @@ import com.litongjava.tio.server.ServerTioConfig;
 import com.litongjava.tio.utils.lock.ReadLockHandler;
 import com.litongjava.tio.utils.lock.SetWithLock;
 import com.litongjava.tio.utils.page.PageUtils;
+import com.litongjava.tio.utils.thread.TioThreadUtils;
 
 /**
  * The Class Tio. t-io用户关心的API几乎全在这
@@ -1189,7 +1190,8 @@ public class Tio {
       }
       if (channelContext.tioConfig.useQueueSend) {
         //channelContext.sendRunnable.execute();
-        CompletableFuture.runAsync(channelContext.sendRunnable::runTask);
+        // CompletableFuture.runAsync(channelContext.sendRunnable::runTask);
+        TioThreadUtils.submit(channelContext.sendRunnable::runTask);
       }
 
       if (isSingleBlock) {

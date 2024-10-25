@@ -36,7 +36,7 @@ public class TioUtils {
         return false;
       }
     } else {
-      log.error("{}, Plese check, asynchronousSocketChannel is null, isClosed:{}, isRemoved:{}, {} ", channelContext, channelContext.isClosed, channelContext.isRemoved, TioThreadUtils.stackTrace());
+      log.error("{}, Plese check, asynchronousSocketChannel is null, isClosed:{}, isRemoved:{}", channelContext, channelContext.isClosed, channelContext.isRemoved);
       return false;
     }
 
