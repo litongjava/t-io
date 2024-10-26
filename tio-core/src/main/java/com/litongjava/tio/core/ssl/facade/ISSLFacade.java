@@ -8,43 +8,43 @@ import javax.net.ssl.SSLException;
 import com.litongjava.tio.core.ssl.SslVo;
 
 public interface ISSLFacade {
-	void setHandshakeCompletedListener(IHandshakeCompletedListener hcl);
+  void setHandshakeCompletedListener(IHandshakeCompletedListener hcl);
 
-	void setSSLListener(ISSLListener l);
+  void setSSLListener(ISSLListener l);
 
-	void setCloseListener(ISessionClosedListener l);
+  void setCloseListener(ISessionClosedListener l);
 
-	/**
-	 * 开始握手
-	 * @throws IOException
-	 */
-	void beginHandshake() throws IOException;
+  /**
+   * 开始握手
+   * @throws IOException
+   */
+  void beginHandshake() throws IOException;
 
-	/**
-	 * SSL握手是否已经完成
-	 * @return
-	 */
-	boolean isHandshakeCompleted();
+  /**
+   * SSL握手是否已经完成
+   * @return
+   */
+  boolean isHandshakeCompleted();
 
-	/**
-	 * 加密
-	 * @param sslVo
-	 * @throws SSLException
-	 */
-	void encrypt(SslVo sslVo) throws SSLException;
+  /**
+   * 加密
+   * @param sslVo
+   * @throws SSLException
+   */
+  void encrypt(SslVo sslVo) throws SSLException;
 
-	/**
-	 * 解密
-	 * @param byteBuffer
-	 * @throws SSLException
-	 */
-	void decrypt(ByteBuffer byteBuffer) throws SSLException;
+  /**
+   * 解密
+   * @param byteBuffer
+   * @throws SSLException
+   */
+  void decrypt(ByteBuffer byteBuffer) throws SSLException;
 
-	void close();
+  void close();
 
-	boolean isCloseCompleted();
+  boolean isCloseCompleted();
 
-	boolean isClientMode();
+  boolean isClientMode();
 
-	void terminate();
+  void terminate();
 }

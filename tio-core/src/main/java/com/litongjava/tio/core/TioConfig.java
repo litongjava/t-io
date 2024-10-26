@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.litongjava.aio.AioId;
 import com.litongjava.aio.Packet;
 import com.litongjava.tio.client.ClientTioConfig;
+import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.cache.IpStatMapCacheRemovalListener;
 import com.litongjava.tio.core.intf.AioHandler;
 import com.litongjava.tio.core.intf.AioListener;
@@ -36,6 +37,7 @@ import com.litongjava.tio.utils.Threads;
 import com.litongjava.tio.utils.cache.CacheFactory;
 import com.litongjava.tio.utils.cache.RemovalListenerWrapper;
 import com.litongjava.tio.utils.cache.mapcache.ConcurrentMapCacheFactory;
+import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.lock.MapWithLock;
 import com.litongjava.tio.utils.lock.SetWithLock;
 import com.litongjava.tio.utils.prop.MapWithLockPropSupport;
@@ -132,6 +134,8 @@ public abstract class TioConfig extends MapWithLockPropSupport {
    */
   public IpBlacklist ipBlacklist = null;
   public MapWithLock<Integer, Packet> waitingResps = new MapWithLock<Integer, Packet>(new HashMap<Integer, Packet>());
+  
+  public boolean disgnostic = EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC);
 
   public TioConfig() {
   }

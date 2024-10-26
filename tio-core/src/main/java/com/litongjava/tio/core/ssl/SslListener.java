@@ -28,12 +28,7 @@ public class SslListener implements ISSLListener {
 
   @Override
   public void onWrappedData(SslVo sslVo) {
-    // Send these bytes via your host application's transport
-    log.info("{}, 收到SSL加密后的数据，准备发送出去，{}", channelContext, sslVo);
-    // Packet packet = new Packet();
-    // packet.setPreEncodedByteBuffer(wrappedBytes);
-    // packet.setSslEncrypted(true);
-    // Tio.send(channelContext, packet);
+    log.info("{}, Received data after SSL encryption, ready to be sent out {}", channelContext, sslVo);
 
     Object obj = sslVo.getObj();
     if (obj == null) { // 如果是null，则是握手尚未完成时的数据
@@ -41,9 +36,6 @@ public class SslListener implements ISSLListener {
 
       p.setPreEncodedByteBuffer(sslVo.getByteBuffer());
       p.setSslEncrypted(true);
-      // p.setByteCount(sslVo.getByteBuffer().limit());
-
-      // log.info("clone packet:{}", Json.toJson(obj));
 
       if (channelContext.tioConfig.useQueueSend) {
         boolean isAdded = channelContext.sendRunnable.addMsg(p);
@@ -61,17 +53,11 @@ public class SslListener implements ISSLListener {
   @Override
   public void onPlainData(ByteBuffer plainBuffer) {
     // This is the deciphered payload for your app to consume
-    // ByteBuffer plainBytes = sslVo.getByteBuffer();
     SslFacadeContext sslFacadeContext = channelContext.sslFacadeContext;
-    // plainBytes:java.nio.HeapByteBuffer[pos=0 lim=507 cap=507]
 
     if (sslFacadeContext.isHandshakeCompleted()) {
       log.info("{}, After receiving the data decrypted by SSL, the SSL handshake is complete and ready to be decoded，{}, isSSLHandshakeCompleted {}", channelContext, plainBuffer,
           sslFacadeContext.isHandshakeCompleted());
-      // plainBytes.flip();
-      // channelContext.decodeRunnable.setNewByteBuffer(plainBuffer);
-      // channelContext.decodeRunnable.run();
-
       if (channelContext.tioConfig.useQueueDecode) {
         ByteBuffer copiedByteBuffer = ByteBufferUtils.copy(plainBuffer);
         channelContext.decodeRunnable.addMsg(copiedByteBuffer);
@@ -81,8 +67,7 @@ public class SslListener implements ISSLListener {
         channelContext.decodeRunnable.decode();
       }
     } else {
-      log.info("{}, SSL decrypted data is received, but the SSL handshake is not complete，{}, isSSLHandshakeCompleted {}", channelContext, plainBuffer,
-          sslFacadeContext.isHandshakeCompleted());
+      log.info("{}, SSL decrypted data is received, but the SSL handshake is not complete，{}, isSSLHandshakeCompleted {}", channelContext, plainBuffer, sslFacadeContext.isHandshakeCompleted());
     }
   }
 

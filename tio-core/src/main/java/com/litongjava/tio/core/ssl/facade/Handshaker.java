@@ -12,7 +12,13 @@ import com.litongjava.tio.core.ssl.SslVo;
 
 class Handshaker {
   /*
-   * The purpose of this class is to conduct a SSL handshake. To do this it requires a SSLEngine as a provider of SSL knowhow. Byte buffers that are required by the SSLEngine to execute its wrap and unwrap methods. And a ITaskHandler callback that is used to delegate the responsibility of executing long-running/IO tasks to the host application. By providing a ITaskHandler the host application gains the flexibility of executing these tasks in compliance with its own compute/IO strategies.
+   * The purpose of this class is to conduct a SSL handshake. To do this it
+   * requires a SSLEngine as a provider of SSL knowhow. Byte buffers that are
+   * required by the SSLEngine to execute its wrap and unwrap methods. And a
+   * ITaskHandler callback that is used to delegate the responsibility of
+   * executing long-running/IO tasks to the host application. By providing a
+   * ITaskHandler the host application gains the flexibility of executing these
+   * tasks in compliance with its own compute/IO strategies.
    */
 
   private static Logger log = LoggerFactory.getLogger(Handshaker.class);

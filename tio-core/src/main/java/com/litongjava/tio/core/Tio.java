@@ -19,9 +19,11 @@ import com.litongjava.model.page.Page;
 import com.litongjava.tio.client.ClientChannelContext;
 import com.litongjava.tio.client.ClientTioConfig;
 import com.litongjava.tio.client.ReconnConf;
+import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
 import com.litongjava.tio.core.maintain.GlobalIpBlacklist;
 import com.litongjava.tio.server.ServerTioConfig;
+import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.lock.ReadLockHandler;
 import com.litongjava.tio.utils.lock.SetWithLock;
 import com.litongjava.tio.utils.page.PageUtils;
@@ -456,6 +458,9 @@ public class Tio {
     channelContext.closeMeta.setNeedRemove(isNeedRemove);
 
     channelContext.tioConfig.closeRunnable.addMsg(channelContext);
+    if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
+      log.info("close {},remark:{}", channelContext, remark);
+    }
     CompletableFuture.runAsync(channelContext.tioConfig.closeRunnable::runTask);
     //channelContext.tioConfig.closeRunnable.execute();
   }
@@ -1130,89 +1135,82 @@ public class Tio {
    * @return
    * @author tanyaowu
    */
-  private static Boolean send(final ChannelContext channelContext, Packet packet, CountDownLatch countDownLatch, PacketSendMode packetSendMode) {
-    try {
-      if (packet == null || channelContext == null) {
-        if (countDownLatch != null) {
-          countDownLatch.countDown();
-        }
-        return false;
-      }
-
-      if (channelContext.isVirtual) {
-        if (countDownLatch != null) {
-          countDownLatch.countDown();
-        }
-        return true;
-      }
-
-      if (channelContext.isClosed || channelContext.isRemoved) {
-        if (countDownLatch != null) {
-          countDownLatch.countDown();
-        }
-        if (channelContext != null) {
-          log.info("can't send data, {}, isClosed:{}, isRemoved:{}", channelContext, channelContext.isClosed, channelContext.isRemoved);
-        }
-        return false;
-      }
-
-      if (channelContext.tioConfig.packetConverter != null) {
-        Packet packet1 = channelContext.tioConfig.packetConverter.convert(packet, channelContext);
-        if (packet1 == null) {
-          if (log.isInfoEnabled()) {
-            log.info("Convert is null afterwards, indicating that no sending is required.", channelContext, packet.logstr());
-          }
-          return true;
-        }
-        packet = packet1;
-      }
-
-      boolean isSingleBlock = countDownLatch != null && packetSendMode == PacketSendMode.SINGLE_BLOCK;
-
-      boolean isAdded = false;
+  private static Boolean send(final ChannelContext channelContext, Packet packet, CountDownLatch countDownLatch,
+      //
+      PacketSendMode packetSendMode) {
+    if (packet == null || channelContext == null) {
       if (countDownLatch != null) {
-        Meta meta = new Meta();
-        meta.setCountDownLatch(countDownLatch);
-        packet.setMeta(meta);
+        countDownLatch.countDown();
       }
-
-      if (channelContext.tioConfig.useQueueSend) {
-        isAdded = channelContext.sendRunnable.addMsg(packet);
-      } else {
-        isAdded = channelContext.sendRunnable.sendPacket(packet);
+      return false;
+    }
+    if (channelContext.isVirtual) {
+      if (countDownLatch != null) {
+        countDownLatch.countDown();
       }
+      return true;
+    }
 
-      if (!isAdded) {
-        if (countDownLatch != null) {
-          countDownLatch.countDown();
+    if (channelContext.isClosed || channelContext.isRemoved) {
+      if (countDownLatch != null) {
+        countDownLatch.countDown();
+      }
+      if (channelContext != null) {
+        log.info("can't send data, {}, isClosed:{}, isRemoved:{}", channelContext, channelContext.isClosed, channelContext.isRemoved);
+      }
+      return false;
+    }
+
+    String logstr = packet.logstr();
+    if (channelContext.tioConfig.packetConverter != null) {
+      packet = channelContext.tioConfig.packetConverter.convert(packet, channelContext);
+      if (packet == null) {
+        if (log.isInfoEnabled()) {
+          log.info("Convert is null afterwards, indicating that no sending is required.", channelContext, logstr);
         }
-        return false;
-      }
-      if (channelContext.tioConfig.useQueueSend) {
-        //channelContext.sendRunnable.execute();
-        // CompletableFuture.runAsync(channelContext.sendRunnable::runTask);
-        TioThreadUtils.submit(channelContext.sendRunnable::runTask);
-      }
-
-      if (isSingleBlock) {
-        long timeout = 10;
-        try {
-          Boolean awaitFlag = countDownLatch.await(timeout, TimeUnit.SECONDS);
-          if (!awaitFlag) {
-            log.error("{}, 阻塞发送超时, timeout:{}s, packet:{}", channelContext, timeout, packet.logstr());
-          }
-        } catch (InterruptedException e) {
-          log.error(e.toString(), e);
-        }
-
-        Boolean isSentSuccess = packet.getMeta().getIsSentSuccess();
-        return isSentSuccess;
-      } else {
         return true;
       }
-    } catch (Throwable e) {
-      log.error(channelContext + ", " + e.toString(), e);
+    }
+    boolean isSingleBlock = countDownLatch != null && packetSendMode == PacketSendMode.SINGLE_BLOCK;
+    boolean isAdded = false;
+    if (countDownLatch != null) {
+      Meta meta = new Meta();
+      meta.setCountDownLatch(countDownLatch);
+      packet.setMeta(meta);
+    }
+    if (channelContext.tioConfig.useQueueSend) {
+      isAdded = channelContext.sendRunnable.addMsg(packet);
+    } else {
+      isAdded = channelContext.sendRunnable.sendPacket(packet);
+    }
+
+    if (!isAdded) {
+      if (countDownLatch != null) {
+        countDownLatch.countDown();
+      }
       return false;
+    }
+    if (channelContext.tioConfig.useQueueSend) {
+      //channelContext.sendRunnable.execute();
+      //CompletableFuture.runAsync(channelContext.sendRunnable::runTask);
+      TioThreadUtils.submit(channelContext.sendRunnable);
+    }
+
+    if (isSingleBlock) {
+      long timeout = 10;
+      try {
+        Boolean awaitFlag = countDownLatch.await(timeout, TimeUnit.SECONDS);
+        if (!awaitFlag) {
+          log.error("{}, sync send timeout, timeout:{}s, packet:{}", channelContext, timeout, logstr);
+        }
+      } catch (InterruptedException e) {
+        log.error(e.toString(), e);
+      }
+
+      Boolean isSentSuccess = packet.getMeta().getIsSentSuccess();
+      return isSentSuccess;
+    } else {
+      return true;
     }
 
   }
@@ -1280,7 +1278,7 @@ public class Tio {
     try {
       SetWithLock<ChannelContext> setWithLock = tioConfig.connections;
       if (setWithLock == null) {
-        log.debug("{}, 没有任何连接", tioConfig.getName());
+        log.debug("{}, No any connection.", tioConfig.getName());
         return false;
       }
       Boolean ret = sendToSet(tioConfig, setWithLock, packet, channelContextFilter, isBlock);
@@ -1358,7 +1356,7 @@ public class Tio {
     try {
       SetWithLock<ChannelContext> setWithLock = tioConfig.groups.clients(tioConfig, group);
       if (setWithLock == null) {
-        log.debug("{}, 组[{}]不存在", tioConfig.getName(), group);
+        log.debug("{}, grup [{}] not exists", tioConfig.getName(), group);
         return false;
       }
       Boolean ret = sendToSet(tioConfig, setWithLock, packet, channelContextFilter, isBlock);

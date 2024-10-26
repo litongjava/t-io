@@ -4,7 +4,7 @@ package com.litongjava.tio.core.ssl.facade;
  *
  */
 public class DefaultOnCloseListener implements ISessionClosedListener {
-	@Override
-	public void onSessionClosed() {
-	}
+  @Override
+  public void onSessionClosed() {
+  }
 }

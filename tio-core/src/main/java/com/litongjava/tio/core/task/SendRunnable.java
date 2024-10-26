@@ -195,22 +195,13 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
         channelContext.sslFacadeContext.getSslFacade().encrypt(sslVo);
         allByteBuffer = sslVo.getByteBuffer();
       } catch (SSLException e) {
-        log.error(channelContext.toString() + ", 进行SSL加密时发生了异常", e);
-        Tio.close(channelContext, "进行SSL加密时发生了异常", CloseCode.SSL_ENCRYPTION_ERROR);
+        log.error(channelContext.toString() + ", An exception occurred during SSL encryption.", e);
+        Tio.close(channelContext, "An exception occurred during SSL encryption.", CloseCode.SSL_ENCRYPTION_ERROR);
         return;
       }
     }
 
     this.sendByteBuffer(allByteBuffer, packets);
-    // queueSize = msgQueue.size();
-    // if (queueSize > 0) {
-    // repeatCount++;
-    // if (repeatCount < 3) {
-    // runTask();
-    // return;
-    // }
-    // }
-    // repeatCount = 0;
   }
 
   public boolean sendPacket(Packet packet) {
@@ -222,8 +213,8 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
           channelContext.sslFacadeContext.getSslFacade().encrypt(sslVo);
           byteBuffer = sslVo.getByteBuffer();
         } catch (SSLException e) {
-          log.error(channelContext.toString() + ", 进行SSL加密时发生了异常", e);
-          Tio.close(channelContext, "进行SSL加密时发生了异常", CloseCode.SSL_ENCRYPTION_ERROR);
+          log.error(channelContext.toString() + ", An exception occurred while performing SSL encryption", e);
+          Tio.close(channelContext, "An exception occurred during SSL encryption.", CloseCode.SSL_ENCRYPTION_ERROR);
           return false;
         }
       }
@@ -248,10 +239,6 @@ public class SendRunnable extends AbstractQueueRunnable<Packet> {
     if (!TioUtils.checkBeforeIO(channelContext)) {
       return;
     }
-
-    // if (!byteBuffer.hasRemaining()) {
-    // byteBuffer.flip();
-    // }
 
     ReentrantLock lock = channelContext.writeCompletionHandler.lock;
     lock.lock();

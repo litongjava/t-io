@@ -65,7 +65,7 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
             initPacket.notify();
           }
         } else {
-          log.error("[{}]同步消息失败, synSeq is {}, 但是同步集合中没有对应key值", synFailCount.incrementAndGet(), synSeq);
+          log.error("[{}] Failed to synchronize message, synSeq is {}, but there is no corresponding key value in the synchronization collection", synFailCount.incrementAndGet(), synSeq);
         }
       } else {
         Node client = channelContext.getProxyClientNode();

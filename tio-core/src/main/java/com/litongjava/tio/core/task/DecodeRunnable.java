@@ -123,9 +123,10 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
             int percentage = (int) (((double) readableLength / channelContext.packetNeededLength) * 100);
             if (percentage != lastPercentage) {
               lastPercentage = percentage;
-              log.info("Receiving large packet: received {}% of {} bytes.", percentage, channelContext.packetNeededLength);
+              if (tioConfig.disgnostic) {
+                log.info("Receiving large packet: received {}% of {} bytes.", percentage, channelContext.packetNeededLength);
+              }
             }
-
             lastByteBuffer = ByteBufferUtils.copy(byteBuffer, initPosition, limit);
             return;
           }
@@ -133,14 +134,14 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
           try {
             packet = tioConfig.getAioHandler().decode(byteBuffer, limit, initPosition, readableLength, channelContext);
           } catch (BufferUnderflowException e) {
-            // log.error(e.toString(), e);
             // 数据不够读
+            e.printStackTrace();
+
           }
         }
 
         if (packet == null)// 数据不够，解不了码
         {
-          // lastByteBuffer = ByteBufferUtils.copy(byteBuffer, initPosition, limit);
           if (tioConfig.useQueueDecode || (byteBuffer != newReceivedByteBuffer)) {
             byteBuffer.position(initPosition);
             byteBuffer.limit(limit);
@@ -150,7 +151,6 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
           }
           ChannelStat channelStat = channelContext.stat;
           channelStat.decodeFailCount++;
-          // int len = byteBuffer.limit() - initPosition;
           if (log.isInfoEnabled()) {
             log.info("{} Failed to decode this time, has failed to decode for {} consecutive times, the length of data involved in decoding is {} bytes.", channelContext, channelStat.decodeFailCount,
                 readableLength);
@@ -168,7 +168,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
               // int capacity = lastByteBuffer.capacity();
               int per = readableLength / channelStat.decodeFailCount;
               if (per < Math.min(channelContext.getReadBufferSize() / 2, 256)) {
-                String str = "连续解码" + channelStat.decodeFailCount + "次都不成功，并且平均每次接收到的数据为" + per + "字节，有慢攻击的嫌疑";
+                String str = "Failed to decode continuously " + channelStat.decodeFailCount + " times unsuccessfully, and the average data received each time is " + per + " bytes, which suggests the possibility of a slow attack";
                 throw new AioDecodeException(str);
               }
             }
@@ -251,7 +251,7 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
           }
         }
 
-        Tio.close(channelContext, e, "解码异常:" + e.getMessage(), CloseCode.DECODE_ERROR);
+        Tio.close(channelContext, e, "Decode exception:" + e.getMessage(), CloseCode.DECODE_ERROR);
         return;
       }
     }

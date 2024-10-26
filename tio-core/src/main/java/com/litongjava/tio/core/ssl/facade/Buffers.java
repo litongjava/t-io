@@ -15,15 +15,34 @@ class Buffers {
   private static Logger log = LoggerFactory.getLogger(Buffers.class);
 
   /*
-   * Buffers is a simple abstraction that encapsulates the 4 SSL buffers and an unwrap caching buffer.
+   * Buffers is a simple abstraction that encapsulates the 4 SSL buffers and an
+   * unwrap caching buffer.
    * 
-   * The unwrap caching buffer is required to cache previously received partial TLS packet which could not be unwrapped.
+   * The unwrap caching buffer is required to cache previously received partial
+   * TLS packet which could not be unwrapped.
    * 
-   * The four ByteBuffers required to operate an SSLEngine. One way to look at the role of these buffers is that two of these buffers are used to process incoming data and the other two are used to process outgoing data. Another way to look at this is to say that two buffers represent the host application and two represent the peer application. The Java SSLEngine documentation calls these buffers application and network buffers and refers to them variously but most commonly as myAppData, myNetData, peerAppData and peerNetData. I have used these same names for the private fields in this class so that the reader is able to associate them to the Java provided documentation with ease. For publically visible contracts, I felt better names were possible and have defined them in an enum called BufferType. Also, note that handshake data during an unwrap is never put in the IN_PLAIN buffer after unwrapping, only application data is available here when applicable.
+   * The four ByteBuffers required to operate an SSLEngine. One way to look at the
+   * role of these buffers is that two of these buffers are used to process
+   * incoming data and the other two are used to process outgoing data. Another
+   * way to look at this is to say that two buffers represent the host application
+   * and two represent the peer application. The Java SSLEngine documentation
+   * calls these buffers application and network buffers and refers to them
+   * variously but most commonly as myAppData, myNetData, peerAppData and
+   * peerNetData. I have used these same names for the private fields in this
+   * class so that the reader is able to associate them to the Java provided
+   * documentation with ease. For publically visible contracts, I felt better
+   * names were possible and have defined them in an enum called BufferType. Also,
+   * note that handshake data during an unwrap is never put in the IN_PLAIN buffer
+   * after unwrapping, only application data is available here when applicable.
    * 
    * In order to create an instance of Buffers all we need is a SSLSession.
    * 
-   * These buffers should not be reused by the host application for any other purpose as SSLEngine might modify the source buffer during an unwrap. Additionally, it is important to note that these buffers may have to be resized during operations and hence it is neither simple nor maintainable to allow the host application to inject its own buffers. In short, leave these buffers alone!
+   * These buffers should not be reused by the host application for any other
+   * purpose as SSLEngine might modify the source buffer during an unwrap.
+   * Additionally, it is important to note that these buffers may have to be
+   * resized during operations and hence it is neither simple nor maintainable to
+   * allow the host application to inject its own buffers. In short, leave these
+   * buffers alone!
    */
   private ByteBuffer _peerApp;
   private ByteBuffer _myApp;
@@ -47,11 +66,6 @@ class Buffers {
     allocate();
     waitUnwrapBuffer = new AppendableBuffer();
   }
-
-  // private void debug(final String msg) {
-  // System.out.println("[Buffers]" + msg);
-  // System.out.flush();
-  // }
 
   ByteBuffer get(BufferType t) {
     ByteBuffer result = null;

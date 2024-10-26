@@ -8,7 +8,7 @@
   <artifactId>tio-core</artifactId>
   <version>3.7.3.v20241006-RELEASE</version>
   <properties>
-    <tio-utils.version>3.7.3.v20241012-RELEASE</tio-utils.version>
+    <tio-utils.version>3.7.3.v20241013-RELEASE</tio-utils.version>
   </properties>
   <dependencies>
     <dependency>

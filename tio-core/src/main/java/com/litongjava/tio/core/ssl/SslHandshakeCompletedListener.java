@@ -27,7 +27,7 @@ public class SslHandshakeCompletedListener implements IHandshakeCompletedListene
 
   @Override
   public void onComplete() {
-    log.info("{}, 完成SSL握手", channelContext);
+    log.info("{}, Complete SSL handshake", channelContext);
     channelContext.sslFacadeContext.setHandshakeCompleted(true);
 
     if (channelContext.tioConfig.getAioListener() != null) {
@@ -44,7 +44,7 @@ public class SslHandshakeCompletedListener implements IHandshakeCompletedListene
       return;
     }
 
-    log.info("{} 业务层在SSL握手前就有{}条数据待发送", channelContext, forSendAfterSslHandshakeCompleted.size());
+    log.info("{} There are {} data items pending transmission at the business layer before the SSL handshake", channelContext, forSendAfterSslHandshakeCompleted.size());
     while (true) {
       Packet packet = forSendAfterSslHandshakeCompleted.poll();
       if (packet != null) {
