@@ -1,16 +1,11 @@
 package com.litongjava.tio.core.task;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.litongjava.aio.Packet;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Node;
-import com.litongjava.tio.core.PacketHandlerMode;
 import com.litongjava.tio.core.TioConfig;
 import com.litongjava.tio.core.stat.IpStat;
 import com.litongjava.tio.utils.SystemTimer;
@@ -18,30 +13,14 @@ import com.litongjava.tio.utils.cache.AbsCache;
 import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.hutool.CollUtil;
 import com.litongjava.tio.utils.lock.MapWithLock;
-import com.litongjava.tio.utils.queue.FullWaitQueue;
-import com.litongjava.tio.utils.queue.TioFullWaitQueue;
-import com.litongjava.tio.utils.thread.pool.AbstractQueueRunnable;
 
-/**
- *
- * @author 谭耀武 2012-08-09
- *
- */
-public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
-  private static final Logger log = LoggerFactory.getLogger(HandlerRunnable.class);
+import lombok.extern.slf4j.Slf4j;
 
-  private ChannelContext channelContext = null;
-  private TioConfig tioConfig = null;
+@Slf4j
+public class HandlePacketTask {
 
   private AtomicLong synFailCount = new AtomicLong();
-
-  public HandlerRunnable(ChannelContext channelContext, Executor executor) {
-    super(executor);
-    this.channelContext = channelContext;
-    tioConfig = channelContext.tioConfig;
-    getMsgQueue();
-  }
-
+  
   /**
    * 处理packet
    * 
@@ -50,8 +29,9 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
    *
    * @author tanyaowu
    */
-  public void handler(Packet packet) {
+  public void handler(ChannelContext channelContext, Packet packet) {
     // int ret = 0;
+    TioConfig tioConfig = channelContext.tioConfig;
 
     long start = SystemTimer.currTime;
     try {
@@ -125,48 +105,6 @@ public class HandlerRunnable extends AbstractQueueRunnable<Packet> {
       }
 
     }
-  }
-
-  /**
-   * @see org.tio.core.SynRunnable.intf.ISynRunnable#runTask()
-   *
-   * @author tanyaowu 2016年12月5日 下午3:02:49
-   *
-   */
-  @Override
-  public void runTask() {
-    Packet packet = null;
-    while ((packet = msgQueue.poll()) != null) {
-      handler(packet);
-    }
-  }
-
-  @Override
-  public String toString() {
-    return this.getClass().getSimpleName() + ":" + channelContext.toString();
-  }
-
-  @Override
-  public String logstr() {
-    return toString();
-  }
-
-  /** The msg queue. */
-  private FullWaitQueue<Packet> msgQueue = null;
-
-  @Override
-  public FullWaitQueue<Packet> getMsgQueue() {
-    if (PacketHandlerMode.QUEUE == tioConfig.packetHandlerMode) {
-      if (msgQueue == null) {
-        synchronized (this) {
-          if (msgQueue == null) {
-            msgQueue = new TioFullWaitQueue<Packet>(Integer.getInteger("tio.fullqueue.capacity", null), true);
-          }
-        }
-      }
-      return msgQueue;
-    }
-    return null;
   }
 
 }

@@ -92,10 +92,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
    * 是否用队列发送
    */
   public boolean useQueueSend = false;
-  /**
-   * 是否用队列解码（系统初始化时确定该值，中途不要变更此值，否则在切换的时候可能导致消息丢失）
-   */
-  public boolean useQueueDecode = false;
+
   /**
    * 心跳超时时间(单位: 毫秒)，如果用户不希望框架层面做心跳相关工作，请把此值设为0或负数
    */
@@ -104,10 +101,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
    * 解码出现异常时，是否打印异常日志
    */
   public boolean logWhenDecodeError = false;
-  /**
-   * 消息处理
-   */
-  public PacketHandlerMode packetHandlerMode = PacketHandlerMode.SINGLE_THREAD;
+  
   /**
    * 接收数据的buffer size
    */
@@ -257,13 +251,6 @@ public abstract class TioConfig extends MapWithLockPropSupport {
   }
 
   /**
-   * @param packetHandlerMode the packetHandlerMode to set
-   */
-  public void setPacketHandlerMode(PacketHandlerMode packetHandlerMode) {
-    this.packetHandlerMode = packetHandlerMode;
-  }
-
-  /**
    * @param readBufferSize the readBufferSize to set
    */
   public void setReadBufferSize(int readBufferSize) {
@@ -306,16 +293,6 @@ public abstract class TioConfig extends MapWithLockPropSupport {
 
   public GroupStat getGroupStat() {
     return groupStat;
-  }
-
-  /**
-   * 是否用队列解码（系统初始化时确定该值，中途不要变更此值，否则在切换的时候可能导致消息丢失
-   * 
-   * @param useQueueDecode
-   * @author tanyaowu
-   */
-  public void setUseQueueDecode(boolean useQueueDecode) {
-    this.useQueueDecode = useQueueDecode;
   }
 
   /**

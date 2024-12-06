@@ -397,7 +397,6 @@ public class Tio {
     }
 
     // 先立即取消各项任务，这样可防止有新的任务被提交进来
-    channelContext.handlerRunnable.setCanceled(true);
     channelContext.sendRunnable.setCanceled(true);
 
     WriteLock writeLock = null;

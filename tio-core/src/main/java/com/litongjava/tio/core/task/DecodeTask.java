@@ -141,7 +141,7 @@ public class DecodeTask {
             log.debug("{}, Unpacking to get a packet:{}", channelContext, packet.logstr());
           }
 
-          channelContext.handlerRunnable.handler(packet);
+          new HandlePacketTask().handler(channelContext, packet);
 
           if (byteBuffer.hasRemaining()) {
             // 组包后，还剩有数据
