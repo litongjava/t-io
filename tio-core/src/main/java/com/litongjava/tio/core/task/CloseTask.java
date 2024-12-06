@@ -1,53 +1,22 @@
 package com.litongjava.tio.core.task;
 
-import java.util.concurrent.Executor;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.litongjava.tio.client.ClientChannelContext;
 import com.litongjava.tio.client.ClientTioConfig;
 import com.litongjava.tio.client.ReconnConf;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.maintain.MaintainUtils;
 import com.litongjava.tio.utils.SystemTimer;
-import com.litongjava.tio.utils.queue.FullWaitQueue;
-import com.litongjava.tio.utils.queue.TioFullWaitQueue;
-import com.litongjava.tio.utils.thread.pool.AbstractQueueRunnable;
 
-/**
- * 
- * @author tanyaowu 
- * 2017年10月19日 上午9:39:59
- */
-public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
+import lombok.extern.slf4j.Slf4j;
 
-  private static Logger log = LoggerFactory.getLogger(CloseRunnable.class);
-
-  public CloseRunnable(Executor executor) {
-    super(executor);
-    getMsgQueue();
-  }
-  // long count = 1;
-
-  @Override
-  public void runTask() {
-    if (msgQueue.isEmpty()) {
-      return;
-    }
-    ChannelContext channelContext = null;
-    while ((channelContext = msgQueue.poll()) != null) {
-      close(channelContext);
-    }
-  }
-
-  public void close(ChannelContext channelContext) {
+@Slf4j
+public class CloseTask {
+  public static void close(ChannelContext channelContext) {
+    boolean isNeedRemove = channelContext.closeMeta.isNeedRemove;
+    String remark = channelContext.closeMeta.remark;
+    Throwable throwable = channelContext.closeMeta.throwable;
+    channelContext.stat.timeClosed = SystemTimer.currTime;
     try {
-      boolean isNeedRemove = channelContext.closeMeta.isNeedRemove;
-      String remark = channelContext.closeMeta.remark;
-      Throwable throwable = channelContext.closeMeta.throwable;
-
-      channelContext.stat.timeClosed = SystemTimer.currTime;
       if (channelContext.tioConfig.getAioListener() != null) {
         try {
           channelContext.tioConfig.getAioListener().onBeforeClose(channelContext, throwable, remark, isNeedRemove);
@@ -96,25 +65,5 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
     } finally {
       channelContext.isWaitingClose = false;
     }
-  }
-
-  @Override
-  public String logstr() {
-    return super.logstr();
-  }
-
-  /** The msg queue. */
-  private volatile FullWaitQueue<ChannelContext> msgQueue = null;
-
-  @Override
-  public FullWaitQueue<ChannelContext> getMsgQueue() {
-    if (msgQueue == null) {
-      synchronized (this) {
-        if (msgQueue == null) {
-          msgQueue = new TioFullWaitQueue<ChannelContext>(Integer.getInteger("tio.fullqueue.capacity", null), false);
-        }
-      }
-    }
-    return msgQueue;
   }
 }

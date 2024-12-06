@@ -48,7 +48,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
   public TioConfig tioConfig = null;
   public final ReentrantReadWriteLock closeLock = new ReentrantReadWriteLock();
   
-  public WriteCompletionHandler writeCompletionHandler = null; // new WriteCompletionHandler(this);
   public SslFacadeContext sslFacadeContext;
   public String userid;
   private String token;
@@ -235,12 +234,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     return token;
   }
 
-  /**
-   * @return the writeCompletionHandler
-   */
-  public WriteCompletionHandler getWriteCompletionHandler() {
-    return writeCompletionHandler;
-  }
 
   /**
    *
@@ -262,7 +255,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     tioConfig.ids.bind(this);
     this.setAsynchronousSocketChannel(asynchronousSocketChannel);
     
-    this.writeCompletionHandler = new WriteCompletionHandler(this);
     this.logWhenDecodeError = tioConfig.logWhenDecodeError;
 
     initOther();
@@ -273,7 +265,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     this.setTioConfig(tioConfig);
     tioConfig.ids.bind(this);
     this.setAsynchronousSocketChannel(asynchronousSocketChannel, clientIp, port);
-    this.writeCompletionHandler = new WriteCompletionHandler(this);
     this.logWhenDecodeError = tioConfig.logWhenDecodeError;
 
     initOther();

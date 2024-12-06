@@ -30,10 +30,8 @@ import com.litongjava.tio.core.ssl.SslConfig;
 import com.litongjava.tio.core.stat.DefaultIpStatListener;
 import com.litongjava.tio.core.stat.GroupStat;
 import com.litongjava.tio.core.stat.IpStatListener;
-import com.litongjava.tio.core.task.CloseRunnable;
 import com.litongjava.tio.server.ServerTioConfig;
 import com.litongjava.tio.utils.SystemTimer;
-import com.litongjava.tio.utils.Threads;
 import com.litongjava.tio.utils.cache.CacheFactory;
 import com.litongjava.tio.utils.cache.RemovalListenerWrapper;
 import com.litongjava.tio.utils.cache.mapcache.ConcurrentMapCacheFactory;
@@ -104,7 +102,6 @@ public abstract class TioConfig extends MapWithLockPropSupport {
   private int readBufferSize = READ_BUFFER_SIZE;
   private GroupListener groupListener = null;
   private AioId tioUuid = new DefaultTAioId();
-  public CloseRunnable closeRunnable;
   public ClientNodes clientNodes = new ClientNodes();
   public SetWithLock<ChannelContext> connections = new SetWithLock<ChannelContext>(new HashSet<ChannelContext>());
   public Groups groups = new Groups();
@@ -354,6 +351,5 @@ public abstract class TioConfig extends MapWithLockPropSupport {
     if (this.ipStats == null) {
       this.ipStats = new IpStats(this, null);
     }
-    closeRunnable = new CloseRunnable(Threads.getTioExecutor());
   }
 }

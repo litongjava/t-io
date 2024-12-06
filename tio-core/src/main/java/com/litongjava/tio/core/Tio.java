@@ -21,6 +21,7 @@ import com.litongjava.tio.client.ReconnConf;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
 import com.litongjava.tio.core.maintain.GlobalIpBlacklist;
+import com.litongjava.tio.core.task.CloseTask;
 import com.litongjava.tio.core.task.SendPacketTask;
 import com.litongjava.tio.server.ServerTioConfig;
 import com.litongjava.tio.utils.environment.EnvUtils;
@@ -454,13 +455,7 @@ public class Tio {
       log.info("close {},remark:{}", channelContext, remark);
     }
     channelContext.closeMeta.setNeedRemove(isNeedRemove);
-
-    channelContext.tioConfig.closeRunnable.execute();
-    //channelContext.tioConfig.closeRunnable.close(channelContext);
-    //    CompletableFuture.runAsync(() -> {
-    //      channelContext.tioConfig.closeRunnable.close(channelContext);
-    //    });
-
+    CloseTask.close(channelContext);
   }
 
   /**
