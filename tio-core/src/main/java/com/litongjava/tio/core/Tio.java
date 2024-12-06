@@ -2,7 +2,6 @@ package com.litongjava.tio.core;
 
 import java.util.Collection;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -27,7 +26,6 @@ import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.lock.ReadLockHandler;
 import com.litongjava.tio.utils.lock.SetWithLock;
 import com.litongjava.tio.utils.page.PageUtils;
-import com.litongjava.tio.utils.thread.TioThreadUtils;
 
 /**
  * The Class Tio. t-io用户关心的API几乎全在这
@@ -461,7 +459,8 @@ public class Tio {
     if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
       log.info("close {},remark:{}", channelContext, remark);
     }
-    CompletableFuture.runAsync(channelContext.tioConfig.closeRunnable::runTask);
+    channelContext.tioConfig.closeRunnable.runTask();
+    //CompletableFuture.runAsync();
     //channelContext.tioConfig.closeRunnable.execute();
   }
 
@@ -1191,9 +1190,9 @@ public class Tio {
       return false;
     }
     if (channelContext.tioConfig.useQueueSend) {
-      //channelContext.sendRunnable.execute();
+      channelContext.sendRunnable.execute();
       //CompletableFuture.runAsync(channelContext.sendRunnable::runTask);
-      TioThreadUtils.submit(channelContext.sendRunnable);
+      //TioThreadUtils.submit(channelContext.sendRunnable);
     }
 
     if (isSingleBlock) {

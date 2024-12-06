@@ -91,7 +91,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
   /**
    * 是否用队列发送
    */
-  public boolean useQueueSend = true;
+  public boolean useQueueSend = false;
   /**
    * 是否用队列解码（系统初始化时确定该值，中途不要变更此值，否则在切换的时候可能导致消息丢失）
    */
@@ -104,7 +104,10 @@ public abstract class TioConfig extends MapWithLockPropSupport {
    * 解码出现异常时，是否打印异常日志
    */
   public boolean logWhenDecodeError = false;
-  public PacketHandlerMode packetHandlerMode = PacketHandlerMode.SINGLE_THREAD; // .queue;
+  /**
+   * 消息处理
+   */
+  public PacketHandlerMode packetHandlerMode = PacketHandlerMode.SINGLE_THREAD;
   /**
    * 接收数据的buffer size
    */
@@ -134,7 +137,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
    */
   public IpBlacklist ipBlacklist = null;
   public MapWithLock<Integer, Packet> waitingResps = new MapWithLock<Integer, Packet>(new HashMap<Integer, Packet>());
-  
+
   public boolean disgnostic = EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC);
 
   public TioConfig() {

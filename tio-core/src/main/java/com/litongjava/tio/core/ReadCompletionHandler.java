@@ -22,7 +22,6 @@ import com.litongjava.tio.utils.hutool.CollUtil;
 public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuffer> {
   private static Logger log = LoggerFactory.getLogger(ReadCompletionHandler.class);
   private ChannelContext channelContext = null;
-  private ByteBuffer readByteBuffer;
 
   /**
    *
@@ -31,8 +30,6 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
    */
   public ReadCompletionHandler(ChannelContext channelContext) {
     this.channelContext = channelContext;
-    this.readByteBuffer = ByteBuffer.allocate(channelContext.getReadBufferSize());
-    this.readByteBuffer.order(channelContext.tioConfig.getByteOrder());
   }
 
   @Override
@@ -71,19 +68,19 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
         }
       }
 
-      readByteBuffer.flip();
+      byteBuffer.flip();
       if (channelContext.sslFacadeContext == null) {
         if (tioConfig.useQueueDecode) {
-          channelContext.decodeRunnable.addMsg(ByteBufferUtils.copy(readByteBuffer));
+          channelContext.decodeRunnable.addMsg(ByteBufferUtils.copy(byteBuffer));
           channelContext.decodeRunnable.execute();
         } else {
-          channelContext.decodeRunnable.setNewReceivedByteBuffer(readByteBuffer);
+          channelContext.decodeRunnable.setNewReceivedByteBuffer(byteBuffer);
           channelContext.decodeRunnable.decode();
         }
       } else {
         ByteBuffer copiedByteBuffer = null;
         try {
-          copiedByteBuffer = ByteBufferUtils.copy(readByteBuffer);
+          copiedByteBuffer = ByteBufferUtils.copy(byteBuffer);
           log.debug("{}, 丢给SslFacade解密:{}", channelContext, copiedByteBuffer);
           channelContext.sslFacadeContext.getSslFacade().decrypt(copiedByteBuffer);
         } catch (Exception e) {
@@ -93,7 +90,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
       }
 
       if (TioUtils.checkBeforeIO(channelContext)) {
-        read();
+        read(byteBuffer);
       }
 
     } else if (result == 0) {
@@ -118,7 +115,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
     }
   }
 
-  private void read() {
+  private void read(ByteBuffer readByteBuffer) {
     if (readByteBuffer.capacity() == channelContext.getReadBufferSize()) {
       readByteBuffer.position(0);
       readByteBuffer.limit(readByteBuffer.capacity());
@@ -137,15 +134,6 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
    */
   @Override
   public void failed(Throwable exc, ByteBuffer byteBuffer) {
-    Tio.close(channelContext, exc, "读数据时发生异常: " + exc.getClass().getName(), CloseCode.READ_ERROR);
-  }
-
-  /**
-   *
-   * @return
-   * @author tanyaowu
-   */
-  public ByteBuffer getReadByteBuffer() {
-    return readByteBuffer;
+    Tio.close(channelContext, exc, "Failed to read data: " + exc.getClass().getName(), CloseCode.READ_ERROR);
   }
 }

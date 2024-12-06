@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.litongjava.aio.Packet;
+import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
 import com.litongjava.tio.core.Tio;
@@ -18,6 +19,7 @@ import com.litongjava.tio.core.stat.ChannelStat;
 import com.litongjava.tio.core.stat.IpStat;
 import com.litongjava.tio.core.utils.ByteBufferUtils;
 import com.litongjava.tio.utils.SystemTimer;
+import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.hutool.CollUtil;
 import com.litongjava.tio.utils.queue.FullWaitQueue;
 import com.litongjava.tio.utils.queue.TioFullWaitQueue;
@@ -101,6 +103,9 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
    *
    */
   public void decode() {
+    if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
+      log.info("decode:{}", channelContext.getClientNode());
+    }
     ByteBuffer byteBuffer = newReceivedByteBuffer;
     if (lastByteBuffer != null) {
       byteBuffer = ByteBufferUtils.composite(lastByteBuffer, byteBuffer);
@@ -168,7 +173,8 @@ public class DecodeRunnable extends AbstractQueueRunnable<ByteBuffer> {
               // int capacity = lastByteBuffer.capacity();
               int per = readableLength / channelStat.decodeFailCount;
               if (per < Math.min(channelContext.getReadBufferSize() / 2, 256)) {
-                String str = "Failed to decode continuously " + channelStat.decodeFailCount + " times unsuccessfully, and the average data received each time is " + per + " bytes, which suggests the possibility of a slow attack";
+                String str = "Failed to decode continuously " + channelStat.decodeFailCount + " times unsuccessfully, and the average data received each time is " + per
+                    + " bytes, which suggests the possibility of a slow attack";
                 throw new AioDecodeException(str);
               }
             }

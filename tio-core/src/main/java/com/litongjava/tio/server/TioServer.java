@@ -6,6 +6,11 @@ import java.net.StandardSocketOptions;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +33,7 @@ public class TioServer {
   private Node serverNode;
   private boolean isWaitingStop = false;
   private boolean checkLastVersion = true;
+  private ExecutorService groupExecutor;
 
   /**
    *
@@ -89,11 +95,25 @@ public class TioServer {
 
     this.serverNode = new Node(serverIp, serverPort);
     if (EnvUtils.getBoolean("tio.core.hotswap.reload", false)) {
-      ExecutorService groupExecutor = Threads.getGroupExecutor();
+      groupExecutor = Threads.getGroupExecutor();
       channelGroup = AsynchronousChannelGroup.withThreadPool(groupExecutor);
       serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);
     } else {
-      serverSocketChannel = AsynchronousServerSocketChannel.open();
+      int threadCount = Runtime.getRuntime().availableProcessors() * 2;
+      groupExecutor = new ThreadPoolExecutor(threadCount, threadCount, 60L, TimeUnit.SECONDS,
+          //
+          new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
+            private final AtomicInteger count = new AtomicInteger(1);
+
+            @Override
+            public Thread newThread(Runnable r) {
+              Thread t = new Thread(r, "aio-worker-" + count.getAndIncrement());
+              t.setDaemon(true);
+              return t;
+            }
+          });
+      channelGroup = AsynchronousChannelGroup.withThreadPool(groupExecutor);
+      serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);
     }
     serverSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
     serverSocketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 64 * 1024);
@@ -122,18 +142,32 @@ public class TioServer {
   public boolean stop() {
     isWaitingStop = true;
 
-    try {
-      if (channelGroup != null) {
+    if (channelGroup != null) {
+      try {
+
         channelGroup.shutdownNow();
+
+      } catch (Exception e) {
+        log.error("Faild to execute channelGroup.shutdownNow()", e);
       }
-    } catch (Exception e) {
-      log.error("Faild to execute channelGroup.shutdownNow()", e);
     }
 
-    try {
-      serverSocketChannel.close();
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to close serverSocketChannel", e);
+    if (groupExecutor != null) {
+      try {
+        groupExecutor.shutdownNow();
+      }catch(Exception e) {
+        log.error("Failed to close groupExecutor", e);
+      }
+      
+    }
+
+    if (serverSocketChannel != null) {
+      try {
+        serverSocketChannel.close();
+      } catch (Exception e) {
+        log.error("Failed to close serverSocketChannel", e);
+      }
+
     }
 
     serverTioConfig.setStopped(true);

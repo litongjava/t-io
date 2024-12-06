@@ -1,5 +1,6 @@
 package com.litongjava.tio.server;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ReadCompletionHandler;
 import com.litongjava.tio.core.Tio.IpBlacklist;
+import com.litongjava.tio.core.pool.ByteBufferPool;
 import com.litongjava.tio.core.ssl.SslUtils;
 import com.litongjava.tio.core.stat.IpStat;
 import com.litongjava.tio.utils.SystemTimer;
@@ -32,12 +34,12 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 
   /**
    *
-   * @param asynchronousSocketChannel
+   * @param clientSocketChannel
    * @param tioServer
    * @author tanyaowu
    */
   @Override
-  public void completed(AsynchronousSocketChannel asynchronousSocketChannel, TioServer tioServer) {
+  public void completed(AsynchronousSocketChannel clientSocketChannel, TioServer tioServer) {
     AsynchronousServerSocketChannel serverSocketChannel = tioServer.getServerSocketChannel();
 
     if (tioServer.isWaitingStop()) {
@@ -46,20 +48,27 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
       serverSocketChannel.accept(tioServer, this);
     }
 
-    ServerTioConfig serverTioConfig = tioServer.getServerTioConfig();
     String clientIp = null;
     int port = 0;
+    InetSocketAddress inetSocketAddress;
     try {
-      InetSocketAddress inetSocketAddress = (InetSocketAddress) asynchronousSocketChannel.getRemoteAddress();
+      inetSocketAddress = (InetSocketAddress) clientSocketChannel.getRemoteAddress();
       clientIp = inetSocketAddress.getHostString();
       port = inetSocketAddress.getPort();
       if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
         log.info("new connection:{},{}", clientIp, port);
       }
+    } catch (IOException e1) {
+      log.error("Failed to get client ip and port", e1);
+    }
+
+    ServerTioConfig serverTioConfig = tioServer.getServerTioConfig();
+
+    try {
 
       if (IpBlacklist.isInBlacklist(serverTioConfig, clientIp)) {
         log.info("{} on the blacklist, {}", clientIp, serverTioConfig.getName());
-        asynchronousSocketChannel.close();
+        clientSocketChannel.close();
         return;
       }
 
@@ -67,19 +76,16 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
         ((ServerGroupStat) serverTioConfig.groupStat).accepted.incrementAndGet();
       }
 
-      asynchronousSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
-      asynchronousSocketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 64 * 1024);
-      asynchronousSocketChannel.setOption(StandardSocketOptions.SO_SNDBUF, 64 * 1024);
-      asynchronousSocketChannel.setOption(StandardSocketOptions.SO_KEEPALIVE, true);
+      clientSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
+      clientSocketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 64 * 1024);
+      clientSocketChannel.setOption(StandardSocketOptions.SO_SNDBUF, 64 * 1024);
+      clientSocketChannel.setOption(StandardSocketOptions.SO_KEEPALIVE, true);
 
-      ServerChannelContext channelContext = new ServerChannelContext(serverTioConfig, asynchronousSocketChannel);
+      ServerChannelContext channelContext = new ServerChannelContext(serverTioConfig, clientSocketChannel);
       channelContext.setClosed(false);
       channelContext.stat.setTimeFirstConnected(SystemTimer.currTime);
       channelContext.setServerNode(tioServer.getServerNode());
 
-      // channelContext.traceClient(ChannelAction.CONNECT, null, null);
-
-      // serverTioConfig.connecteds.add(channelContext);
       serverTioConfig.ips.bind(channelContext);
 
       boolean isConnected = true;
@@ -108,11 +114,11 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 
       if (!tioServer.isWaitingStop()) {
         ReadCompletionHandler readCompletionHandler = channelContext.getReadCompletionHandler();
-        ByteBuffer readByteBuffer = readCompletionHandler.getReadByteBuffer();
+        ByteBuffer readByteBuffer = ByteBufferPool.BUFFER_POOL.acquire(serverTioConfig.getByteOrder());
         // ByteBuffer.allocateDirect(channelContext.tioConfig.getReadBufferSize());
         readByteBuffer.position(0);
         readByteBuffer.limit(readByteBuffer.capacity());
-        asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, readCompletionHandler);
+        clientSocketChannel.read(readByteBuffer, readByteBuffer, readCompletionHandler);
       }
     } catch (Throwable e) {
       log.error("Failed to read data from :{},{}", clientIp, port);
@@ -135,6 +141,6 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
       serverSocketChannel.accept(tioServer, this);
       log.error("[" + tioServer.getServerNode() + "] listening exception", exc);
     }
-    
+
   }
 }
