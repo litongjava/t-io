@@ -1,6 +1,7 @@
 package com.litongjava.tio.core;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.HashSet;
 import java.util.Objects;
@@ -103,6 +104,24 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     }
   }
 
+  public ChannelContext(TioConfig tioConfig, AsynchronousSocketChannel clientSocketChannel, String clientIp, int port) {
+    super();
+    init(tioConfig, asynchronousSocketChannel, clientIp, port);
+
+    if (tioConfig.sslConfig != null) {
+      try {
+        SslFacadeContext sslFacadeContext = new SslFacadeContext(this);
+        if (tioConfig.isServer()) {
+          sslFacadeContext.beginHandshake();
+        }
+      } catch (Exception e) {
+        log.error("在开始SSL握手时发生了异常", e);
+        Tio.close(this, "在开始SSL握手时发生了异常" + e.getMessage(), CloseCode.SSL_ERROR_ON_HANDSHAKE);
+        return;
+      }
+    }
+  }
+
   /**
    * 创建一个虚拟ChannelContext，主要用来模拟一些操作，譬如压力测试，真实场景中用得少
    * 
@@ -137,15 +156,15 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     setClientNode(clientNode);
   }
 
-  /**
-   * 创建Node
-   * 
-   * @param asynchronousSocketChannel
-   * @return
-   * @throws IOException
-   * @author tanyaowu
-   */
-  public abstract Node createClientNode(AsynchronousSocketChannel asynchronousSocketChannel) throws IOException;
+  public Node createClientNode(AsynchronousSocketChannel asynchronousSocketChannel) throws IOException {
+    InetSocketAddress inetSocketAddress = (InetSocketAddress) asynchronousSocketChannel.getRemoteAddress();
+    Node clientNode = new Node(inetSocketAddress.getHostString(), inetSocketAddress.getPort());
+    return clientNode;
+  }
+
+  public Node createClientNode(String clientIp, int port) {
+    return new Node(clientIp, port);
+  }
 
   /**
    *
@@ -263,6 +282,19 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     initOther();
   }
 
+  public void init(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel, String clientIp, int port) {
+    id = tioConfig.getTioUuid().id();
+    this.setTioConfig(tioConfig);
+    tioConfig.ids.bind(this);
+    this.setAsynchronousSocketChannel(asynchronousSocketChannel, clientIp, port);
+    this.readCompletionHandler = new ReadCompletionHandler(this);
+    this.writeCompletionHandler = new WriteCompletionHandler(this);
+    this.logWhenDecodeError = tioConfig.logWhenDecodeError;
+
+    initOther();
+
+  }
+
   void initOther() {
     if (!tioConfig.isShortConnection) {
       // 在长连接中，绑定群组几乎是必须要干的事，所以直接在初始化时给它赋值，省得在后面做同步处理
@@ -340,6 +372,13 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
       log.error("assignAnUnknownClientNode:{}", asynchronousSocketChannel);
       assignAnUnknownClientNode();
     }
+  }
+
+  private void setAsynchronousSocketChannel(AsynchronousSocketChannel asynchronousSocketChannel, String clientIp, int port) {
+    this.asynchronousSocketChannel = asynchronousSocketChannel;
+    Node clientNode = createClientNode(clientIp, port);
+    setClientNode(clientNode);
+
   }
 
   /**
@@ -677,7 +716,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
      * 写数据长度小于0
      */
     WRITE_COUNT_IS_NEGATIVE((byte) 9),
-    
+
     SERVER_CONNECTION((byte) 9),
     /**
      * 心跳超时
@@ -704,7 +743,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
      * SSL解密时发生异常
      */
     SSL_DECRYPT_ERROR((byte) 53),
-    
 
     /**
      * 供用户使用

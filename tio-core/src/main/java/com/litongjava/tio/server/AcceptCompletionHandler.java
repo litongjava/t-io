@@ -52,6 +52,11 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
       return;
     }
 
+    if (!serverSocketChannel.isOpen()) {
+      log.info("receive serverSocketChannel is not open skip");
+      return;
+    }
+
     String clientIp = null;
     int port = 0;
     InetSocketAddress inetSocketAddress;
@@ -84,7 +89,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
       clientSocketChannel.setOption(StandardSocketOptions.SO_SNDBUF, 64 * 1024);
       clientSocketChannel.setOption(StandardSocketOptions.SO_KEEPALIVE, true);
 
-      ServerChannelContext channelContext = new ServerChannelContext(serverTioConfig, clientSocketChannel);
+      ServerChannelContext channelContext = new ServerChannelContext(serverTioConfig, clientSocketChannel, clientIp, port);
       channelContext.setClosed(false);
       channelContext.stat.setTimeFirstConnected(SystemTimer.currTime);
       channelContext.setServerNode(tioServer.getServerNode());

@@ -1,12 +1,9 @@
 package com.litongjava.tio.client;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.litongjava.tio.core.ChannelContext;
-import com.litongjava.tio.core.Node;
 import com.litongjava.tio.core.TioConfig;
 
 /**
@@ -44,23 +41,6 @@ public class ClientChannelContext extends ChannelContext {
    */
   public ClientChannelContext(TioConfig tioConfig) {
     super(tioConfig);
-  }
-
-  /**
-   * @see org.tio.core.ChannelContext#createClientNode(java.nio.channels.AsynchronousSocketChannel)
-   *
-   * @param asynchronousSocketChannel
-   * @return
-   * @throws IOException
-   * @author tanyaowu
-   * 2016年12月6日 下午12:18:08
-   *
-   */
-  @Override
-  public Node createClientNode(AsynchronousSocketChannel asynchronousSocketChannel) throws IOException {
-    InetSocketAddress inetSocketAddress = (InetSocketAddress) asynchronousSocketChannel.getLocalAddress();
-    Node clientNode = new Node(inetSocketAddress.getHostString(), inetSocketAddress.getPort());
-    return clientNode;
   }
 
   /**
