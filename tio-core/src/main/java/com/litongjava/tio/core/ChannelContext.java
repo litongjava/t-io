@@ -17,7 +17,6 @@ import com.litongjava.aio.Packet.Meta;
 import com.litongjava.tio.core.ssl.SslFacadeContext;
 import com.litongjava.tio.core.stat.ChannelStat;
 import com.litongjava.tio.core.stat.IpStat;
-import com.litongjava.tio.core.task.DecodeRunnable;
 import com.litongjava.tio.core.task.HandlerRunnable;
 import com.litongjava.tio.core.task.SendRunnable;
 import com.litongjava.tio.utils.Threads;
@@ -50,7 +49,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
    */
   public Integer packetNeededLength = null;
   public TioConfig tioConfig = null;
-  public DecodeRunnable decodeRunnable = null;
   public HandlerRunnable handlerRunnable = null;
   public SendRunnable sendRunnable = null;
   public final ReentrantReadWriteLock closeLock = new ReentrantReadWriteLock();
@@ -435,7 +433,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     this.tioConfig = tioConfig;
 
     if (tioConfig != null) {
-      decodeRunnable = new DecodeRunnable(this, Threads.getTioExecutor());
       handlerRunnable = new HandlerRunnable(this, Threads.getTioExecutor());
       sendRunnable = new SendRunnable(this, Threads.getTioExecutor());
       tioConfig.connections.add(this);

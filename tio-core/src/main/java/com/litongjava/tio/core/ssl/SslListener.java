@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.litongjava.aio.Packet;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.ssl.facade.ISSLListener;
-import com.litongjava.tio.core.utils.ByteBufferUtils;
+import com.litongjava.tio.core.task.DecodeTask;
 
 /**
  * @author tanyaowu
@@ -58,14 +58,7 @@ public class SslListener implements ISSLListener {
     if (sslFacadeContext.isHandshakeCompleted()) {
       log.info("{}, After receiving the data decrypted by SSL, the SSL handshake is complete and ready to be decoded，{}, isSSLHandshakeCompleted {}", channelContext, plainBuffer,
           sslFacadeContext.isHandshakeCompleted());
-      if (channelContext.tioConfig.useQueueDecode) {
-        ByteBuffer copiedByteBuffer = ByteBufferUtils.copy(plainBuffer);
-        channelContext.decodeRunnable.addMsg(copiedByteBuffer);
-        channelContext.decodeRunnable.execute();
-      } else {
-        channelContext.decodeRunnable.setNewReceivedByteBuffer(plainBuffer);
-        channelContext.decodeRunnable.decode();
-      }
+      new DecodeTask().decode(channelContext, plainBuffer);
     } else {
       log.info("{}, SSL decrypted data is received, but the SSL handshake is not complete，{}, isSSLHandshakeCompleted {}", channelContext, plainBuffer, sslFacadeContext.isHandshakeCompleted());
     }

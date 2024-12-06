@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
 import com.litongjava.tio.core.stat.IpStat;
+import com.litongjava.tio.core.task.DecodeTask;
 import com.litongjava.tio.core.utils.ByteBufferUtils;
 import com.litongjava.tio.core.utils.TioUtils;
 import com.litongjava.tio.utils.SystemTimer;
@@ -41,11 +42,10 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
         tioConfig.groupStat.receivedTcps.incrementAndGet();
         channelContext.stat.receivedBytes.addAndGet(result);
         channelContext.stat.receivedTcps.incrementAndGet();
-        
+
       }
-      
+
       channelContext.stat.latestTimeOfReceivedByte = SystemTimer.currTime;
-      
 
       if (CollUtil.isNotEmpty(tioConfig.ipStats.durationList)) {
         try {
@@ -70,18 +70,13 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 
       byteBuffer.flip();
       if (channelContext.sslFacadeContext == null) {
-        if (tioConfig.useQueueDecode) {
-          channelContext.decodeRunnable.addMsg(ByteBufferUtils.copy(byteBuffer));
-          channelContext.decodeRunnable.execute();
-        } else {
-          channelContext.decodeRunnable.setNewReceivedByteBuffer(byteBuffer);
-          channelContext.decodeRunnable.decode();
-        }
+        // decode and run handler
+        new DecodeTask().decode(channelContext, byteBuffer);
       } else {
         ByteBuffer copiedByteBuffer = null;
         try {
           copiedByteBuffer = ByteBufferUtils.copy(byteBuffer);
-          log.debug("{}, 丢给SslFacade解密:{}", channelContext, copiedByteBuffer);
+          log.debug("{},Decrypt SSL data:{}", channelContext, copiedByteBuffer);
           channelContext.sslFacadeContext.getSslFacade().decrypt(copiedByteBuffer);
         } catch (Exception e) {
           log.error(channelContext + ", " + e.toString() + copiedByteBuffer, e);
