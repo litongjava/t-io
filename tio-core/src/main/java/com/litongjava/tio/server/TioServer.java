@@ -38,14 +38,7 @@ public class TioServer {
   private static AsynchronousChannelGroup channelGroup;
 
   static {
-    if (EnvUtils.getBoolean("tio.core.hotswap.reload", false)) {
-      groupExecutor = Threads.getGroupExecutor();
-      try {
-        channelGroup = AsynchronousChannelGroup.withThreadPool(groupExecutor);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    } else {
+    if (!EnvUtils.getBoolean("tio.core.hotswap.reload", false)) {
       int threadCount = 2;
       ThreadPoolExecutor executor = new ThreadPoolExecutor(threadCount, threadCount, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
         private final AtomicInteger count = new AtomicInteger(1);
@@ -63,7 +56,6 @@ public class TioServer {
         e.printStackTrace();
       }
     }
-
   }
 
   /**
@@ -125,7 +117,14 @@ public class TioServer {
     serverTioConfig.getCacheFactory().register(TioCoreConfigKeys.REQEUST_PROCESSING, null, null, null);
 
     this.serverNode = new Node(serverIp, serverPort);
-
+    if (EnvUtils.getBoolean("tio.core.hotswap.reload", false)) {
+      groupExecutor = Threads.getGroupExecutor();
+      try {
+        channelGroup = AsynchronousChannelGroup.withThreadPool(groupExecutor);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
     serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);
     serverSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
     serverSocketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 64 * 1024);
@@ -156,9 +155,7 @@ public class TioServer {
 
     if (channelGroup != null) {
       try {
-
         channelGroup.shutdownNow();
-
       } catch (Exception e) {
         log.error("Faild to execute channelGroup.shutdownNow()", e);
       }
