@@ -73,9 +73,6 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
       if (throwable == null) {
         if (isReconnect) {
           channelContext.setAsynchronousSocketChannel(asynchronousSocketChannel);
-          // channelContext.getHandlerRunnableHighPrior().setCanceled(false);
-          channelContext.sendRunnable.setCanceled(false);
-          // channelContext.getSendRunnableHighPrior().setCanceled(false);
 
           clientTioConfig.closeds.remove(channelContext);
         } else {

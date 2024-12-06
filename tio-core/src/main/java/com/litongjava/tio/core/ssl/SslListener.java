@@ -9,6 +9,7 @@ import com.litongjava.aio.Packet;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.ssl.facade.ISSLListener;
 import com.litongjava.tio.core.task.DecodeTask;
+import com.litongjava.tio.core.task.SendPacketTask;
 
 /**
  * @author tanyaowu
@@ -37,14 +38,7 @@ public class SslListener implements ISSLListener {
       p.setPreEncodedByteBuffer(sslVo.getByteBuffer());
       p.setSslEncrypted(true);
 
-      if (channelContext.tioConfig.useQueueSend) {
-        boolean isAdded = channelContext.sendRunnable.addMsg(p);
-        if (isAdded) {
-          channelContext.sendRunnable.execute();
-        }
-      } else {
-        channelContext.sendRunnable.sendPacket(p);
-      }
+      new SendPacketTask(channelContext).sendPacket(p);
 
     }
 

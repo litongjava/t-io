@@ -65,13 +65,6 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
           return;
         }
 
-        // 必须先取消任务再清空队列
-        channelContext.sendRunnable.setCanceled(true);
-
-        channelContext.sendRunnable.clearMsgQueue();
-
-        //log.info("{}, {} 准备关闭连接, isNeedRemove:{}, {}", channelContext.tioConfig, channelContext, isNeedRemove,remark);
-
         try {
           if (isNeedRemove) {
             MaintainUtils.remove(channelContext);

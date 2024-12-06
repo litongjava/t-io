@@ -82,7 +82,6 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
     ReentrantLock lock = channelContext.writeCompletionHandler.lock;
     lock.lock();
     try {
-      channelContext.sendRunnable.canSend = true;
       channelContext.writeCompletionHandler.condition.signal();
       channelContext.stat.latestTimeOfSentPacket = SystemTimer.currTime;
       Object attachment = writeCompletionVo.obj;// ();

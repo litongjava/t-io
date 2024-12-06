@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import com.litongjava.aio.Packet;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.ssl.facade.IHandshakeCompletedListener;
+import com.litongjava.tio.core.task.AfterSslHandshakeCompleted;
+import com.litongjava.tio.core.task.SendPacketTask;
 
 /**
  * @author tanyaowu
@@ -38,8 +40,7 @@ public class SslHandshakeCompletedListener implements IHandshakeCompletedListene
       }
     }
 
-    ConcurrentLinkedQueue<Packet> forSendAfterSslHandshakeCompleted = channelContext.sendRunnable
-        .getForSendAfterSslHandshakeCompleted(false);
+    ConcurrentLinkedQueue<Packet> forSendAfterSslHandshakeCompleted = new AfterSslHandshakeCompleted().getForSendAfterSslHandshakeCompleted(false);
     if (forSendAfterSslHandshakeCompleted == null || forSendAfterSslHandshakeCompleted.size() == 0) {
       return;
     }
@@ -48,18 +49,10 @@ public class SslHandshakeCompletedListener implements IHandshakeCompletedListene
     while (true) {
       Packet packet = forSendAfterSslHandshakeCompleted.poll();
       if (packet != null) {
-        if (channelContext.tioConfig.useQueueSend) {
-          channelContext.sendRunnable.addMsg(packet);
-        } else {
-          channelContext.sendRunnable.sendPacket(packet);
-        }
-
+        new SendPacketTask(channelContext).sendPacket(packet);
       } else {
         break;
       }
-    }
-    if (channelContext.tioConfig.useQueueSend) {
-      channelContext.sendRunnable.execute();
     }
   }
 

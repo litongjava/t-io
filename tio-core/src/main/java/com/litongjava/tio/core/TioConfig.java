@@ -88,10 +88,6 @@ public abstract class TioConfig extends MapWithLockPropSupport {
    * 启动时间
    */
   public long startTime = SystemTimer.currTime;
-  /**
-   * 是否用队列发送
-   */
-  public boolean useQueueSend = false;
 
   /**
    * 心跳超时时间(单位: 毫秒)，如果用户不希望框架层面做心跳相关工作，请把此值设为0或负数
@@ -294,17 +290,6 @@ public abstract class TioConfig extends MapWithLockPropSupport {
   public GroupStat getGroupStat() {
     return groupStat;
   }
-
-  /**
-   * 是否用队列发送，可以随时切换
-   * 
-   * @param useQueueSend
-   * @author tanyaowu
-   */
-  public void setUseQueueSend(boolean useQueueSend) {
-    this.useQueueSend = useQueueSend;
-  }
-
   /**
    * 是服务器端还是客户端
    * 

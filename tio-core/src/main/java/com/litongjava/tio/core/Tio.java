@@ -21,6 +21,7 @@ import com.litongjava.tio.client.ReconnConf;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
 import com.litongjava.tio.core.maintain.GlobalIpBlacklist;
+import com.litongjava.tio.core.task.SendPacketTask;
 import com.litongjava.tio.server.ServerTioConfig;
 import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.lock.ReadLockHandler;
@@ -397,8 +398,6 @@ public class Tio {
     }
 
     // 先立即取消各项任务，这样可防止有新的任务被提交进来
-    channelContext.sendRunnable.setCanceled(true);
-
     WriteLock writeLock = null;
     if (needCloseLock) {
       writeLock = channelContext.closeLock.writeLock();
@@ -1177,22 +1176,14 @@ public class Tio {
       meta.setCountDownLatch(countDownLatch);
       packet.setMeta(meta);
     }
-    if (channelContext.tioConfig.useQueueSend) {
-      isAdded = channelContext.sendRunnable.addMsg(packet);
-    } else {
-      isAdded = channelContext.sendRunnable.sendPacket(packet);
-    }
+
+    new SendPacketTask(channelContext).sendPacket(packet);
 
     if (!isAdded) {
       if (countDownLatch != null) {
         countDownLatch.countDown();
       }
       return false;
-    }
-    if (channelContext.tioConfig.useQueueSend) {
-      channelContext.sendRunnable.execute();
-      //CompletableFuture.runAsync(channelContext.sendRunnable::runTask);
-      //TioThreadUtils.submit(channelContext.sendRunnable);
     }
 
     if (isSingleBlock) {
