@@ -47,6 +47,10 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
     } else {
       serverSocketChannel.accept(tioServer, this);
     }
+    if (serverSocketChannel == null) {
+      log.info("receive serverSocketChannel is null skip");
+      return;
+    }
 
     String clientIp = null;
     int port = 0;
@@ -65,7 +69,6 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
     ServerTioConfig serverTioConfig = tioServer.getServerTioConfig();
 
     try {
-
       if (IpBlacklist.isInBlacklist(serverTioConfig, clientIp)) {
         log.info("{} on the blacklist, {}", clientIp, serverTioConfig.getName());
         clientSocketChannel.close();
