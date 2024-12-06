@@ -54,7 +54,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
   public HandlerRunnable handlerRunnable = null;
   public SendRunnable sendRunnable = null;
   public final ReentrantReadWriteLock closeLock = new ReentrantReadWriteLock();
-  private ReadCompletionHandler readCompletionHandler = null; // new ReadCompletionHandler(this);
+  
   public WriteCompletionHandler writeCompletionHandler = null; // new WriteCompletionHandler(this);
   public SslFacadeContext sslFacadeContext;
   public String userid;
@@ -104,9 +104,9 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     }
   }
 
-  public ChannelContext(TioConfig tioConfig, AsynchronousSocketChannel clientSocketChannel, String clientIp, int port) {
+  public ChannelContext(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel, String ip, int port) {
     super();
-    init(tioConfig, asynchronousSocketChannel, clientIp, port);
+    init(tioConfig, asynchronousSocketChannel, ip, port);
 
     if (tioConfig.sslConfig != null) {
       try {
@@ -232,13 +232,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
   }
 
   /**
-   * @return the readCompletionHandler
-   */
-  public ReadCompletionHandler getReadCompletionHandler() {
-    return readCompletionHandler;
-  }
-
-  /**
    * @return the serverNode
    */
   public Node getServerNode() {
@@ -275,7 +268,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     this.setTioConfig(tioConfig);
     tioConfig.ids.bind(this);
     this.setAsynchronousSocketChannel(asynchronousSocketChannel);
-    this.readCompletionHandler = new ReadCompletionHandler(this);
+    
     this.writeCompletionHandler = new WriteCompletionHandler(this);
     this.logWhenDecodeError = tioConfig.logWhenDecodeError;
 
@@ -287,7 +280,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     this.setTioConfig(tioConfig);
     tioConfig.ids.bind(this);
     this.setAsynchronousSocketChannel(asynchronousSocketChannel, clientIp, port);
-    this.readCompletionHandler = new ReadCompletionHandler(this);
     this.writeCompletionHandler = new WriteCompletionHandler(this);
     this.logWhenDecodeError = tioConfig.logWhenDecodeError;
 
@@ -421,8 +413,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
 
     if (this.clientNode != null && !Objects.equals(UNKNOWN_ADDRESS_IP, this.clientNode.getIp())) {
       tioConfig.clientNodes.put(this);
-      // clientNodeTraceFilename = StrUtil.replaceAll(clientNode.toString(), ":",
-      // "_");
     }
   }
 
@@ -433,9 +423,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     this.isClosed = isClosed;
     if (isClosed) {
       if (clientNode == null || !UNKNOWN_ADDRESS_IP.equals(clientNode.getIp())) {
-        // String before = this.toString();
         assignAnUnknownClientNode();
-        // log.info("关闭前{}, 关闭后{}", before, this);
       }
     }
   }
@@ -483,20 +471,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
   public void setToken(String token) {
     this.token = token;
   }
-
-  // /**
-  // * @param isTraceClient the isTraceClient to set
-  // */
-  // public void setTraceClient(boolean isTraceClient) {
-  // this.isTraceClient = isTraceClient;
-  // }
-
-  // /**
-  // * @param isTraceSynPacket the isTraceSynPacket to set
-  // */
-  // public void setTraceSynPacket(boolean isTraceSynPacket) {
-  // this.isTraceSynPacket = isTraceSynPacket;
-  // }
 
   /**
    * @param userid the userid to set 给框架内部用的，用户请勿调用此方法

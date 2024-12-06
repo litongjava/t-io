@@ -97,7 +97,7 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
         // clientTioConfig.ips.bind(channelContext);
         clientTioConfig.connecteds.add(channelContext);
 
-        ReadCompletionHandler readCompletionHandler = channelContext.getReadCompletionHandler();
+        ReadCompletionHandler readCompletionHandler = new ReadCompletionHandler(channelContext);
         ByteBuffer readByteBuffer = ByteBufferPool.BUFFER_POOL.acquire();
         readByteBuffer.position(0);
         readByteBuffer.limit(readByteBuffer.capacity());

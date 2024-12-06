@@ -34,12 +34,11 @@ public class TioServer {
   private boolean checkLastVersion = true;
   private static ExecutorService groupExecutor;
 
-  //建立自定义的AsynchronousChannelGroup
   private static AsynchronousChannelGroup channelGroup;
 
   static {
     if (!EnvUtils.getBoolean("tio.core.hotswap.reload", false)) {
-      int threadCount = 2;
+      int threadCount = Runtime.getRuntime().availableProcessors() * 10;
       ThreadPoolExecutor executor = new ThreadPoolExecutor(threadCount, threadCount, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
         private final AtomicInteger count = new AtomicInteger(1);
 
@@ -113,7 +112,7 @@ public class TioServer {
   }
 
   public void start(String serverIp, int serverPort) throws IOException {
-    // long start = System.currentTimeMillis();
+    serverTioConfig.init();
     serverTioConfig.getCacheFactory().register(TioCoreConfigKeys.REQEUST_PROCESSING, null, null, null);
 
     this.serverNode = new Node(serverIp, serverPort);
@@ -124,8 +123,11 @@ public class TioServer {
       } catch (IOException e) {
         e.printStackTrace();
       }
+      serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);
+    } else {
+      serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);
     }
-    serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);
+
     serverSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
     serverSocketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 64 * 1024);
 
@@ -139,7 +141,7 @@ public class TioServer {
 
     serverSocketChannel.bind(listenAddress, 0);
 
-    AcceptCompletionHandler acceptCompletionHandler = serverTioConfig.getAcceptCompletionHandler();
+    AcceptCompletionHandler acceptCompletionHandler = new AcceptCompletionHandler();
     serverSocketChannel.accept(this, acceptCompletionHandler);
 
     serverTioConfig.startTime = System.currentTimeMillis();

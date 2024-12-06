@@ -103,7 +103,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
           try {
             serverTioConfig.getServerAioListener().onAfterConnected(channelContext, isConnected, isReconnect);
           } catch (Throwable e) {
-            log.error(e.toString(), e);
+            log.error("ServerAioListener onAfterConnected:", e);
           }
         }
       }
@@ -116,12 +116,12 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
             serverTioConfig.getIpStatListener().onAfterConnected(channelContext, isConnected, isReconnect, ipStat);
           }
         } catch (Exception e) {
-          log.error(e.toString(), e);
+          log.error("IpStatListener onAfterConnected:", e);
         }
       }
 
       if (!tioServer.isWaitingStop()) {
-        ReadCompletionHandler readCompletionHandler = channelContext.getReadCompletionHandler();
+        ReadCompletionHandler readCompletionHandler = new ReadCompletionHandler(channelContext);
         ByteBuffer readByteBuffer = ByteBufferPool.BUFFER_POOL.acquire(serverTioConfig.getByteOrder());
         // ByteBuffer.allocateDirect(channelContext.tioConfig.getReadBufferSize());
         readByteBuffer.position(0);

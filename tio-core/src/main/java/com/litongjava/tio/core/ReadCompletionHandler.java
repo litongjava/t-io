@@ -36,16 +36,16 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
   public void completed(Integer result, ByteBuffer byteBuffer) {
     if (result > 0) {
       TioConfig tioConfig = channelContext.tioConfig;
-
       if (tioConfig.statOn) {
         tioConfig.groupStat.receivedBytes.addAndGet(result);
         tioConfig.groupStat.receivedTcps.incrementAndGet();
-
         channelContext.stat.receivedBytes.addAndGet(result);
         channelContext.stat.receivedTcps.incrementAndGet();
+        
       }
-
+      
       channelContext.stat.latestTimeOfReceivedByte = SystemTimer.currTime;
+      
 
       if (CollUtil.isNotEmpty(tioConfig.ipStats.durationList)) {
         try {
@@ -64,7 +64,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
         try {
           tioConfig.getAioListener().onAfterReceivedBytes(channelContext, result);
         } catch (Exception e) {
-          log.error("", e);
+          log.error(channelContext.toString(), e);
         }
       }
 

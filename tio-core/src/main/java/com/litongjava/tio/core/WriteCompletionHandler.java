@@ -11,12 +11,10 @@ import org.slf4j.LoggerFactory;
 
 import com.litongjava.aio.Packet;
 import com.litongjava.aio.Packet.Meta;
-import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
 import com.litongjava.tio.core.WriteCompletionHandler.WriteCompletionVo;
 import com.litongjava.tio.core.stat.IpStat;
 import com.litongjava.tio.utils.SystemTimer;
-import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.hutool.CollUtil;
 
 /**
@@ -153,12 +151,13 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 
     try {
       channelContext.processAfterSent(packet, isSentSuccess);
-      if (!packet.isKeepConnection()) {
-        if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
-          log.info("remove conneciton because KeepedConnection is false:{}", packet.logstr());
-        }
-        Tio.close(channelContext, "");
-      }
+//      if (!packet.isKeepConnection()) {
+//        String msg = "remove conneciton because KeepedConnection is false:" + packet.logstr();
+//        if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
+//          log.info(msg);
+//        }
+//        Tio.close(channelContext, msg);
+//      }
     } catch (Throwable e) {
       log.error(e.toString(), e);
     }

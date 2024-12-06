@@ -453,11 +453,17 @@ public class Tio {
         }
       }
     }
-    channelContext.closeMeta.setNeedRemove(isNeedRemove);
-    channelContext.tioConfig.closeRunnable.close(channelContext);
     if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
       log.info("close {},remark:{}", channelContext, remark);
     }
+    channelContext.closeMeta.setNeedRemove(isNeedRemove);
+
+    channelContext.tioConfig.closeRunnable.execute();
+    //channelContext.tioConfig.closeRunnable.close(channelContext);
+    //    CompletableFuture.runAsync(() -> {
+    //      channelContext.tioConfig.closeRunnable.close(channelContext);
+    //    });
+
   }
 
   /**

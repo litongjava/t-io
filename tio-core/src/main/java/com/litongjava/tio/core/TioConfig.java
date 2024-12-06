@@ -95,7 +95,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
   /**
    * 是否用队列解码（系统初始化时确定该值，中途不要变更此值，否则在切换的时候可能导致消息丢失）
    */
-  public boolean useQueueDecode = true;
+  public boolean useQueueDecode = false;
   /**
    * 心跳超时时间(单位: 毫秒)，如果用户不希望框架层面做心跳相关工作，请把此值设为0或负数
    */

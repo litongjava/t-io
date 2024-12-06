@@ -32,12 +32,11 @@ import com.litongjava.tio.utils.lock.SetWithLock;
  */
 public class ServerTioConfig extends TioConfig {
   static Logger log = LoggerFactory.getLogger(ServerTioConfig.class);
-  private AcceptCompletionHandler acceptCompletionHandler = null;
+  
   private ServerAioHandler serverAioHandler = null;
   private ServerAioListener serverAioListener = null;
   private Thread checkHeartbeatThread = null;
   private boolean needCheckHeartbeat = true;
-  // private static Set<ServerTioConfig> SHARED_SET = null;
   private boolean isShared = false;
 
   public ServerTioConfig(String name) {
@@ -71,12 +70,6 @@ public class ServerTioConfig extends TioConfig {
     this.setSslConfig(sslConfig);
   }
 
-  /**
-   * @return the acceptCompletionHandler
-   */
-  public AcceptCompletionHandler getAcceptCompletionHandler() {
-    return acceptCompletionHandler;
-  }
 
   /**
    * @see org.tio.core.TioConfig#getAioHandler()
@@ -172,7 +165,6 @@ public class ServerTioConfig extends TioConfig {
   public void init() {
     super.init();
     this.groupStat = new ServerGroupStat();
-    this.acceptCompletionHandler = new AcceptCompletionHandler();
     GlobalIpBlacklist.INSTANCE.init(this);
     Runnable check = new Runnable() {
       @Override

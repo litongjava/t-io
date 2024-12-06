@@ -60,18 +60,9 @@ public class Ips {
       SetWithLock<ChannelContext> channelSet = ipmap.get(ip);
       if (channelSet == null) {
         LockUtils.runWriteOrWaitRead(rwKey + ip, this, () -> {
-//					@Override
-//					public void read() {
-//					}
-
-//					@Override
-//					public void write() {
-//						SetWithLock<ChannelContext> channelSet = ipmap.get(ip);
           if (ipmap.get(ip) == null) {
-//							channelSet = new SetWithLock<>(new HashSet<ChannelContext>());
             ipmap.put(ip, new SetWithLock<>(new HashSet<ChannelContext>()));
           }
-//					}
         });
         channelSet = ipmap.get(ip);
       }
