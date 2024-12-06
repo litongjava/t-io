@@ -13,6 +13,7 @@ import com.litongjava.tio.core.Node;
 import com.litongjava.tio.core.ReadCompletionHandler;
 import com.litongjava.tio.core.Tio;
 import com.litongjava.tio.core.TioConfig;
+import com.litongjava.tio.core.pool.ByteBufferPool;
 import com.litongjava.tio.core.ssl.SslFacadeContext;
 import com.litongjava.tio.core.ssl.SslUtils;
 import com.litongjava.tio.core.stat.IpStat;
@@ -97,7 +98,7 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
         clientTioConfig.connecteds.add(channelContext);
 
         ReadCompletionHandler readCompletionHandler = channelContext.getReadCompletionHandler();
-        ByteBuffer readByteBuffer = readCompletionHandler.getReadByteBuffer();// ByteBuffer.allocateDirect(channelContext.tioConfig.getReadBufferSize());
+        ByteBuffer readByteBuffer = ByteBufferPool.BUFFER_POOL.acquire();
         readByteBuffer.position(0);
         readByteBuffer.limit(readByteBuffer.capacity());
         asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, readCompletionHandler);

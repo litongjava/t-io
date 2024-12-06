@@ -29,11 +29,42 @@ public class TioServer {
   private static Logger log = LoggerFactory.getLogger(TioServer.class);
   private ServerTioConfig serverTioConfig;
   private AsynchronousServerSocketChannel serverSocketChannel;
-  private AsynchronousChannelGroup channelGroup = null;
   private Node serverNode;
   private boolean isWaitingStop = false;
   private boolean checkLastVersion = true;
-  private ExecutorService groupExecutor;
+  private static ExecutorService groupExecutor;
+
+  //建立自定义的AsynchronousChannelGroup
+  private static AsynchronousChannelGroup channelGroup;
+
+  static {
+    if (EnvUtils.getBoolean("tio.core.hotswap.reload", false)) {
+      groupExecutor = Threads.getGroupExecutor();
+      try {
+        channelGroup = AsynchronousChannelGroup.withThreadPool(groupExecutor);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    } else {
+      int threadCount = 2;
+      ThreadPoolExecutor executor = new ThreadPoolExecutor(threadCount, threadCount, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
+        private final AtomicInteger count = new AtomicInteger(1);
+
+        @Override
+        public Thread newThread(Runnable r) {
+          Thread t = new Thread(r, "aio-worker-" + count.getAndIncrement());
+          t.setDaemon(true);
+          return t;
+        }
+      });
+      try {
+        channelGroup = AsynchronousChannelGroup.withThreadPool(executor);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+
+  }
 
   /**
    *
@@ -94,27 +125,8 @@ public class TioServer {
     serverTioConfig.getCacheFactory().register(TioCoreConfigKeys.REQEUST_PROCESSING, null, null, null);
 
     this.serverNode = new Node(serverIp, serverPort);
-    if (EnvUtils.getBoolean("tio.core.hotswap.reload", false)) {
-      groupExecutor = Threads.getGroupExecutor();
-      channelGroup = AsynchronousChannelGroup.withThreadPool(groupExecutor);
-      serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);
-    } else {
-      int threadCount = Runtime.getRuntime().availableProcessors() * 2;
-      groupExecutor = new ThreadPoolExecutor(threadCount, threadCount, 60L, TimeUnit.SECONDS,
-          //
-          new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
-            private final AtomicInteger count = new AtomicInteger(1);
 
-            @Override
-            public Thread newThread(Runnable r) {
-              Thread t = new Thread(r, "aio-worker-" + count.getAndIncrement());
-              t.setDaemon(true);
-              return t;
-            }
-          });
-      channelGroup = AsynchronousChannelGroup.withThreadPool(groupExecutor);
-      serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);
-    }
+    serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);
     serverSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
     serverSocketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 64 * 1024);
 
@@ -155,10 +167,10 @@ public class TioServer {
     if (groupExecutor != null) {
       try {
         groupExecutor.shutdownNow();
-      }catch(Exception e) {
+      } catch (Exception e) {
         log.error("Failed to close groupExecutor", e);
       }
-      
+
     }
 
     if (serverSocketChannel != null) {

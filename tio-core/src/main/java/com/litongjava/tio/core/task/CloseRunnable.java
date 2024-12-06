@@ -37,71 +37,75 @@ public class CloseRunnable extends AbstractQueueRunnable<ChannelContext> {
     }
     ChannelContext channelContext = null;
     while ((channelContext = msgQueue.poll()) != null) {
-      try {
-        boolean isNeedRemove = channelContext.closeMeta.isNeedRemove;
-        String remark = channelContext.closeMeta.remark;
-        Throwable throwable = channelContext.closeMeta.throwable;
+      close(channelContext);
+    }
+  }
 
-        channelContext.stat.timeClosed = SystemTimer.currTime;
-        if (channelContext.tioConfig.getAioListener() != null) {
-          try {
-            channelContext.tioConfig.getAioListener().onBeforeClose(channelContext, throwable, remark, isNeedRemove);
-          } catch (Throwable e) {
-            log.error(e.toString(), e);
-          }
+  public void close(ChannelContext channelContext) {
+    try {
+      boolean isNeedRemove = channelContext.closeMeta.isNeedRemove;
+      String remark = channelContext.closeMeta.remark;
+      Throwable throwable = channelContext.closeMeta.throwable;
+
+      channelContext.stat.timeClosed = SystemTimer.currTime;
+      if (channelContext.tioConfig.getAioListener() != null) {
+        try {
+          channelContext.tioConfig.getAioListener().onBeforeClose(channelContext, throwable, remark, isNeedRemove);
+        } catch (Throwable e) {
+          log.error(e.toString(), e);
         }
+      }
+
+      try {
+        if (channelContext.isClosed && !isNeedRemove) {
+          return;
+        }
+
+        if (channelContext.isRemoved) {
+          return;
+        }
+
+        // 必须先取消任务再清空队列
+        channelContext.decodeRunnable.setCanceled(true);
+        channelContext.handlerRunnable.setCanceled(true);
+        channelContext.sendRunnable.setCanceled(true);
+
+        channelContext.decodeRunnable.clearMsgQueue();
+        channelContext.handlerRunnable.clearMsgQueue();
+        channelContext.sendRunnable.clearMsgQueue();
+
+        //log.info("{}, {} 准备关闭连接, isNeedRemove:{}, {}", channelContext.tioConfig, channelContext, isNeedRemove,remark);
 
         try {
-          if (channelContext.isClosed && !isNeedRemove) {
-            return;
+          if (isNeedRemove) {
+            MaintainUtils.remove(channelContext);
+          } else {
+            ClientTioConfig clientTioConfig = (ClientTioConfig) channelContext.tioConfig;
+            clientTioConfig.closeds.add(channelContext);
+            clientTioConfig.connecteds.remove(channelContext);
+            MaintainUtils.close(channelContext);
           }
 
-          if (channelContext.isRemoved) {
-            return;
+          channelContext.setRemoved(isNeedRemove);
+          if (channelContext.tioConfig.statOn) {
+            channelContext.tioConfig.groupStat.closed.incrementAndGet();
           }
-
-          // 必须先取消任务再清空队列
-          channelContext.decodeRunnable.setCanceled(true);
-          channelContext.handlerRunnable.setCanceled(true);
-          channelContext.sendRunnable.setCanceled(true);
-
-          channelContext.decodeRunnable.clearMsgQueue();
-          channelContext.handlerRunnable.clearMsgQueue();
-          channelContext.sendRunnable.clearMsgQueue();
-
-          //log.info("{}, {} 准备关闭连接, isNeedRemove:{}, {}", channelContext.tioConfig, channelContext, isNeedRemove,remark);
-
-          try {
-            if (isNeedRemove) {
-              MaintainUtils.remove(channelContext);
-            } else {
-              ClientTioConfig clientTioConfig = (ClientTioConfig) channelContext.tioConfig;
-              clientTioConfig.closeds.add(channelContext);
-              clientTioConfig.connecteds.remove(channelContext);
-              MaintainUtils.close(channelContext);
-            }
-
-            channelContext.setRemoved(isNeedRemove);
-            if (channelContext.tioConfig.statOn) {
-              channelContext.tioConfig.groupStat.closed.incrementAndGet();
-            }
-            channelContext.stat.timeClosed = SystemTimer.currTime;
-            channelContext.setClosed(true);
-          } catch (Throwable e) {
-            log.error(e.toString(), e);
-          } finally {
-            if (!isNeedRemove && channelContext.isClosed && !channelContext.isServer()) // 不删除且没有连接上，则加到重连队列中
-            {
-              ClientChannelContext clientChannelContext = (ClientChannelContext) channelContext;
-              ReconnConf.put(clientChannelContext);
-            }
-          }
+          channelContext.stat.timeClosed = SystemTimer.currTime;
+          channelContext.setClosed(true);
         } catch (Throwable e) {
-          log.error(throwable.toString(), e);
+          log.error(e.toString(), e);
+        } finally {
+          if (!isNeedRemove && channelContext.isClosed && !channelContext.isServer()) // 不删除且没有连接上，则加到重连队列中
+          {
+            ClientChannelContext clientChannelContext = (ClientChannelContext) channelContext;
+            ReconnConf.put(clientChannelContext);
+          }
         }
-      } finally {
-        channelContext.isWaitingClose = false;
+      } catch (Throwable e) {
+        log.error(throwable.toString(), e);
       }
+    } finally {
+      channelContext.isWaitingClose = false;
     }
   }
 

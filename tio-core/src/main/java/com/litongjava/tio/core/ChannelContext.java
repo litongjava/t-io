@@ -677,6 +677,8 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
      * 写数据长度小于0
      */
     WRITE_COUNT_IS_NEGATIVE((byte) 9),
+    
+    SERVER_CONNECTION((byte) 9),
     /**
      * 心跳超时
      */
@@ -702,6 +704,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
      * SSL解密时发生异常
      */
     SSL_DECRYPT_ERROR((byte) 53),
+    
 
     /**
      * 供用户使用
