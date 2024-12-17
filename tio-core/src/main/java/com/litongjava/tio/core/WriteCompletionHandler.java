@@ -83,56 +83,48 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
    * @author tanyaowu
    */
   public void handle(Integer bytesWritten, Throwable throwable, WriteCompletionVo writeCompletionVo) {
-    lock.lock();
-    try {
-      condition.signal();
-      channelContext.stat.latestTimeOfSentPacket = SystemTimer.currTime;
-      Object attachment = writeCompletionVo.obj;// ();
-      TioConfig tioConfig = channelContext.tioConfig;
-      boolean isSentSuccess = bytesWritten > 0;
-
-      if (isSentSuccess) {
-        if (tioConfig.statOn) {
-          tioConfig.groupStat.sentBytes.addAndGet(bytesWritten);
-          channelContext.stat.sentBytes.addAndGet(bytesWritten);
-        }
-
-        if (CollUtil.isNotEmpty(tioConfig.ipStats.durationList)) {
-          for (Long v : tioConfig.ipStats.durationList) {
-            IpStat ipStat = (IpStat) channelContext.tioConfig.ipStats.get(v, channelContext);
-            ipStat.getSentBytes().addAndGet(bytesWritten);
-          }
-        }
+    channelContext.stat.latestTimeOfSentPacket = SystemTimer.currTime;
+    Object attachment = writeCompletionVo.obj;
+    TioConfig tioConfig = channelContext.tioConfig;
+    boolean isSentSuccess = bytesWritten > 0;
+    if (isSentSuccess) {
+      if (tioConfig.statOn) {
+        tioConfig.groupStat.sentBytes.addAndGet(bytesWritten);
+        channelContext.stat.sentBytes.addAndGet(bytesWritten);
       }
 
-      try {
-        boolean isPacket = attachment instanceof Packet;
-        if (isPacket) {
-          if (isSentSuccess) {
-            if (CollUtil.isNotEmpty(tioConfig.ipStats.durationList)) {
-              for (Long v : tioConfig.ipStats.durationList) {
-                IpStat ipStat = (IpStat) channelContext.tioConfig.ipStats.get(v, channelContext);
-                ipStat.getSentPackets().incrementAndGet();
-              }
+      if (CollUtil.isNotEmpty(tioConfig.ipStats.durationList)) {
+        for (Long v : tioConfig.ipStats.durationList) {
+          IpStat ipStat = (IpStat) channelContext.tioConfig.ipStats.get(v, channelContext);
+          ipStat.getSentBytes().addAndGet(bytesWritten);
+        }
+      }
+    }
+
+    try {
+      boolean isPacket = attachment instanceof Packet;
+      if (isPacket) {
+        if (isSentSuccess) {
+          if (CollUtil.isNotEmpty(tioConfig.ipStats.durationList)) {
+            for (Long v : tioConfig.ipStats.durationList) {
+              IpStat ipStat = (IpStat) channelContext.tioConfig.ipStats.get(v, channelContext);
+              ipStat.getSentPackets().incrementAndGet();
             }
           }
-          handleOne(bytesWritten, throwable, (Packet) attachment, isSentSuccess);
-        } else {
-          List<?> ps = (List<?>) attachment;
-          for (Object obj : ps) {
-            handleOne(bytesWritten, throwable, (Packet) obj, isSentSuccess);
-          }
         }
-
-        if (!isSentSuccess) {
-          Tio.close(channelContext, throwable, "Write data return:" + bytesWritten, CloseCode.WRITE_COUNT_IS_NEGATIVE);
+        handleOne(bytesWritten, throwable, (Packet) attachment, isSentSuccess);
+      } else {
+        List<?> ps = (List<?>) attachment;
+        for (Object obj : ps) {
+          handleOne(bytesWritten, throwable, (Packet) obj, isSentSuccess);
         }
-      } catch (Throwable e) {
-        log.error(e.toString(), e);
       }
 
-    } finally {
-      lock.unlock();
+      if (!isSentSuccess) {
+        Tio.close(channelContext, throwable, "Write data return:" + bytesWritten, CloseCode.WRITE_COUNT_IS_NEGATIVE);
+      }
+    } catch (Throwable e) {
+      log.error(e.toString(), e);
     }
 
   }
@@ -149,19 +141,23 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
     Meta meta = packet.getMeta();
     if (meta != null) {
       meta.setIsSentSuccess(isSentSuccess);
+      if (meta.getCountDownLatch() != null) {
+        meta.getCountDownLatch().countDown();
+      }
     }
-
     try {
       channelContext.processAfterSent(packet, isSentSuccess);
-      if (!packet.isKeepConnection()) {
-        String msg = "remove conneciton because KeepedConnection is false:" + packet.logstr();
-        if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
-          log.info(msg);
-        }
-        Tio.close(channelContext, msg);
-      }
     } catch (Throwable e) {
       log.error(e.toString(), e);
     }
+
+    if (!packet.isKeepConnection()) {
+      String msg = "remove conneciton because KeepedConnection is false:" + packet.logstr();
+      if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
+        log.info(msg);
+      }
+      Tio.close(channelContext, msg);
+    }
+
   }
 }

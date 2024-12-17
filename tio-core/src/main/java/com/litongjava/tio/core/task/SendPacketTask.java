@@ -1,7 +1,6 @@
 package com.litongjava.tio.core.task;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.net.ssl.SSLException;
 
@@ -17,6 +16,7 @@ import com.litongjava.tio.core.intf.AioHandler;
 import com.litongjava.tio.core.ssl.SslUtils;
 import com.litongjava.tio.core.ssl.SslVo;
 import com.litongjava.tio.core.utils.TioUtils;
+import com.litongjava.tio.utils.Threads;
 import com.litongjava.tio.utils.environment.EnvUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -92,20 +92,10 @@ public class SendPacketTask {
       return;
     }
 
-    WriteCompletionHandler writeCompletionHandler = new WriteCompletionHandler(channelContext);
-    ReentrantLock lock = writeCompletionHandler.lock;
-    lock.lock();
-    try {
-      canSend = false;
+    Threads.getTioExecutor().submit(() -> {
       WriteCompletionVo writeCompletionVo = new WriteCompletionVo(byteBuffer, packets);
-      //read read
-      channelContext.asynchronousSocketChannel.write(byteBuffer, writeCompletionVo, writeCompletionHandler);
-      writeCompletionHandler.condition.await();
-    } catch (InterruptedException e) {
-      log.error(e.toString(), e);
-    } finally {
-      lock.unlock();
-    }
+      WriteCompletionHandler writeCompletionHandler = new WriteCompletionHandler(this.channelContext);
+      this.channelContext.asynchronousSocketChannel.write(byteBuffer, writeCompletionVo, writeCompletionHandler);
+    });
   }
-
 }

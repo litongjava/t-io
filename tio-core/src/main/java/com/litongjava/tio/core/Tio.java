@@ -1165,16 +1165,16 @@ public class Tio {
       }
     }
     boolean isSingleBlock = countDownLatch != null && packetSendMode == PacketSendMode.SINGLE_BLOCK;
-    boolean isAdded = false;
+
     if (countDownLatch != null) {
       Meta meta = new Meta();
       meta.setCountDownLatch(countDownLatch);
       packet.setMeta(meta);
     }
 
-    new SendPacketTask(channelContext).sendPacket(packet);
+    boolean sendInitiated = new SendPacketTask(channelContext).sendPacket(packet);
 
-    if (!isAdded) {
+    if (!sendInitiated) {
       if (countDownLatch != null) {
         countDownLatch.countDown();
       }
