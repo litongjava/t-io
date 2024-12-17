@@ -6,11 +6,6 @@ import java.net.StandardSocketOptions;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,29 +28,7 @@ public class TioServer {
   private boolean isWaitingStop = false;
   private boolean checkLastVersion = true;
   private static ExecutorService groupExecutor;
-
   private static AsynchronousChannelGroup channelGroup;
-
-  static {
-    if (!EnvUtils.getBoolean("tio.core.hotswap.reload", false)) {
-      int threadCount = Runtime.getRuntime().availableProcessors() * 10;
-      ThreadPoolExecutor executor = new ThreadPoolExecutor(threadCount, threadCount, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
-        private final AtomicInteger count = new AtomicInteger(1);
-
-        @Override
-        public Thread newThread(Runnable r) {
-          Thread t = new Thread(r, "aio-worker-" + count.getAndIncrement());
-          t.setDaemon(true);
-          return t;
-        }
-      });
-      try {
-        channelGroup = AsynchronousChannelGroup.withThreadPool(executor);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    }
-  }
 
   /**
    *
@@ -118,14 +91,10 @@ public class TioServer {
     this.serverNode = new Node(serverIp, serverPort);
     if (EnvUtils.getBoolean("tio.core.hotswap.reload", false)) {
       groupExecutor = Threads.getGroupExecutor();
-      try {
-        channelGroup = AsynchronousChannelGroup.withThreadPool(groupExecutor);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+      channelGroup = AsynchronousChannelGroup.withThreadPool(groupExecutor);
       serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);
     } else {
-      serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);
+      serverSocketChannel = AsynchronousServerSocketChannel.open();
     }
 
     serverSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
@@ -145,6 +114,7 @@ public class TioServer {
     serverSocketChannel.accept(this, acceptCompletionHandler);
 
     serverTioConfig.startTime = System.currentTimeMillis();
+    Threads.getTioExecutor();
   }
 
   /**
