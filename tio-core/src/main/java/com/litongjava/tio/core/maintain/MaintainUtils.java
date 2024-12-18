@@ -41,10 +41,12 @@ public class MaintainUtils {
     }
 
     tioConfig.connections.remove(channelContext);
-    tioConfig.ips.unbind(channelContext);
-    tioConfig.ids.unbind(channelContext);
+    if (channelContext.isBind) {
+      tioConfig.ips.unbind(channelContext);
+      tioConfig.ids.unbind(channelContext);
+      close(channelContext);
+    }
 
-    close(channelContext);
   }
 
   /**

@@ -1,5 +1,6 @@
 package com.litongjava.tio.core.task;
 
+import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.litongjava.aio.Packet;
@@ -9,10 +10,10 @@ import com.litongjava.tio.core.Node;
 import com.litongjava.tio.core.TioConfig;
 import com.litongjava.tio.core.stat.IpStat;
 import com.litongjava.tio.utils.SystemTimer;
-import com.litongjava.tio.utils.cache.AbsCache;
 import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.hutool.CollUtil;
 import com.litongjava.tio.utils.lock.MapWithLock;
+import com.litongjava.tio.utils.lock.SetWithLock;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 public class HandlePacketTask {
 
   private AtomicLong synFailCount = new AtomicLong();
-  
+
   /**
    * 处理packet
    * 
@@ -29,9 +30,18 @@ public class HandlePacketTask {
    *
    * @author tanyaowu
    */
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public void handler(ChannelContext channelContext, Packet packet) {
     // int ret = 0;
     TioConfig tioConfig = channelContext.tioConfig;
+    boolean keepConnection = packet.isKeepConnection();
+    // log.info("keepConnection:{}", keepConnection);
+    if (keepConnection && !channelContext.isBind) {
+      tioConfig.ips.bind(channelContext);
+      tioConfig.ids.bind(channelContext);
+      channelContext.groups = new SetWithLock(new HashSet());
+      channelContext.isBind = true;
+    }
 
     long start = SystemTimer.currTime;
     try {
@@ -54,18 +64,11 @@ public class HandlePacketTask {
         }
 
         if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
-          String ip = client.getIp();
-          int port = client.getPort();
           Long id = packet.getId();
-          String requestInfo = ip + ":" + port + "_" + id;
-          log.info("handle:{},{},{}", ip, port, id);
-          AbsCache cache = tioConfig.getCacheFactory().getCache(TioCoreConfigKeys.REQEUST_PROCESSING);
-          cache.put(SystemTimer.currTime + "", requestInfo);
-          tioConfig.getAioHandler().handler(packet, channelContext);
-          cache.remove(SystemTimer.currTime + "");
-        } else {
-          tioConfig.getAioHandler().handler(packet, channelContext);
+          String requestInfo = channelContext.getClientIpAndPort() + "_" + id;
+          log.info("handle:{}", requestInfo);
         }
+        tioConfig.getAioHandler().handler(packet, channelContext);
       }
     } catch (Throwable e) {
       e.printStackTrace();

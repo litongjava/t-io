@@ -89,13 +89,13 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
       clientSocketChannel.setOption(StandardSocketOptions.SO_SNDBUF, 64 * 1024);
       clientSocketChannel.setOption(StandardSocketOptions.SO_KEEPALIVE, true);
 
-      ServerChannelContext channelContext = new ServerChannelContext(serverTioConfig, clientSocketChannel, clientIp, port);
+      ServerChannelContext channelContext = new ServerChannelContext(serverTioConfig, clientSocketChannel,
+          //
+          clientIp, port);
+      
       channelContext.setClosed(false);
       channelContext.stat.setTimeFirstConnected(SystemTimer.currTime);
       channelContext.setServerNode(tioServer.getServerNode());
-
-      serverTioConfig.ips.bind(channelContext);
-
       boolean isConnected = true;
       boolean isReconnect = false;
       if (serverTioConfig.getServerAioListener() != null) {

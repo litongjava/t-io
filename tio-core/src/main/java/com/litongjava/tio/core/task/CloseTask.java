@@ -16,54 +16,50 @@ public class CloseTask {
     String remark = channelContext.closeMeta.remark;
     Throwable throwable = channelContext.closeMeta.throwable;
     channelContext.stat.timeClosed = SystemTimer.currTime;
-    try {
-      if (channelContext.tioConfig.getAioListener() != null) {
-        try {
-          channelContext.tioConfig.getAioListener().onBeforeClose(channelContext, throwable, remark, isNeedRemove);
-        } catch (Throwable e) {
-          log.error(e.toString(), e);
-        }
-      }
 
+    if (channelContext.tioConfig.getAioListener() != null) {
       try {
-        if (channelContext.isClosed && !isNeedRemove) {
-          return;
-        }
-
-        if (channelContext.isRemoved) {
-          return;
-        }
-
-        try {
-          if (isNeedRemove) {
-            MaintainUtils.remove(channelContext);
-          } else {
-            ClientTioConfig clientTioConfig = (ClientTioConfig) channelContext.tioConfig;
-            clientTioConfig.closeds.add(channelContext);
-            clientTioConfig.connecteds.remove(channelContext);
-            MaintainUtils.close(channelContext);
-          }
-
-          channelContext.setRemoved(isNeedRemove);
-          if (channelContext.tioConfig.statOn) {
-            channelContext.tioConfig.groupStat.closed.incrementAndGet();
-          }
-          channelContext.stat.timeClosed = SystemTimer.currTime;
-          channelContext.setClosed(true);
-        } catch (Throwable e) {
-          log.error(e.toString(), e);
-        } finally {
-          if (!isNeedRemove && channelContext.isClosed && !channelContext.isServer()) // 不删除且没有连接上，则加到重连队列中
-          {
-            ClientChannelContext clientChannelContext = (ClientChannelContext) channelContext;
-            ReconnConf.put(clientChannelContext);
-          }
-        }
+        channelContext.tioConfig.getAioListener().onBeforeClose(channelContext, throwable, remark, isNeedRemove);
       } catch (Throwable e) {
-        log.error(throwable.toString(), e);
+        channelContext.isWaitingClose = false;
+        log.error(e.toString(), e);
       }
+    }
+
+    if (channelContext.isClosed && !isNeedRemove) {
+      return;
+    }
+
+    if (channelContext.isRemoved) {
+      return;
+    }
+
+    try {
+      if (isNeedRemove) {
+        MaintainUtils.remove(channelContext);
+      } else {
+        ClientTioConfig clientTioConfig = (ClientTioConfig) channelContext.tioConfig;
+        clientTioConfig.closeds.add(channelContext);
+        clientTioConfig.connecteds.remove(channelContext);
+        MaintainUtils.close(channelContext);
+      }
+
+      channelContext.setRemoved(isNeedRemove);
+      if (channelContext.tioConfig.statOn) {
+        channelContext.tioConfig.groupStat.closed.incrementAndGet();
+      }
+      channelContext.stat.timeClosed = SystemTimer.currTime;
+      channelContext.setClosed(true);
+    } catch (Throwable e) {
+      log.error(e.toString(), e);
     } finally {
+      if (!isNeedRemove && channelContext.isClosed && !channelContext.isServer()) // 不删除且没有连接上，则加到重连队列中
+      {
+        ClientChannelContext clientChannelContext = (ClientChannelContext) channelContext;
+        ReconnConf.put(clientChannelContext);
+      }
       channelContext.isWaitingClose = false;
     }
+
   }
 }

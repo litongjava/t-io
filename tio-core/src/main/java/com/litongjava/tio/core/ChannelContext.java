@@ -3,7 +3,6 @@ package com.litongjava.tio.core;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -32,6 +31,8 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
   public static final String UNKNOWN_ADDRESS_IP = "$UNKNOWN";
   public static final AtomicInteger UNKNOWN_ADDRESS_PORT_SEQ = new AtomicInteger();
   public boolean isReconnect = false;
+
+  public boolean isBind = false;
   /**
    * 解码出现异常时，是否打印异常日志 此值默认与org.tio.core.TioConfig.logWhenDecodeError保持一致
    */
@@ -47,7 +48,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
   public Integer packetNeededLength = null;
   public TioConfig tioConfig = null;
   public final ReentrantReadWriteLock closeLock = new ReentrantReadWriteLock();
-  
+
   public SslFacadeContext sslFacadeContext;
   public String userid;
   private String token;
@@ -67,7 +68,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
   /**
    * 该连接在哪些组中
    */
-  private SetWithLock<String> groups = null;
+  public SetWithLock<String> groups;
   private Integer readBufferSize = null; // 个性化readBufferSize
   public CloseMeta closeMeta = new CloseMeta();
   private CloseCode closeCode = CloseCode.INIT_STATUS; // 连接关闭的原因码
@@ -139,8 +140,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     if (StrUtil.isBlank(id)) {
       this.id = tioConfig.getTioUuid().id();
     }
-
-    initOther();
   }
 
   private void assignAnUnknownClientNode() {
@@ -234,7 +233,6 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     return token;
   }
 
-
   /**
    *
    * @return
@@ -252,30 +250,15 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
   public void init(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel) {
     id = tioConfig.getTioUuid().id();
     this.setTioConfig(tioConfig);
-    tioConfig.ids.bind(this);
     this.setAsynchronousSocketChannel(asynchronousSocketChannel);
-    
     this.logWhenDecodeError = tioConfig.logWhenDecodeError;
-
-    initOther();
   }
 
   public void init(TioConfig tioConfig, AsynchronousSocketChannel asynchronousSocketChannel, String clientIp, int port) {
     id = tioConfig.getTioUuid().id();
     this.setTioConfig(tioConfig);
-    tioConfig.ids.bind(this);
     this.setAsynchronousSocketChannel(asynchronousSocketChannel, clientIp, port);
     this.logWhenDecodeError = tioConfig.logWhenDecodeError;
-
-    initOther();
-
-  }
-
-  void initOther() {
-    if (!tioConfig.isShortConnection) {
-      // 在长连接中，绑定群组几乎是必须要干的事，所以直接在初始化时给它赋值，省得在后面做同步处理
-      groups = new SetWithLock<String>(new HashSet<>());
-    }
   }
 
   /**
@@ -779,5 +762,16 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     public void setValue(Byte value) {
       this.value = value;
     }
+  }
+
+  public String getClientIpAndPort() {
+    Node client = this.getProxyClientNode();
+    if (client == null) {
+      client = this.getClientNode();
+    }
+
+    String ip = client.getIp();
+    int port = client.getPort();
+    return ip + ':' + port;
   }
 }

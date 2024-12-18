@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
+import com.litongjava.tio.core.pool.ByteBufferPool;
 import com.litongjava.tio.core.stat.IpStat;
 import com.litongjava.tio.core.task.DecodeTask;
 import com.litongjava.tio.core.utils.ByteBufferUtils;
@@ -23,6 +24,7 @@ import com.litongjava.tio.utils.hutool.CollUtil;
 public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuffer> {
   private static Logger log = LoggerFactory.getLogger(ReadCompletionHandler.class);
   private ChannelContext channelContext = null;
+  private DecodeTask decodeTask;
 
   /**
    *
@@ -31,6 +33,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
    */
   public ReadCompletionHandler(ChannelContext channelContext) {
     this.channelContext = channelContext;
+    this.decodeTask = new DecodeTask();
   }
 
   @Override
@@ -71,7 +74,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
       byteBuffer.flip();
       if (channelContext.sslFacadeContext == null) {
         // decode and run handler
-        new DecodeTask().decode(channelContext, byteBuffer);
+        decodeTask.decode(channelContext, byteBuffer);
       } else {
         ByteBuffer copiedByteBuffer = null;
         try {
@@ -86,12 +89,15 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
 
       if (TioUtils.checkBeforeIO(channelContext)) {
         read(byteBuffer);
+      }else {
+        ByteBufferPool.BUFFER_POOL.release(byteBuffer);
       }
 
     } else if (result == 0) {
       String message = "The length of the read data is 0";
       log.error("close {}, because {}", channelContext, message);
       Tio.close(channelContext, null, message, CloseCode.READ_COUNT_IS_ZERO);
+      ByteBufferPool.BUFFER_POOL.release(byteBuffer);
       return;
     } else if (result < 0) {
       if (result == -1) {
@@ -100,11 +106,13 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
           log.info("close {}, because {}", channelContext, message);
         }
         Tio.close(channelContext, null, message, CloseCode.CLOSED_BY_PEER);
+        ByteBufferPool.BUFFER_POOL.release(byteBuffer);
         return;
       } else {
         String message = "The length of the read data is less than -1";
-        Tio.close(channelContext, null, "读数据时返回" + result, CloseCode.READ_COUNT_IS_NEGATIVE);
+        Tio.close(channelContext, null, "read result" + result, CloseCode.READ_COUNT_IS_NEGATIVE);
         log.error("close {}, because {}", channelContext, message);
+        ByteBufferPool.BUFFER_POOL.release(byteBuffer);
         return;
       }
     }
