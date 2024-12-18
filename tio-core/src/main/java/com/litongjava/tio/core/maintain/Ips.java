@@ -16,8 +16,6 @@ import com.litongjava.tio.utils.lock.SetWithLock;
 /**
  * 一对多  (ip <--> ChannelContext)<br>
  * 一个ip有哪些客户端，该维护只在Server侧有<br>
- * @author tanyaowu 
- * 2017年10月19日 上午9:40:27
  */
 public class Ips {
 
@@ -28,14 +26,12 @@ public class Ips {
    * key: ip
    * value: SetWithLock<ChannelContext>
    */
-  private MapWithLock<String, SetWithLock<ChannelContext>> ipmap = new MapWithLock<>(new HashMap<String, SetWithLock<ChannelContext>>());
+  private final MapWithLock<String, SetWithLock<ChannelContext>> ipmap = new MapWithLock<>(new HashMap<String, SetWithLock<ChannelContext>>());
   private final ConcurrentHashMap<String, Object> ipLocks = new ConcurrentHashMap<>();
 
   /**
    * 和ip绑定
-   * @param ip
    * @param channelContext
-   * @author tanyaowu
    */
   public void bind(ChannelContext channelContext) {
     if (channelContext == null) {
@@ -54,6 +50,7 @@ public class Ips {
     if (StrUtil.isBlank(ip)) {
       return;
     }
+
     SetWithLock<ChannelContext> channelSet = ipmap.get(ip);
     try {
       if (channelSet == null) {
@@ -70,7 +67,7 @@ public class Ips {
       }
       channelSet.add(channelContext);
     } catch (Exception e) {
-      log.error(e.toString(), e);
+      log.error("绑定ChannelContext时出错: {}", e.toString(), e);
     }
   }
 
@@ -79,7 +76,6 @@ public class Ips {
    * @param tioConfig
    * @param ip
    * @return
-   * @author tanyaowu
    */
   public SetWithLock<ChannelContext> clients(TioConfig tioConfig, String ip) {
     if (tioConfig.isShortConnection) {
@@ -101,9 +97,7 @@ public class Ips {
 
   /**
    * 与指定ip解除绑定
-   * @param ip
    * @param channelContext
-   * @author tanyaowu
    */
   public void unbind(ChannelContext channelContext) {
     if (channelContext == null) {
@@ -127,13 +121,20 @@ public class Ips {
       if (channelSet != null) {
         channelSet.remove(channelContext);
         if (channelSet.size() == 0) {
-          ipmap.remove(ip);
+          Object lock = ipLocks.computeIfAbsent(ip, k -> new Object());
+          synchronized (lock) {
+            // 再次检查，确保没有新的连接绑定到该 IP
+            if (channelSet.size() == 0) {
+              ipmap.remove(ip);
+              ipLocks.remove(ip); // 移除锁对象，防止内存泄漏
+            }
+          }
         }
       } else {
-        log.info("{}, ip【{}】 找不到对应的SetWithLock", channelContext.tioConfig.getName(), ip);
+        log.debug("{}, ip【{}】 找不到对应的SetWithLock", channelContext.tioConfig.getName(), ip);
       }
     } catch (Exception e) {
-      log.error(e.toString(), e);
+      log.error("解除绑定ChannelContext时出错: {}", e.toString(), e);
     }
   }
 }
