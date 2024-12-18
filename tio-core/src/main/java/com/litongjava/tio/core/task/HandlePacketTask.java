@@ -31,7 +31,7 @@ public class HandlePacketTask {
    * @author tanyaowu
    */
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  public void handler(ChannelContext channelContext, Packet packet) {
+  public void handle(ChannelContext channelContext, Packet packet) {
     // int ret = 0;
     TioConfig tioConfig = channelContext.tioConfig;
     boolean keepConnection = packet.isKeepConnection();
