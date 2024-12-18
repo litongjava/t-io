@@ -2,6 +2,7 @@ package com.litongjava.tio.core.maintain;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.TioConfig;
 import com.litongjava.tio.utils.hutool.StrUtil;
-import com.litongjava.tio.utils.lock.LockUtils;
 import com.litongjava.tio.utils.lock.MapWithLock;
 import com.litongjava.tio.utils.lock.SetWithLock;
 
@@ -28,9 +28,8 @@ public class Ips {
    * key: ip
    * value: SetWithLock<ChannelContext>
    */
-  private MapWithLock<String, SetWithLock<ChannelContext>> ipmap = new MapWithLock<>(
-      new HashMap<String, SetWithLock<ChannelContext>>());
-  private String rwKey = "_tio_ips__";
+  private MapWithLock<String, SetWithLock<ChannelContext>> ipmap = new MapWithLock<>(new HashMap<String, SetWithLock<ChannelContext>>());
+  private final ConcurrentHashMap<String, Object> ipLocks = new ConcurrentHashMap<>();
 
   /**
    * 和ip绑定
@@ -47,24 +46,27 @@ public class Ips {
       return;
     }
 
+    String ip = channelContext.getClientNode().getIp();
+    if (ChannelContext.UNKNOWN_ADDRESS_IP.equals(ip)) {
+      return;
+    }
+
+    if (StrUtil.isBlank(ip)) {
+      return;
+    }
+    SetWithLock<ChannelContext> channelSet = ipmap.get(ip);
     try {
-      String ip = channelContext.getClientNode().getIp();
-      if (ChannelContext.UNKNOWN_ADDRESS_IP.equals(ip)) {
-        return;
-      }
-
-      if (StrUtil.isBlank(ip)) {
-        return;
-      }
-
-      SetWithLock<ChannelContext> channelSet = ipmap.get(ip);
       if (channelSet == null) {
-        LockUtils.runWriteOrWaitRead(rwKey + ip, this, () -> {
-          if (ipmap.get(ip) == null) {
-            ipmap.put(ip, new SetWithLock<>(new HashSet<ChannelContext>()));
+        Object lock = ipLocks.computeIfAbsent(ip, k -> new Object());
+
+        synchronized (lock) {
+          // 双重检查锁定
+          channelSet = ipmap.get(ip);
+          if (channelSet == null) {
+            channelSet = new SetWithLock<>(new HashSet<>());
+            ipmap.put(ip, channelSet);
           }
-        });
-        channelSet = ipmap.get(ip);
+        }
       }
       channelSet.add(channelContext);
     } catch (Exception e) {
