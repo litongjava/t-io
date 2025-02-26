@@ -6,7 +6,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class ByteBufferPool {
 
-  public static final ByteBufferPool BUFFER_POOL = new ByteBufferPool(1000, 4096);
+  public static int cpuNum = Runtime.getRuntime().availableProcessors();
+  public static final ByteBufferPool BUFFER_POOL = new ByteBufferPool(4096 * cpuNum, 8192);
 
   private final LinkedBlockingQueue<ByteBuffer> pool;
   private final int bufferSize;
@@ -15,7 +16,7 @@ public class ByteBufferPool {
     this.pool = new LinkedBlockingQueue<>(poolSize);
     this.bufferSize = bufferSize;
     for (int i = 0; i < poolSize; i++) {
-      pool.offer(ByteBuffer.allocate(bufferSize));
+      pool.offer(ByteBuffer.allocateDirect(bufferSize));
     }
   }
 

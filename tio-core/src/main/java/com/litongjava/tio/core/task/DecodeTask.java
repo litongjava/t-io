@@ -178,6 +178,8 @@ public class DecodeTask {
               log.error(e1.toString(), e1);
             }
           }
+        } else {
+          log.error(e.getMessage(), e);
         }
 
         Tio.close(channelContext, e, "Decode exception:" + e.getMessage(), CloseCode.DECODE_ERROR);
