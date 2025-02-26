@@ -199,7 +199,7 @@ public class Tio {
    * @return
    * @author tanyaowu
    */
-  public static Boolean bSend(ChannelContext channelContext, Packet packet) {
+  public static boolean bSend(ChannelContext channelContext, Packet packet) {
     if (channelContext == null) {
       return false;
     }
@@ -1115,7 +1115,7 @@ public class Tio {
    * @param packet
    * @author tanyaowu
    */
-  public static Boolean send(ChannelContext channelContext, Packet packet) {
+  public static boolean send(ChannelContext channelContext, Packet packet) {
     return send(channelContext, packet, null, null);
   }
 
@@ -1128,7 +1128,7 @@ public class Tio {
    * @return
    * @author tanyaowu
    */
-  private static Boolean send(final ChannelContext channelContext, Packet packet, CountDownLatch countDownLatch,
+  private static boolean send(final ChannelContext channelContext, Packet packet, CountDownLatch countDownLatch,
       //
       PacketSendMode packetSendMode) {
     if (packet == null || channelContext == null) {
@@ -1149,7 +1149,7 @@ public class Tio {
         countDownLatch.countDown();
       }
       if (channelContext != null) {
-        log.info("can't send data, {}, isClosed:{}, isRemoved:{}", channelContext, channelContext.isClosed, channelContext.isRemoved);
+        log.error("can't send data, {}, isClosed:{}, isRemoved:{}", channelContext, channelContext.isClosed, channelContext.isRemoved);
       }
       return false;
     }
@@ -1197,7 +1197,6 @@ public class Tio {
     } else {
       return true;
     }
-
   }
 
   /**

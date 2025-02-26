@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.litongjava</groupId>
@@ -6,9 +8,9 @@
     <version>3.7.3.v20240601-RELEASE</version>
   </parent>
   <artifactId>tio-core</artifactId>
-  <version>3.7.3.v20250201-RELEASE</version>
+  <version>3.7.3.v20250301-RELEASE</version>
   <properties>
-    <tio-utils.version>3.7.3.v20250201-RELEASE</tio-utils.version>
+    <tio-utils.version>3.7.3.v20250301-RELEASE</tio-utils.version>
   </properties>
   <dependencies>
     <dependency>
@@ -90,7 +92,8 @@
                   <goal>jar</goal>
                 </goals>
                 <configuration>
-                  <additionalparam>-Xdoclint:none</additionalparam> <!-- 防止生成docs时报错 -->
+                  <additionalparam>-Xdoclint:none</additionalparam> <!--
+                  防止生成docs时报错 -->
                 </configuration>
               </execution>
             </executions>
