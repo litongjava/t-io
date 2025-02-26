@@ -11,10 +11,11 @@ import java.nio.channels.CompletionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.litongjava.enhance.buffer.VirtualBuffer;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ReadCompletionHandler;
 import com.litongjava.tio.core.Tio.IpBlacklist;
-import com.litongjava.tio.core.pool.ByteBufferPool;
+import com.litongjava.tio.core.pool.BufferPageUtils;
 import com.litongjava.tio.core.ssl.SslUtils;
 import com.litongjava.tio.core.stat.IpStat;
 import com.litongjava.tio.utils.SystemTimer;
@@ -92,7 +93,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
       ServerChannelContext channelContext = new ServerChannelContext(serverTioConfig, clientSocketChannel,
           //
           clientIp, port);
-      
+
       channelContext.setClosed(false);
       channelContext.stat.setTimeFirstConnected(SystemTimer.currTime);
       channelContext.setServerNode(tioServer.getServerNode());
@@ -122,11 +123,12 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 
       if (!tioServer.isWaitingStop()) {
         ReadCompletionHandler readCompletionHandler = new ReadCompletionHandler(channelContext);
-        ByteBuffer readByteBuffer = ByteBufferPool.BUFFER_POOL.acquire(serverTioConfig.getByteOrder());
+        VirtualBuffer attachment = BufferPageUtils.allocate(channelContext.getReadBufferSize());
+        ByteBuffer readByteBuffer = attachment.buffer();
         // ByteBuffer.allocateDirect(channelContext.tioConfig.getReadBufferSize());
         readByteBuffer.position(0);
         readByteBuffer.limit(readByteBuffer.capacity());
-        clientSocketChannel.read(readByteBuffer, readByteBuffer, readCompletionHandler);
+        clientSocketChannel.read(readByteBuffer, attachment, readCompletionHandler);
       }
     } catch (Throwable e) {
       log.error("Failed to read data from :{},{}", clientIp, port);

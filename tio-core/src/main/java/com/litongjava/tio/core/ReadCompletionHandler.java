@@ -6,9 +6,10 @@ import java.nio.channels.CompletionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.litongjava.enhance.buffer.VirtualBuffer;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
-import com.litongjava.tio.core.pool.ByteBufferPool;
+import com.litongjava.tio.core.pool.BufferPageUtils;
 import com.litongjava.tio.core.stat.IpStat;
 import com.litongjava.tio.core.task.DecodeTask;
 import com.litongjava.tio.core.utils.ByteBufferUtils;
@@ -21,7 +22,7 @@ import com.litongjava.tio.utils.hutool.CollUtil;
  *
  * @author tanyaowu 2017年4月4日 上午9:22:04
  */
-public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuffer> {
+public class ReadCompletionHandler implements CompletionHandler<Integer, VirtualBuffer> {
   private static Logger log = LoggerFactory.getLogger(ReadCompletionHandler.class);
   private ChannelContext channelContext = null;
   private DecodeTask decodeTask;
@@ -37,7 +38,8 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
   }
 
   @Override
-  public void completed(Integer result, ByteBuffer byteBuffer) {
+  public void completed(Integer result, VirtualBuffer virtualBuffer) {
+    ByteBuffer byteBuffer = virtualBuffer.buffer();
     if (result > 0) {
       TioConfig tioConfig = channelContext.tioConfig;
       if (tioConfig.statOn) {
@@ -88,16 +90,19 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
       }
 
       if (TioUtils.checkBeforeIO(channelContext)) {
-        read(byteBuffer);
-      }else {
-        ByteBufferPool.BUFFER_POOL.release(byteBuffer);
+        read(byteBuffer, virtualBuffer);
+      } else {
+        virtualBuffer.clean();
       }
 
     } else if (result == 0) {
       String message = "The length of the read data is 0";
       log.error("close {}, because {}", channelContext, message);
-      Tio.close(channelContext, null, message, CloseCode.READ_COUNT_IS_ZERO);
-      ByteBufferPool.BUFFER_POOL.release(byteBuffer);
+      try {
+        Tio.close(channelContext, null, message, CloseCode.READ_COUNT_IS_ZERO);
+      } finally {
+        virtualBuffer.clean();
+      }
       return;
     } else if (result < 0) {
       if (result == -1) {
@@ -105,28 +110,36 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
         if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
           log.info("close {}, because {}", channelContext, message);
         }
-        Tio.close(channelContext, null, message, CloseCode.CLOSED_BY_PEER);
-        ByteBufferPool.BUFFER_POOL.release(byteBuffer);
+        try {
+          Tio.close(channelContext, null, message, CloseCode.CLOSED_BY_PEER);
+        } finally {
+          virtualBuffer.clean();
+        }
         return;
       } else {
         String message = "The length of the read data is less than -1";
-        Tio.close(channelContext, null, "read result" + result, CloseCode.READ_COUNT_IS_NEGATIVE);
         log.error("close {}, because {}", channelContext, message);
-        ByteBufferPool.BUFFER_POOL.release(byteBuffer);
+        try {
+          Tio.close(channelContext, null, "read result" + result, CloseCode.READ_COUNT_IS_NEGATIVE);
+        } catch (Exception e) {
+          virtualBuffer.clean();
+        }
         return;
       }
     }
   }
 
-  private void read(ByteBuffer readByteBuffer) {
+  private void read(ByteBuffer readByteBuffer, VirtualBuffer virtualBuffer) {
     if (readByteBuffer.capacity() == channelContext.getReadBufferSize()) {
       readByteBuffer.position(0);
       readByteBuffer.limit(readByteBuffer.capacity());
     } else {
-      readByteBuffer = ByteBuffer.allocate(channelContext.getReadBufferSize());
+      virtualBuffer.clean();
+      virtualBuffer = BufferPageUtils.allocate(channelContext.getReadBufferSize());
+      readByteBuffer = virtualBuffer.buffer();
     }
 
-    channelContext.asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, this);
+    channelContext.asynchronousSocketChannel.read(readByteBuffer, virtualBuffer, this);
   }
 
   /**
@@ -136,7 +149,12 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, ByteBuf
    * @author tanyaowu
    */
   @Override
-  public void failed(Throwable exc, ByteBuffer byteBuffer) {
-    Tio.close(channelContext, exc, "Failed to read data: " + exc.getClass().getName(), CloseCode.READ_ERROR);
+  public void failed(Throwable exc, VirtualBuffer virtualBuffer) {
+    try {
+      Tio.close(channelContext, exc, "Failed to read data: " + exc.getClass().getName(), CloseCode.READ_ERROR);
+    } finally {
+      virtualBuffer.clean();
+    }
+
   }
 }

@@ -7,13 +7,14 @@ import java.nio.channels.CompletionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.litongjava.enhance.buffer.VirtualBuffer;
 import com.litongjava.tio.client.intf.ClientAioListener;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
 import com.litongjava.tio.core.Node;
 import com.litongjava.tio.core.ReadCompletionHandler;
 import com.litongjava.tio.core.Tio;
 import com.litongjava.tio.core.TioConfig;
-import com.litongjava.tio.core.pool.ByteBufferPool;
+import com.litongjava.tio.core.pool.BufferPageUtils;
 import com.litongjava.tio.core.ssl.SslFacadeContext;
 import com.litongjava.tio.core.ssl.SslUtils;
 import com.litongjava.tio.core.stat.IpStat;
@@ -93,10 +94,11 @@ public class ConnectionCompletionHandler implements CompletionHandler<Void, Conn
         clientTioConfig.connecteds.add(channelContext);
 
         ReadCompletionHandler readCompletionHandler = new ReadCompletionHandler(channelContext);
-        ByteBuffer readByteBuffer = ByteBufferPool.BUFFER_POOL.acquire();
+        VirtualBuffer vBuffer = BufferPageUtils.allocate(channelContext.getReadBufferSize());
+        ByteBuffer readByteBuffer = vBuffer.buffer();
         readByteBuffer.position(0);
         readByteBuffer.limit(readByteBuffer.capacity());
-        asynchronousSocketChannel.read(readByteBuffer, readByteBuffer, readCompletionHandler);
+        asynchronousSocketChannel.read(readByteBuffer, vBuffer, readCompletionHandler);
 
         log.info("connected to {}", serverNode);
         if (isConnected && !isReconnect) {
