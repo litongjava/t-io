@@ -6,10 +6,13 @@ import java.net.StandardSocketOptions;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.litongjava.enhance.channel.EnhanceAsynchronousChannelProvider;
+import com.litongjava.enhance.channel.EnhanceAsynchronousServerSocketChannel;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.Node;
 import com.litongjava.tio.utils.Threads;
@@ -18,7 +21,6 @@ import com.litongjava.tio.utils.hutool.StrUtil;
 
 /**
  * @author tanyaowu
- *
  */
 public class TioServer {
   private static Logger log = LoggerFactory.getLogger(TioServer.class);
@@ -30,13 +32,6 @@ public class TioServer {
   private static ExecutorService groupExecutor;
   private static AsynchronousChannelGroup channelGroup;
 
-  /**
-   *
-   * @param serverTioConfig
-   *
-   * @author tanyaowu 2017年1月2日 下午5:53:06
-   *
-   */
   public TioServer(ServerTioConfig serverTioConfig) {
     super();
     this.serverTioConfig = serverTioConfig;
@@ -94,7 +89,18 @@ public class TioServer {
       channelGroup = AsynchronousChannelGroup.withThreadPool(groupExecutor);
       serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);
     } else {
-      serverSocketChannel = AsynchronousServerSocketChannel.open();
+      //serverSocketChannel = AsynchronousServerSocketChannel.open();
+      EnhanceAsynchronousChannelProvider provider = new EnhanceAsynchronousChannelProvider(false);
+      int availableProcessors = Runtime.getRuntime().availableProcessors() * 2;
+      AsynchronousChannelGroup group = provider.openAsynchronousChannelGroup(availableProcessors, new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+          return new Thread(r, "t-io");
+        }
+      });
+
+      // 使用提供者创建服务器通道
+      serverSocketChannel = (EnhanceAsynchronousServerSocketChannel) provider.openAsynchronousServerSocketChannel(group);
     }
 
     serverSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);

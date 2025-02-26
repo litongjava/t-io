@@ -15,6 +15,11 @@
   <dependencies>
     <dependency>
       <groupId>com.litongjava</groupId>
+      <artifactId>aio-socket</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.litongjava</groupId>
       <artifactId>tio-utils</artifactId>
       <version>${tio-utils.version}</version>
     </dependency>
