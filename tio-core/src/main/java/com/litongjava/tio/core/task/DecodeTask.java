@@ -1,6 +1,5 @@
 package com.litongjava.tio.core.task;
 
-import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -69,7 +68,7 @@ public class DecodeTask {
         } else {
           try {
             packet = tioConfig.getAioHandler().decode(byteBuffer, limit, initPosition, readableLength, channelContext);
-          } catch (BufferUnderflowException e) {
+          } catch (Exception e) {
             log.error("Failed to decode:{}", channelContext);
           }
         }
