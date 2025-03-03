@@ -7,6 +7,7 @@ import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,10 +93,11 @@ public class TioServer {
       //serverSocketChannel = AsynchronousServerSocketChannel.open();
       EnhanceAsynchronousChannelProvider provider = new EnhanceAsynchronousChannelProvider(false);
       int availableProcessors = Runtime.getRuntime().availableProcessors() * 2;
+      AtomicInteger threadNumber = new AtomicInteger(1);
       AsynchronousChannelGroup group = provider.openAsynchronousChannelGroup(availableProcessors, new ThreadFactory() {
         @Override
         public Thread newThread(Runnable r) {
-          return new Thread(r, "t-io");
+          return new Thread(r, "t-io-" + threadNumber.getAndIncrement());
         }
       });
 
@@ -114,7 +116,7 @@ public class TioServer {
       listenAddress = new InetSocketAddress(serverIp, serverPort);
     }
 
-    serverSocketChannel.bind(listenAddress, 0);
+    serverSocketChannel.bind(listenAddress, 2048);
 
     AcceptCompletionHandler acceptCompletionHandler = new AcceptCompletionHandler();
     serverSocketChannel.accept(this, acceptCompletionHandler);
@@ -165,10 +167,5 @@ public class TioServer {
 
   public boolean isCheckLastVersion() {
     return checkLastVersion;
-  }
-
-  public void setCheckLastVersion(boolean checkLastVersion) {
-    log.debug("community edition is no longer supported");
-    // this.checkLastVersion = checkLastVersion;
   }
 }

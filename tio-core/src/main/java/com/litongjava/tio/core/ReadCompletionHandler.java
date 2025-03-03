@@ -150,11 +150,6 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, Virtual
    */
   @Override
   public void failed(Throwable exc, VirtualBuffer virtualBuffer) {
-    try {
-      Tio.close(channelContext, exc, "Failed to read data: " + exc.getClass().getName(), CloseCode.READ_ERROR);
-    } finally {
-      virtualBuffer.clean();
-    }
-
+    Tio.close(channelContext, exc, "Failed to read data: " + exc.getClass().getName(), CloseCode.READ_ERROR);
   }
 }
