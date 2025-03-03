@@ -35,12 +35,13 @@ import com.litongjava.tio.utils.page.PageUtils;
  * @author tanyaowu
  */
 public class Tio {
+  private final static boolean DIAGNOSTIC_LOG_ENABLED = EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false);
+
   public static class IpBlacklist {
     /**
      * 把ip添加到黑名单，此黑名单只针对tioConfig有效，其它tioConfig不会把这个ip视为黑名单
      * @param tioConfig
      * @param ip
-     * @author tanyaowu
      */
     public static boolean add(TioConfig tioConfig, String ip) {
       return tioConfig.ipBlacklist.add(ip);
@@ -451,7 +452,8 @@ public class Tio {
         }
       }
     }
-    if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
+
+    if (DIAGNOSTIC_LOG_ENABLED) {
       log.info("close {},remark:{}", channelContext, remark);
     }
     channelContext.closeMeta.setNeedRemove(isNeedRemove);

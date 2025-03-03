@@ -28,9 +28,6 @@ public class MaintainUtils {
   /**
    * 彻底删除，不再维护
    * @param channelContext
-   *
-   * @author tanyaowu
-   *
    */
   public static void remove(ChannelContext channelContext) {
     TioConfig tioConfig = channelContext.tioConfig;
@@ -60,6 +57,7 @@ public class MaintainUtils {
     tioConfig.tokens.unbind(channelContext);
     tioConfig.groups.unbind(channelContext);
 
+    
     tioConfig.bsIds.unbind(channelContext);
     deleteTempDir(channelContext);
   }

@@ -23,6 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DecodeTask {
 
+  private final static boolean DIAGNOSTIC_LOG_ENABLED = EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false);
+  
   /**
    * 上一次解码剩下的数据
    */
@@ -35,7 +37,7 @@ public class DecodeTask {
 
   public void decode(ChannelContext channelContext, ByteBuffer byteBuffer) {
     TioConfig tioConfig = channelContext.tioConfig;
-    if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
+    if (DIAGNOSTIC_LOG_ENABLED) {
       log.info("decode:{}", channelContext.getClientNode());
     }
     if (lastByteBuffer != null) {

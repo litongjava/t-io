@@ -7,6 +7,7 @@ import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
@@ -133,36 +134,42 @@ public class TioServer {
   public boolean stop() {
     isWaitingStop = true;
 
-    if (channelGroup != null) {
+    if (channelGroup != null && !channelGroup.isShutdown()) {
       try {
         channelGroup.shutdownNow();
+        if (!channelGroup.awaitTermination(5, TimeUnit.SECONDS)) {
+          log.warn("channelGroup did not terminate within the timeout");
+        }
       } catch (Exception e) {
         log.error("Faild to execute channelGroup.shutdownNow()", e);
       }
     }
 
-    if (groupExecutor != null) {
+    if (groupExecutor != null && !groupExecutor.isShutdown()) {
       try {
         groupExecutor.shutdownNow();
+        if (!groupExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+          log.warn("groupExecutor did not terminate within the timeout");
+        }
       } catch (Exception e) {
         log.error("Failed to close groupExecutor", e);
       }
-
     }
 
-    if (serverSocketChannel != null) {
+    if (serverSocketChannel != null && serverSocketChannel.isOpen()) {
       try {
         serverSocketChannel.close();
       } catch (Exception e) {
         log.error("Failed to close serverSocketChannel", e);
       }
-
     }
 
     serverTioConfig.setStopped(true);
     boolean ret = Threads.close();
     log.info(this.serverNode + " stopped");
+
     return ret;
+
   }
 
   public boolean isCheckLastVersion() {

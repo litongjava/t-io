@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.litongjava.aio.Packet;
 import com.litongjava.aio.Packet.Meta;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
@@ -19,13 +16,16 @@ import com.litongjava.tio.utils.SystemTimer;
 import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.hutool.CollUtil;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  *
  * @author tanyaowu
  *
  */
+@Slf4j
 public class WriteCompletionHandler implements CompletionHandler<Integer, WriteCompletionVo> {
-  private static Logger log = LoggerFactory.getLogger(WriteCompletionHandler.class);
+  private final static boolean DIAGNOSTIC_LOG_ENABLED = EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false);
   private ChannelContext channelContext = null;
   public final ReentrantLock lock = new ReentrantLock();
   public final Condition condition = lock.newCondition();
@@ -52,6 +52,7 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
   }
 
   @Override
+  
   public void completed(Integer bytesWritten, WriteCompletionVo writeCompletionVo) {
     if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
       log.info("write:{},{}", channelContext.getClientNode(), bytesWritten);
@@ -153,7 +154,7 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
 
     if (!packet.isKeepConnection()) {
       String msg = "remove conneciton because KeepedConnection is false:" + packet.logstr();
-      if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
+      if (DIAGNOSTIC_LOG_ENABLED) {
         log.info(msg);
       }
       Tio.close(channelContext, msg);

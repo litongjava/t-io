@@ -16,7 +16,6 @@ import com.litongjava.tio.core.intf.AioHandler;
 import com.litongjava.tio.core.ssl.SslUtils;
 import com.litongjava.tio.core.ssl.SslVo;
 import com.litongjava.tio.core.utils.TioUtils;
-import com.litongjava.tio.utils.Threads;
 import com.litongjava.tio.utils.environment.EnvUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SendPacketTask {
 
+  private final static boolean DIAGNOSTIC_LOG_ENABLED = EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false);
+  
   public boolean canSend = true;
   private ChannelContext channelContext = null;
   private TioConfig tioConfig = null;
@@ -54,7 +55,7 @@ public class SendPacketTask {
   }
 
   public boolean sendPacket(Packet packet) {
-    if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
+    if (DIAGNOSTIC_LOG_ENABLED) {
       log.info("send:{},{}", channelContext.getClientNode(), packet);
     }
     ByteBuffer byteBuffer = getByteBuffer(packet);
@@ -92,10 +93,8 @@ public class SendPacketTask {
       return;
     }
 
-    Threads.getTioExecutor().submit(() -> {
-      WriteCompletionVo writeCompletionVo = new WriteCompletionVo(byteBuffer, packets);
-      WriteCompletionHandler writeCompletionHandler = new WriteCompletionHandler(this.channelContext);
-      this.channelContext.asynchronousSocketChannel.write(byteBuffer, writeCompletionVo, writeCompletionHandler);
-    });
+    WriteCompletionVo writeCompletionVo = new WriteCompletionVo(byteBuffer, packets);
+    WriteCompletionHandler writeCompletionHandler = new WriteCompletionHandler(this.channelContext);
+    this.channelContext.asynchronousSocketChannel.write(byteBuffer, writeCompletionVo, writeCompletionHandler);
   }
 }

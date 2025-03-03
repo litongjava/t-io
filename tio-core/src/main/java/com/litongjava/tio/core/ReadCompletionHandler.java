@@ -23,6 +23,8 @@ import com.litongjava.tio.utils.hutool.CollUtil;
  * @author tanyaowu 2017年4月4日 上午9:22:04
  */
 public class ReadCompletionHandler implements CompletionHandler<Integer, VirtualBuffer> {
+  private final static boolean DIAGNOSTIC_LOG_ENABLED = EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false);
+  
   private static Logger log = LoggerFactory.getLogger(ReadCompletionHandler.class);
   private ChannelContext channelContext = null;
   private DecodeTask decodeTask;
@@ -76,7 +78,14 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, Virtual
       byteBuffer.flip();
       if (channelContext.sslFacadeContext == null) {
         // decode and run handler
-        decodeTask.decode(channelContext, byteBuffer);
+        try {
+          decodeTask.decode(channelContext, byteBuffer); //原代码
+        } catch (Throwable e) {
+          log.error("Decode error", e);
+          virtualBuffer.clean();
+          Tio.close(channelContext, e, "unexpected decode error", CloseCode.DECODE_ERROR);
+          return;
+        }
       } else {
         ByteBuffer copiedByteBuffer = null;
         try {
@@ -107,7 +116,8 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, Virtual
     } else if (result < 0) {
       if (result == -1) {
         String message = "The connection closed by peer";
-        if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
+        
+        if (DIAGNOSTIC_LOG_ENABLED) {
           log.info("close {}, because {}", channelContext, message);
         }
         try {

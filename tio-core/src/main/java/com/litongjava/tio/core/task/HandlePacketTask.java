@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HandlePacketTask {
 
+  private final static boolean DIAGNOSTIC_LOG_ENABLED = EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false);
   private AtomicLong synFailCount = new AtomicLong();
 
   /**
@@ -63,7 +64,7 @@ public class HandlePacketTask {
           client = channelContext.getClientNode();
         }
 
-        if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
+        if (DIAGNOSTIC_LOG_ENABLED) {
           Long id = packet.getId();
           String requestInfo = channelContext.getClientIpAndPort() + "_" + id;
           log.info("handle:{}", requestInfo);

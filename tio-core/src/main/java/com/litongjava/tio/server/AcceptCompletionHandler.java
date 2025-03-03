@@ -27,6 +27,7 @@ import com.litongjava.tio.utils.hutool.CollUtil;
  * @author tanyaowu 2017年4月4日 上午9:27:45
  */
 public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSocketChannel, TioServer> {
+  private final static boolean DIAGNOSTIC_LOG_ENABLED = EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false);
 
   private static Logger log = LoggerFactory.getLogger(AcceptCompletionHandler.class);
 
@@ -65,11 +66,17 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
       inetSocketAddress = (InetSocketAddress) clientSocketChannel.getRemoteAddress();
       clientIp = inetSocketAddress.getHostString();
       port = inetSocketAddress.getPort();
-      if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
+      if (DIAGNOSTIC_LOG_ENABLED) {
         log.info("new connection:{},{}", clientIp, port);
       }
     } catch (IOException e1) {
       log.error("Failed to get client ip and port", e1);
+      try {
+        clientSocketChannel.close();
+      } catch (Exception closeEx) {
+        log.error("Failed to close socket after exception", closeEx);
+      }
+      return;
     }
 
     ServerTioConfig serverTioConfig = tioServer.getServerTioConfig();

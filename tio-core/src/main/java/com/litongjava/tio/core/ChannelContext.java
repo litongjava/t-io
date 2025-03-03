@@ -8,9 +8,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.litongjava.aio.Packet;
 import com.litongjava.aio.Packet.Meta;
 import com.litongjava.tio.core.ssl.SslFacadeContext;
@@ -21,12 +18,14 @@ import com.litongjava.tio.utils.hutool.StrUtil;
 import com.litongjava.tio.utils.lock.SetWithLock;
 import com.litongjava.tio.utils.prop.MapWithLockPropSupport;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  *
  * @author tanyaowu 2017年10月19日 上午9:39:46
  */
+@Slf4j
 public abstract class ChannelContext extends MapWithLockPropSupport {
-  private static Logger log = LoggerFactory.getLogger(ChannelContext.class);
   private static final String DEFAULT_ATTUBITE_KEY = "t-io-d-a-k";
   public static final String UNKNOWN_ADDRESS_IP = "$UNKNOWN";
   public static final AtomicInteger UNKNOWN_ADDRESS_PORT_SEQ = new AtomicInteger();
