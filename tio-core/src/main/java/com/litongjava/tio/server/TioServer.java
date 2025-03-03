@@ -30,7 +30,6 @@ public class TioServer {
   private AsynchronousServerSocketChannel serverSocketChannel;
   private Node serverNode;
   private boolean isWaitingStop = false;
-  private boolean checkLastVersion = true;
   private static ExecutorService groupExecutor;
   private static AsynchronousChannelGroup channelGroup;
 
@@ -170,9 +169,5 @@ public class TioServer {
 
     return ret;
 
-  }
-
-  public boolean isCheckLastVersion() {
-    return checkLastVersion;
   }
 }
