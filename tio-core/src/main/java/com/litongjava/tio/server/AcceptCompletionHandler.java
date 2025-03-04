@@ -8,9 +8,6 @@ import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.litongjava.enhance.buffer.VirtualBuffer;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ReadCompletionHandler;
@@ -22,17 +19,15 @@ import com.litongjava.tio.utils.SystemTimer;
 import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.hutool.CollUtil;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  *
  * @author tanyaowu 2017年4月4日 上午9:27:45
  */
+@Slf4j
 public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSocketChannel, TioServer> {
   private final static boolean DIAGNOSTIC_LOG_ENABLED = EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false);
-
-  private static Logger log = LoggerFactory.getLogger(AcceptCompletionHandler.class);
-
-  public AcceptCompletionHandler() {
-  }
 
   /**
    *
@@ -132,14 +127,12 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
         ReadCompletionHandler readCompletionHandler = new ReadCompletionHandler(channelContext);
         VirtualBuffer attachment = BufferPageUtils.allocate(channelContext.getReadBufferSize());
         ByteBuffer readByteBuffer = attachment.buffer();
-        // ByteBuffer.allocateDirect(channelContext.tioConfig.getReadBufferSize());
         readByteBuffer.position(0);
         readByteBuffer.limit(readByteBuffer.capacity());
         clientSocketChannel.read(readByteBuffer, attachment, readCompletionHandler);
       }
     } catch (Throwable e) {
-      log.error("Failed to read data from :{},{}", clientIp, port);
-      e.printStackTrace();
+      log.error("Failed to read data from :{},{}", clientIp, port, e);
     }
   }
 

@@ -6,9 +6,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.litongjava.aio.AioId;
 import com.litongjava.aio.Packet;
 import com.litongjava.tio.client.ClientTioConfig;
@@ -40,13 +37,14 @@ import com.litongjava.tio.utils.lock.MapWithLock;
 import com.litongjava.tio.utils.lock.SetWithLock;
 import com.litongjava.tio.utils.prop.MapWithLockPropSupport;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 
  * @author tanyaowu 2016年10月10日 下午5:25:43
  */
+@Slf4j
 public abstract class TioConfig extends MapWithLockPropSupport {
-  static Logger log = LoggerFactory.getLogger(TioConfig.class);
-
   /**
    * 本jvm中所有的ServerTioConfig对象
    */
@@ -62,7 +60,7 @@ public abstract class TioConfig extends MapWithLockPropSupport {
   /**
    * 默认的接收数据的buffer size
    */
-  public static final int READ_BUFFER_SIZE = Integer.getInteger("tio.default.read.buffer.size", 20480);
+  public static final int READ_BUFFER_SIZE = EnvUtils.getInt("tio.default.read.buffer.size", 8192);
   private final static AtomicInteger ID_ATOMIC = new AtomicInteger();
   private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
   public boolean isShortConnection = false;
@@ -147,23 +145,14 @@ public abstract class TioConfig extends MapWithLockPropSupport {
    * 获取AioHandler对象
    * 
    * @return
-   * @author: tanyaowu
    */
   public abstract AioHandler getAioHandler();
 
   /**
    * 获取AioListener对象
-   * 
-   * @return
-   * @author: tanyaowu
    */
   public abstract AioListener getAioListener();
 
-  /**
-   *
-   * @return
-   * @author tanyaowu
-   */
   public ByteOrder getByteOrder() {
     return byteOrder;
   }
@@ -175,18 +164,6 @@ public abstract class TioConfig extends MapWithLockPropSupport {
     return groupListener;
   }
 
-  // /**
-  // * 获取GroupStat对象
-  // * @return
-  // * @author: tanyaowu
-  // */
-  // public abstract GroupStat groupStat;
-
-  /**
-   *
-   * @return
-   * @author tanyaowu
-   */
   public String getId() {
     return id;
   }

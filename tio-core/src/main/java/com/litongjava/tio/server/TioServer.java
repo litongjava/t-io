@@ -10,9 +10,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.litongjava.enhance.channel.EnhanceAsynchronousChannelProvider;
 import com.litongjava.enhance.channel.EnhanceAsynchronousServerSocketChannel;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
@@ -21,11 +18,13 @@ import com.litongjava.tio.utils.Threads;
 import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.hutool.StrUtil;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author tanyaowu
  */
+@Slf4j
 public class TioServer {
-  private static Logger log = LoggerFactory.getLogger(TioServer.class);
   private ServerTioConfig serverTioConfig;
   private AsynchronousServerSocketChannel serverSocketChannel;
   private Node serverNode;
@@ -92,7 +91,7 @@ public class TioServer {
     } else {
       //serverSocketChannel = AsynchronousServerSocketChannel.open();
       EnhanceAsynchronousChannelProvider provider = new EnhanceAsynchronousChannelProvider(false);
-      int availableProcessors = Runtime.getRuntime().availableProcessors() * 2;
+      int availableProcessors = Runtime.getRuntime().availableProcessors() * 4;
       AtomicInteger threadNumber = new AtomicInteger(1);
       AsynchronousChannelGroup group = provider.openAsynchronousChannelGroup(availableProcessors, new ThreadFactory() {
         @Override
