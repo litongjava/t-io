@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SendPacketTask {
 
   private final static boolean DIAGNOSTIC_LOG_ENABLED = EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false);
-  
+
   public boolean canSend = true;
   private ChannelContext channelContext = null;
   private TioConfig tioConfig = null;
@@ -58,22 +58,32 @@ public class SendPacketTask {
     if (DIAGNOSTIC_LOG_ENABLED) {
       log.info("send:{},{}", channelContext.getClientNode(), packet);
     }
-    ByteBuffer byteBuffer = getByteBuffer(packet);
-    if (isSsl) {
-      if (!packet.isSslEncrypted()) {
-        SslVo sslVo = new SslVo(byteBuffer, packet);
-        try {
-          channelContext.sslFacadeContext.getSslFacade().encrypt(sslVo);
-          byteBuffer = sslVo.getByteBuffer();
-        } catch (SSLException e) {
-          log.error(channelContext.toString() + ", An exception occurred while performing SSL encryption", e);
-          Tio.close(channelContext, "An exception occurred during SSL encryption.", CloseCode.SSL_ENCRYPTION_ERROR);
-          return false;
+    // 将数据包加入队列
+    channelContext.sendQueue.offer(packet);
+    // 如果当前没有发送且队列不为空，则开始发送
+    if (channelContext.isSending.compareAndSet(false, true)) {
+      Packet nextPacket = channelContext.sendQueue.poll();
+      if (nextPacket != null) {
+        ByteBuffer byteBuffer = getByteBuffer(packet);
+        if (isSsl) {
+          if (!packet.isSslEncrypted()) {
+            SslVo sslVo = new SslVo(byteBuffer, packet);
+            try {
+              channelContext.sslFacadeContext.getSslFacade().encrypt(sslVo);
+              byteBuffer = sslVo.getByteBuffer();
+            } catch (SSLException e) {
+              log.error(channelContext.toString() + ", An exception occurred while performing SSL encryption", e);
+              Tio.close(channelContext, "An exception occurred during SSL encryption.", CloseCode.SSL_ENCRYPTION_ERROR);
+              return false;
+            }
+          }
         }
+        sendByteBuffer(byteBuffer, packet);
+      } else {
+        channelContext.isSending.set(false);
       }
     }
 
-    sendByteBuffer(byteBuffer, packet);
     return true;
   }
 
@@ -96,5 +106,30 @@ public class SendPacketTask {
     WriteCompletionVo writeCompletionVo = new WriteCompletionVo(byteBuffer, packets);
     WriteCompletionHandler writeCompletionHandler = new WriteCompletionHandler(this.channelContext);
     this.channelContext.asynchronousSocketChannel.write(byteBuffer, writeCompletionVo, writeCompletionHandler);
+  }
+
+  public void processSendQueue() {
+    // 如果当前没有发送且队列不为空，则开始发送
+    if (channelContext.isSending.compareAndSet(false, true)) {
+      Packet nextPacket = channelContext.sendQueue.poll();
+      if (nextPacket != null) {
+        ByteBuffer byteBuffer = getByteBuffer(nextPacket);
+        if (isSsl) {
+          if (!nextPacket.isSslEncrypted()) {
+            SslVo sslVo = new SslVo(byteBuffer, nextPacket);
+            try {
+              channelContext.sslFacadeContext.getSslFacade().encrypt(sslVo);
+              byteBuffer = sslVo.getByteBuffer();
+            } catch (SSLException e) {
+              log.error(channelContext.toString() + ", An exception occurred while performing SSL encryption", e);
+              Tio.close(channelContext, "An exception occurred during SSL encryption.", CloseCode.SSL_ENCRYPTION_ERROR);
+            }
+          }
+        }
+        sendByteBuffer(byteBuffer, nextPacket);
+      } else {
+        channelContext.isSending.set(false);
+      }
+    }
   }
 }

@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -71,6 +74,10 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
   private Integer readBufferSize = null; // 个性化readBufferSize
   public CloseMeta closeMeta = new CloseMeta();
   private CloseCode closeCode = CloseCode.INIT_STATUS; // 连接关闭的原因码
+
+  // 添加发送队列和控制变量
+  public final Queue<Packet> sendQueue = new ConcurrentLinkedQueue<>();
+  public final AtomicBoolean isSending = new AtomicBoolean(false);
 
   /**
    *

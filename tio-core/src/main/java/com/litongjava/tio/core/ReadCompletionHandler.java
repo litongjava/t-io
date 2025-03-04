@@ -1,6 +1,7 @@
 package com.litongjava.tio.core;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.CompletionHandler;
 
 import org.slf4j.Logger;
@@ -24,7 +25,7 @@ import com.litongjava.tio.utils.hutool.CollUtil;
  */
 public class ReadCompletionHandler implements CompletionHandler<Integer, VirtualBuffer> {
   private final static boolean DIAGNOSTIC_LOG_ENABLED = EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false);
-  
+
   private static Logger log = LoggerFactory.getLogger(ReadCompletionHandler.class);
   private ChannelContext channelContext = null;
   private DecodeTask decodeTask;
@@ -116,7 +117,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, Virtual
     } else if (result < 0) {
       if (result == -1) {
         String message = "The connection closed by peer";
-        
+
         if (DIAGNOSTIC_LOG_ENABLED) {
           log.info("close {}, because {}", channelContext, message);
         }
@@ -160,6 +161,12 @@ public class ReadCompletionHandler implements CompletionHandler<Integer, Virtual
    */
   @Override
   public void failed(Throwable exc, VirtualBuffer virtualBuffer) {
+    if (exc instanceof ClosedChannelException) {
+      try {
+        virtualBuffer.clean();
+      } catch (Exception e) {
+      }
+    }
     Tio.close(channelContext, exc, "Failed to read data: " + exc.getClass().getName(), CloseCode.READ_ERROR);
   }
 }

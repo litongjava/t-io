@@ -12,6 +12,7 @@ import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
 import com.litongjava.tio.core.WriteCompletionHandler.WriteCompletionVo;
 import com.litongjava.tio.core.stat.IpStat;
+import com.litongjava.tio.core.task.SendPacketTask;
 import com.litongjava.tio.utils.SystemTimer;
 import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.hutool.CollUtil;
@@ -19,9 +20,7 @@ import com.litongjava.tio.utils.hutool.CollUtil;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- *
  * @author tanyaowu
- *
  */
 @Slf4j
 public class WriteCompletionHandler implements CompletionHandler<Integer, WriteCompletionVo> {
@@ -52,7 +51,7 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
   }
 
   @Override
-  
+
   public void completed(Integer bytesWritten, WriteCompletionVo writeCompletionVo) {
     if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
       log.info("write:{},{}", channelContext.getClientNode(), bytesWritten);
@@ -69,11 +68,19 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
     } else {
       handle(bytesWritten, null, writeCompletionVo);
     }
+    processNextPacket(channelContext);
   }
 
   @Override
   public void failed(Throwable throwable, WriteCompletionVo writeCompletionVo) {
     handle(0, throwable, writeCompletionVo);
+    processNextPacket(channelContext);
+  }
+
+  private void processNextPacket(ChannelContext channelContext) {
+    channelContext.isSending.set(false);
+    // 递归处理队列中的下一个包
+    new SendPacketTask(channelContext).processSendQueue();
   }
 
   /**
