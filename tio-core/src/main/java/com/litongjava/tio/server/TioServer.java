@@ -115,7 +115,7 @@ public class TioServer {
       listenAddress = new InetSocketAddress(serverIp, serverPort);
     }
 
-    serverSocketChannel.bind(listenAddress, 2048);
+    serverSocketChannel.bind(listenAddress, serverTioConfig.getBacklog());
 
     AcceptCompletionHandler acceptCompletionHandler = new AcceptCompletionHandler();
     serverSocketChannel.accept(this, acceptCompletionHandler);

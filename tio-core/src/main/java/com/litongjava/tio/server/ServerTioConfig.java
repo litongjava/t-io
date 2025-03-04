@@ -5,9 +5,6 @@ import java.io.InputStream;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.litongjava.model.sys.SysConst;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext;
@@ -26,18 +23,24 @@ import com.litongjava.tio.utils.hutool.CollUtil;
 import com.litongjava.tio.utils.hutool.StrUtil;
 import com.litongjava.tio.utils.lock.SetWithLock;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 
  * @author tanyaowu 2016年10月10日 下午5:51:56
  */
+@Slf4j
 public class ServerTioConfig extends TioConfig {
-  static Logger log = LoggerFactory.getLogger(ServerTioConfig.class);
-  
+
   private ServerAioHandler serverAioHandler = null;
   private ServerAioListener serverAioListener = null;
   private Thread checkHeartbeatThread = null;
   private boolean needCheckHeartbeat = true;
   private boolean isShared = false;
+  /**
+   * 服务端backlog
+   */
+  private int backlog = 1000;
 
   public ServerTioConfig(String name) {
     super(name);
@@ -69,7 +72,6 @@ public class ServerTioConfig extends TioConfig {
     SslConfig sslConfig = SslConfig.forServer(keyStoreInputStream, trustStoreInputStream, passwd);
     this.setSslConfig(sslConfig);
   }
-
 
   /**
    * @see org.tio.core.TioConfig#getAioHandler()
@@ -160,6 +162,14 @@ public class ServerTioConfig extends TioConfig {
 
   public void setServerAioHandler(ServerAioHandler serverAioHandler) {
     this.serverAioHandler = serverAioHandler;
+  }
+
+  public int getBacklog() {
+    return backlog;
+  }
+
+  public void setBacklog(int backlog) {
+    this.backlog = backlog;
   }
 
   public void init() {
