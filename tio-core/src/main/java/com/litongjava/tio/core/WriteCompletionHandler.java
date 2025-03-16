@@ -7,7 +7,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.litongjava.aio.Packet;
-import com.litongjava.aio.Packet.Meta;
+import com.litongjava.aio.PacketMeta;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
 import com.litongjava.tio.core.WriteCompletionHandler.WriteCompletionVo;
@@ -61,9 +61,6 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
       channelContext.stat.latestTimeOfSentByte = SystemTimer.currTime;
     }
     if (writeCompletionVo.byteBuffer.hasRemaining()) {
-      if (log.isInfoEnabled()) {
-        log.info("{} {}/{} has sent", channelContext, writeCompletionVo.byteBuffer.position(), writeCompletionVo.byteBuffer.limit());
-      }
       channelContext.asynchronousSocketChannel.write(writeCompletionVo.byteBuffer, writeCompletionVo, this);
     } else {
       handle(bytesWritten, null, writeCompletionVo);
@@ -146,7 +143,7 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
    * @author tanyaowu
    */
   public void handleOne(Integer result, Throwable throwable, Packet packet, Boolean isSentSuccess) {
-    Meta meta = packet.getMeta();
+    PacketMeta meta = packet.getMeta();
     if (meta != null) {
       meta.setIsSentSuccess(isSentSuccess);
       if (meta.getCountDownLatch() != null) {

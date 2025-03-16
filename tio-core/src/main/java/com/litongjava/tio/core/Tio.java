@@ -1,6 +1,5 @@
 package com.litongjava.tio.core;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -8,11 +7,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.litongjava.aio.Packet;
-import com.litongjava.aio.Packet.Meta;
+import com.litongjava.aio.PacketMeta;
 import com.litongjava.model.func.Converter;
 import com.litongjava.model.page.Page;
 import com.litongjava.tio.client.ClientChannelContext;
@@ -20,7 +16,6 @@ import com.litongjava.tio.client.ClientTioConfig;
 import com.litongjava.tio.client.ReconnConf;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
-import com.litongjava.tio.core.maintain.GlobalIpBlacklist;
 import com.litongjava.tio.core.task.CloseTask;
 import com.litongjava.tio.core.task.SendPacketTask;
 import com.litongjava.tio.server.ServerTioConfig;
@@ -29,109 +24,15 @@ import com.litongjava.tio.utils.lock.ReadLockHandler;
 import com.litongjava.tio.utils.lock.SetWithLock;
 import com.litongjava.tio.utils.page.PageUtils;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * The Class Tio. t-io用户关心的API几乎全在这
- *
  * @author tanyaowu
  */
+@Slf4j
 public class Tio {
   private final static boolean DIAGNOSTIC_LOG_ENABLED = EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false);
-
-  public static class IpBlacklist {
-    /**
-     * 把ip添加到黑名单，此黑名单只针对tioConfig有效，其它tioConfig不会把这个ip视为黑名单
-     * @param tioConfig
-     * @param ip
-     */
-    public static boolean add(TioConfig tioConfig, String ip) {
-      return tioConfig.ipBlacklist.add(ip);
-    }
-
-    /**
-     * 添加全局ip黑名单
-     * @param ip
-     * @return
-     * @author tanyaowu
-     */
-    public static boolean add(String ip) {
-      return GlobalIpBlacklist.INSTANCE.global.add(ip);
-    }
-
-    /**
-     * 清空黑名单，只针对tioConfig有效
-     * @param tioConfig
-     * @author tanyaowu
-     */
-    public static void clear(TioConfig tioConfig) {
-      tioConfig.ipBlacklist.clear();
-    }
-
-    /**
-     * 清空全局黑名单
-     * @author tanyaowu
-     */
-    public static void clear() {
-      GlobalIpBlacklist.INSTANCE.global.clear();
-    }
-
-    /**
-     * 获取ip黑名单列表
-     * @param tioConfig
-     * @return
-     * @author tanyaowu
-     */
-    public static Collection<String> getAll(TioConfig tioConfig) {
-      return tioConfig.ipBlacklist.getAll();
-    }
-
-    /**
-     * 获取全局黑名单
-     * @return
-     * @author tanyaowu
-     */
-    public static Collection<String> getAll() {
-      return GlobalIpBlacklist.INSTANCE.global.getAll();
-    }
-
-    /**
-     * 是否在黑名单中
-     * @param tioConfig
-     * @param ip
-     * @return
-     * @author tanyaowu
-     */
-    public static boolean isInBlacklist(TioConfig tioConfig, String ip) {
-      if (tioConfig.ipBlacklist != null) {
-        return tioConfig.ipBlacklist.isInBlacklist(ip) || GlobalIpBlacklist.INSTANCE.global.isInBlacklist(ip);
-
-      } else {
-        return GlobalIpBlacklist.INSTANCE.global.isInBlacklist(ip);
-      }
-
-    }
-
-    /**
-     * 把ip从黑名单中删除
-     * @param tioConfig
-     * @param ip
-     * @author tanyaowu
-     */
-    public static void remove(TioConfig tioConfig, String ip) {
-      tioConfig.ipBlacklist.remove(ip);
-    }
-
-    /**
-     * 删除全局黑名单
-     * @param ip
-     * @author tanyaowu
-     */
-    public static void remove(String ip) {
-      GlobalIpBlacklist.INSTANCE.global.remove(ip);
-    }
-  }
-
-  /** The log. */
-  private static Logger log = LoggerFactory.getLogger(Tio.class);
 
   /**
    * 绑定业务id
@@ -1169,7 +1070,7 @@ public class Tio {
     boolean isSingleBlock = countDownLatch != null && packetSendMode == PacketSendMode.SINGLE_BLOCK;
 
     if (countDownLatch != null) {
-      Meta meta = new Meta();
+      PacketMeta meta = new PacketMeta();
       meta.setCountDownLatch(countDownLatch);
       packet.setMeta(meta);
     }

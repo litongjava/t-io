@@ -11,10 +11,10 @@ import java.nio.channels.CompletionHandler;
 import com.litongjava.enhance.buffer.VirtualBuffer;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ReadCompletionHandler;
-import com.litongjava.tio.core.Tio.IpBlacklist;
 import com.litongjava.tio.core.pool.BufferPageUtils;
 import com.litongjava.tio.core.ssl.SslUtils;
 import com.litongjava.tio.core.stat.IpStat;
+import com.litongjava.tio.core.utils.IpBlacklistUtils;
 import com.litongjava.tio.utils.SystemTimer;
 import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.hutool.CollUtil;
@@ -77,7 +77,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
     ServerTioConfig serverTioConfig = tioServer.getServerTioConfig();
 
     try {
-      if (IpBlacklist.isInBlacklist(serverTioConfig, clientIp)) {
+      if (IpBlacklistUtils.isInBlacklist(serverTioConfig, clientIp)) {
         log.info("{} on the blacklist, {}", clientIp, serverTioConfig.getName());
         clientSocketChannel.close();
         return;

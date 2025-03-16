@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.litongjava.aio.Packet;
-import com.litongjava.aio.Packet.Meta;
+import com.litongjava.aio.PacketMeta;
 import com.litongjava.tio.core.ssl.SslFacadeContext;
 import com.litongjava.tio.core.stat.ChannelStat;
 import com.litongjava.tio.core.stat.IpStat;
@@ -275,7 +275,7 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
    */
   public void processAfterSent(Packet packet, Boolean isSentSuccess) {
     isSentSuccess = isSentSuccess == null ? false : isSentSuccess;
-    Meta meta = packet.getMeta();
+    PacketMeta meta = packet.getMeta();
     if (meta != null) {
       CountDownLatch countDownLatch = meta.getCountDownLatch();
       // traceBlockPacket(SynPacketAction.BEFORE_DOWN, packet, countDownLatch, null);
@@ -743,7 +743,11 @@ public abstract class ChannelContext extends MapWithLockPropSupport {
     /***
      * 超出最大包长度
      */
-    PACKET_TOO_LARGE((byte) 201);
+    PACKET_TOO_LARGE((byte) 201),
+    /**
+     * 错误
+     */
+    CLOSE_BY_ERROR((byte) 201);
 
     public static CloseCode from(Byte value) {
       CloseCode[] values = CloseCode.values();

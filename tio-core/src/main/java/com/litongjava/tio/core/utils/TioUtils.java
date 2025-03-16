@@ -1,18 +1,18 @@
 package com.litongjava.tio.core.utils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
 import com.litongjava.tio.core.Tio;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 
- * @author tanyaowu 2017年10月19日 上午9:40:54
+ * @author tanyaowu 
+ * 2017年10月19日 上午9:40:54
  */
+@Slf4j
 public class TioUtils {
-  private static Logger log = LoggerFactory.getLogger(TioUtils.class);
 
   public static boolean checkBeforeIO(ChannelContext channelContext) {
     if (channelContext.isWaitingClose) {
