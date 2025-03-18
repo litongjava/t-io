@@ -81,8 +81,10 @@ public class DecodeTask {
           ChannelStat channelStat = channelContext.stat;
           channelStat.decodeFailCount++;
           if (log.isInfoEnabled()) {
-            log.info("{} Failed to decode this time, has failed to decode for {} consecutive times, the length of data involved in decoding is {} bytes.", channelContext, channelStat.decodeFailCount,
-                readableLength);
+            if(channelStat.decodeFailCount>3) {
+              log.info("{} Failed to decode this time, has failed to decode for {} consecutive times, the length of data involved in decoding is {} bytes.", channelContext, channelStat.decodeFailCount,
+                  readableLength);
+            }
           }
           if (channelStat.decodeFailCount > 5) {
             if (channelContext.packetNeededLength == null) {
