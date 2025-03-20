@@ -69,10 +69,10 @@ public class SendPacketTask {
     if (channelContext.isSending.compareAndSet(false, true)) {
       Packet nextPacket = channelContext.sendQueue.poll();
       if (nextPacket != null) {
-        ByteBuffer byteBuffer = getByteBuffer(packet);
+        ByteBuffer byteBuffer = getByteBuffer(nextPacket);
         if (isSsl) {
           if (!packet.isSslEncrypted()) {
-            SslVo sslVo = new SslVo(byteBuffer, packet);
+            SslVo sslVo = new SslVo(byteBuffer, nextPacket);
             try {
               channelContext.sslFacadeContext.getSslFacade().encrypt(sslVo);
               byteBuffer = sslVo.getByteBuffer();
@@ -83,7 +83,7 @@ public class SendPacketTask {
             }
           }
         }
-        sendByteBuffer(byteBuffer, packet);
+        sendByteBuffer(byteBuffer, nextPacket);
       } else {
         channelContext.isSending.set(false);
       }
