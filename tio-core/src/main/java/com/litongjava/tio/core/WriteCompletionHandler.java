@@ -2,8 +2,6 @@ package com.litongjava.tio.core;
 
 import java.nio.channels.CompletionHandler;
 import java.util.List;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 import com.litongjava.aio.Packet;
 import com.litongjava.aio.PacketMeta;
@@ -25,8 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 public class WriteCompletionHandler implements CompletionHandler<Integer, WriteCompletionVo> {
   private final static boolean DIAGNOSTIC_LOG_ENABLED = EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false);
   private ChannelContext channelContext = null;
-  public final ReentrantLock lock = new ReentrantLock();
-  public final Condition condition = lock.newCondition();
+  //public final ReentrantLock lock = new ReentrantLock();
+  //public final Condition condition = lock.newCondition();
 
   public WriteCompletionHandler(ChannelContext channelContext) {
     this.channelContext = channelContext;

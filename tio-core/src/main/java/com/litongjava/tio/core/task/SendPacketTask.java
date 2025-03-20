@@ -11,11 +11,11 @@ import com.litongjava.tio.core.ChannelContext.CloseCode;
 import com.litongjava.tio.core.Tio;
 import com.litongjava.tio.core.TioConfig;
 import com.litongjava.tio.core.WriteCompletionHandler;
-import com.litongjava.tio.core.WriteCompletionHandler.WriteCompletionVo;
 import com.litongjava.tio.core.intf.AioHandler;
 import com.litongjava.tio.core.ssl.SslUtils;
 import com.litongjava.tio.core.ssl.SslVo;
 import com.litongjava.tio.core.utils.TioUtils;
+import com.litongjava.tio.core.vo.WriteCompletionVo;
 import com.litongjava.tio.utils.environment.EnvUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Send data to client
  * @author Tong Li
- *
  */
 @Slf4j
 public class SendPacketTask {
