@@ -1,6 +1,5 @@
 package com.litongjava.tio.core;
 
-import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
@@ -10,9 +9,9 @@ import com.litongjava.aio.Packet;
 import com.litongjava.aio.PacketMeta;
 import com.litongjava.tio.constants.TioCoreConfigKeys;
 import com.litongjava.tio.core.ChannelContext.CloseCode;
-import com.litongjava.tio.core.WriteCompletionHandler.WriteCompletionVo;
 import com.litongjava.tio.core.stat.IpStat;
 import com.litongjava.tio.core.task.SendPacketTask;
+import com.litongjava.tio.core.vo.WriteCompletionVo;
 import com.litongjava.tio.utils.SystemTimer;
 import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.hutool.CollUtil;
@@ -33,25 +32,7 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
     this.channelContext = channelContext;
   }
 
-  public static class WriteCompletionVo {
-    private ByteBuffer byteBuffer = null;
-
-    private Object obj = null;
-
-    /**
-     * @param byteBuffer
-     * @param obj
-     * @author tanyaowu
-     */
-    public WriteCompletionVo(ByteBuffer byteBuffer, Object obj) {
-      super();
-      this.byteBuffer = byteBuffer;
-      this.obj = obj;
-    }
-  }
-
   @Override
-
   public void completed(Integer bytesWritten, WriteCompletionVo writeCompletionVo) {
     if (EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false)) {
       log.info("write:{},{}", channelContext.getClientNode(), bytesWritten);
@@ -60,12 +41,13 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
     if (bytesWritten > 0) {
       channelContext.stat.latestTimeOfSentByte = SystemTimer.currTime;
     }
-    if (writeCompletionVo.byteBuffer.hasRemaining()) {
-      channelContext.asynchronousSocketChannel.write(writeCompletionVo.byteBuffer, writeCompletionVo, this);
+    if (writeCompletionVo.getByteBuffer().hasRemaining()) {
+      channelContext.asynchronousSocketChannel.write(writeCompletionVo.getByteBuffer(), writeCompletionVo, this);
     } else {
       handle(bytesWritten, null, writeCompletionVo);
+      // 只有写完了当前数据包，才处理下一个包
+      processNextPacket(channelContext);
     }
-    processNextPacket(channelContext);
   }
 
   @Override
@@ -89,7 +71,7 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
    */
   public void handle(Integer bytesWritten, Throwable throwable, WriteCompletionVo writeCompletionVo) {
     channelContext.stat.latestTimeOfSentPacket = SystemTimer.currTime;
-    Object attachment = writeCompletionVo.obj;
+    Object attachment = writeCompletionVo.getObj();
     TioConfig tioConfig = channelContext.tioConfig;
     boolean isSentSuccess = bytesWritten > 0;
     if (isSentSuccess) {
