@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DecodeTask {
 
   private final static boolean DIAGNOSTIC_LOG_ENABLED = EnvUtils.getBoolean(TioCoreConfigKeys.TIO_CORE_DIAGNOSTIC, false);
-  
+
   /**
    * 上一次解码剩下的数据
    */
@@ -71,7 +71,7 @@ public class DecodeTask {
           try {
             packet = tioConfig.getAioHandler().decode(byteBuffer, limit, initPosition, readableLength, channelContext);
           } catch (Exception e) {
-            log.error("Failed to decode:{}", channelContext);
+            log.error("Failed to decode:{}", channelContext, e);
           }
         }
 
@@ -81,9 +81,9 @@ public class DecodeTask {
           ChannelStat channelStat = channelContext.stat;
           channelStat.decodeFailCount++;
           if (log.isInfoEnabled()) {
-            if(channelStat.decodeFailCount>3) {
-              log.info("{} Failed to decode this time, has failed to decode for {} consecutive times, the length of data involved in decoding is {} bytes.", channelContext, channelStat.decodeFailCount,
-                  readableLength);
+            if (channelStat.decodeFailCount > 3) {
+              log.info("{} Failed to decode this time, has failed to decode for {} consecutive times, the length of data involved in decoding is {} bytes.", channelContext,
+                  channelStat.decodeFailCount, readableLength);
             }
           }
           if (channelStat.decodeFailCount > 5) {

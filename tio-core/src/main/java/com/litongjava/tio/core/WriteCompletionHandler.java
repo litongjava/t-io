@@ -143,6 +143,5 @@ public class WriteCompletionHandler implements CompletionHandler<Integer, WriteC
       }
       Tio.close(channelContext, msg);
     }
-
   }
 }
